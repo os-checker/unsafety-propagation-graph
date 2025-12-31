@@ -24,17 +24,19 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let local_crate = rustc_public::local_crate();
     for fn_def in local_crate.fn_defs() {
         if let Some(body) = fn_def.body() {
-            _ = writeln!(stdout, "{:?}: ", fn_def.name());
+            _ = writeln!(stdout, "\n{:?}: ", fn_def.name());
             let colloctor = analyze_fn_def::collect(&body);
             for ty in &colloctor.v_ty {
                 _ = writeln!(stdout, "  [ty] {ty:?}");
             }
-            for place in &colloctor.v_place {
+            for val in &colloctor.v_place {
                 _ = writeln!(
                     stdout,
-                    "  [place] {place:?}\n    [ty] {:?}\n    [proj] {:?}",
-                    place.ty(body.locals()).unwrap(),
-                    place.projection
+                    "  [place {}] {:?}\n    [ty] {}\n    [proj] {:?}",
+                    val.place.local,
+                    val.span.diagnostic(),
+                    val.ty(&body),
+                    val.place.projection
                 );
             }
         }
