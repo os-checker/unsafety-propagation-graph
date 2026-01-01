@@ -1,7 +1,6 @@
-use crate::FxIndexMap;
 use crate::info_fn::{Adt, AdtAccess, FnInfo};
-use crate::utils::{SmallVec, ThinVec};
-use rustc_public::ty::FnDef;
+use crate::utils::{FxIndexMap, ThinVec};
+use rustc_public::ty::{FnDef, Ty};
 use rustc_public_bridge::IndexedVal;
 
 pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
@@ -24,12 +23,6 @@ pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> 
 
 #[derive(Debug, Default)]
 pub struct AdtInfo {
-    /// When the adt has nested type parameters, we try to extract all the adts
-    /// from them, e.g. `Result<Struct, Error>` results in three adts `Result`,
-    /// `Struct` and `Error`. Generics will be skipped.
-    /// This helps determin what functions are constructors: if a function returns
-    /// a Result above, it's considered to be a constructors for each adt mentioned.
-    pub flatten_adts: SmallVec<[Adt; 1]>,
     /// The variant access appear in user functions.
     pub map: FxIndexMap<AdtAccess, ThinVec<FnDef>>,
     /// Functions in the form of `fn(...) -> Self`.

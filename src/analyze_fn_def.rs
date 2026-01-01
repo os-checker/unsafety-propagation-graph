@@ -1,3 +1,4 @@
+use crate::utils::ThinVec;
 use rustc_public::{
     CrateDef,
     mir::{
@@ -16,8 +17,8 @@ pub fn collect(body: &Body) -> Collector {
 
 #[derive(Default)]
 pub struct Collector {
-    pub v_ty: Vec<Type>,
-    pub v_place: Vec<Place2>,
+    pub v_ty: ThinVec<Type>,
+    pub v_place: ThinVec<Place2>,
 }
 
 impl MirVisitor for Collector {

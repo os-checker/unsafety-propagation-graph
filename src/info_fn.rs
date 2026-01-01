@@ -1,5 +1,5 @@
 use crate::analyze_fn_def::Collector;
-use crate::{FxIndexMap, FxIndexSet};
+use crate::utils::{FxIndexMap, FxIndexSet, SmallVec};
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{
     CrateDef,
@@ -12,7 +12,13 @@ use std::fmt;
 
 pub struct FnInfo {
     /// The return type.
-    pub return_type: Ty,
+    ///
+    /// When the adt has nested type parameters, we try to extract all the adts
+    /// from them, e.g. `Result<Struct, Error>` results in three adts `Result`,
+    /// `Struct` and `Error`. Generics will be skipped.
+    /// This helps determin what functions are constructors: if a function returns
+    /// a Result above, it's considered to be a constructors for each adt mentioned.
+    pub ret_adts: SmallVec<[Adt; 1]>,
     /// All types and places mentioned in the function.
     pub collector: Collector,
     /// Direct callees in the function. The order is decided by MirVisitor,
@@ -103,6 +109,8 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
         _ => (),
     }
 }
+
+fn flatten_adts(ty: &Ty) -> SmallVec<[Adt; 1]> {}
 
 /// Monomorphized adt.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
