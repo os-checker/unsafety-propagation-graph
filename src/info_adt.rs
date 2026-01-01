@@ -1,21 +1,33 @@
 use crate::info_fn::{Adt, AdtAccess, FnInfo};
 use crate::utils::{FxIndexMap, ThinVec};
-use rustc_public::ty::{FnDef, Ty};
+use rustc_public::ty::FnDef;
 use rustc_public_bridge::IndexedVal;
 
 pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
     let mut map_adt =
         FxIndexMap::<Adt, AdtInfo>::with_capacity_and_hasher(map_fn.len(), Default::default());
 
-    for (fn_def, fn_info) in map_fn {
+    for (&fn_def, fn_info) in map_fn {
+        // Append the fn_def to adt map.
         for (adt, access) in &fn_info.adts {
             let adt_info = map_adt.entry(adt.clone()).or_default();
 
             for acc in access {
                 let v = adt_info.map.entry(acc.clone()).or_default();
-                v.push(*fn_def);
+                v.push(fn_def);
             }
         }
+
+        // Append the constructor for adt.
+        for adt in &fn_info.ret_adts {
+            let adt_info = map_adt.entry(adt.clone()).or_default();
+            adt_info.constructors.push(fn_def);
+        }
+    }
+
+    // Initialize the rest fields.
+    for (adt, info) in &mut map_adt {
+        info.init(adt);
     }
 
     map_adt

@@ -1,6 +1,7 @@
 use crate::analyze_fn_def::Collector;
 use crate::utils::{FxIndexMap, FxIndexSet, SmallVec};
 use rustc_middle::ty::TyCtxt;
+use rustc_public::ty::GenericArgKind;
 use rustc_public::{
     CrateDef,
     mir::{Body, Mutability, ProjectionElem, mono::Instance},
@@ -11,7 +12,7 @@ use rustc_public_bridge::IndexedVal;
 use std::fmt;
 
 pub struct FnInfo {
-    /// The return type.
+    /// The owned return type.
     ///
     /// When the adt has nested type parameters, we try to extract all the adts
     /// from them, e.g. `Result<Struct, Error>` results in three adts `Result`,
@@ -47,10 +48,11 @@ impl FnInfo {
             }
         }
 
-        let return_type = body.ret_local().ty;
+        let mut ret_adts = Default::default();
+        flatten_adts(&body.ret_local().ty, &mut ret_adts);
 
         FnInfo {
-            return_type,
+            ret_adts,
             collector,
             callees,
             adts,
@@ -110,7 +112,33 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
     }
 }
 
-fn flatten_adts(ty: &Ty) -> SmallVec<[Adt; 1]> {}
+/// Owned adt in the type.
+/// FIXME: The implementation is naive at present, because arguments traversal
+/// stops at an explicit reference or raw pointer. That means something like
+/// `struct A<'a, T>(&'a T)` will be incorrectly treated as owned `A` and `T`
+/// when `A` and `T` are concrete/rigid types.
+fn flatten_adts(ty: &Ty, v: &mut SmallVec<[Adt; 1]>) {
+    let TyKind::RigidTy(ty) = ty.kind() else {
+        return;
+    };
+
+    match ty {
+        RigidTy::Adt(def, args) => {
+            v.push(Adt {
+                def,
+                args: args.clone(),
+            });
+            for arg in &args.0 {
+                if let GenericArgKind::Type(ty) = arg {
+                    flatten_adts(ty, v)
+                }
+            }
+        }
+        RigidTy::Array(ty, _) => flatten_adts(&ty, v),
+        RigidTy::Tuple(v_ty) => v_ty.iter().for_each(|ty| flatten_adts(ty, v)),
+        _ => (),
+    }
+}
 
 /// Monomorphized adt.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
