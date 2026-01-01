@@ -87,3 +87,55 @@ fn S::new() -> S {
         Plain,
     },
 }
+{
+    Adt {
+        def: AdtDef(
+            DefId {
+                id: 4,
+                name: "std::string::String",
+            },
+        ),
+        args: GenericArgs(
+            [],
+        ),
+    }: AdtInfo {
+        map: {
+            Plain: [
+                FnDef(
+                    DefId {
+                        id: 0,
+                        name: "a",
+                    },
+                ),
+            ],
+        },
+    },
+    Adt {
+        def: AdtDef(
+            DefId {
+                id: 2,
+                name: "S",
+            },
+        ),
+        args: GenericArgs(
+            [],
+        ),
+    }: AdtInfo {
+        map: {
+            Plain: [
+                FnDef(
+                    DefId {
+                        id: 0,
+                        name: "a",
+                    },
+                ),
+                FnDef(
+                    DefId {
+                        id: 1,
+                        name: "S::new",
+                    },
+                ),
+            ],
+        },
+    },
+}

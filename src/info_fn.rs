@@ -3,13 +3,11 @@ use crate::analyze_fn_def::Collector;
 use rustc_data_structures::fx::{FxIndexMap, FxIndexSet};
 use rustc_public::{
     mir::{Body, Mutability, ProjectionElem, mono::Instance},
-    ty::{AdtDef, FnDef, GenericArgs, RigidTy, Ty, TyKind, VariantIdx},
+    ty::{AdtDef, GenericArgs, RigidTy, Ty, TyKind, VariantIdx},
 };
 use rustc_public_bridge::IndexedVal;
 
 pub struct FnInfo {
-    /// Basic fn info like name, signature, body are queried through def id.
-    pub defid: FnDef,
     /// All types and places mentioned in the function.
     pub collector: Collector,
     /// Direct callees in the function. The order is decided by MirVisitor,
@@ -20,7 +18,7 @@ pub struct FnInfo {
 }
 
 impl FnInfo {
-    pub fn new(defid: FnDef, collector: Collector, body: &Body) -> FnInfo {
+    pub fn new(collector: Collector, body: &Body) -> FnInfo {
         let mut callees = FxIndexSet::default();
         for ty in &collector.v_ty {
             if let RigidTy::FnDef(fn_def, args) = &ty.ty
@@ -39,7 +37,6 @@ impl FnInfo {
         }
 
         FnInfo {
-            defid,
             collector,
             callees,
             adts,
@@ -102,8 +99,8 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
 /// Monomorphized adt.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Adt {
-    def: AdtDef,
-    args: GenericArgs,
+    pub def: AdtDef,
+    pub args: GenericArgs,
 }
 
 /// Reference to rederence to the adt or its field.

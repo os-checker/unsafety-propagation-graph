@@ -12,6 +12,7 @@ use rustc_public::CrateDef;
 use std::ops::ControlFlow;
 
 mod analyze_fn_def;
+mod info_adt;
 mod info_fn;
 
 fn main() {
@@ -26,7 +27,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let local_crate = rustc_public::local_crate();
     let fn_defs = local_crate.fn_defs();
 
-    let mut map_info = FxIndexMap::with_capacity_and_hasher(fn_defs.len(), Default::default());
+    let mut map_fn = FxIndexMap::with_capacity_and_hasher(fn_defs.len(), Default::default());
 
     for fn_def in fn_defs {
         if let Some(body) = fn_def.body() {
@@ -34,10 +35,14 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
             _ = writeln!(stdout, "\n{name}:");
             _ = body.dump(stdout, &name);
             let collector = analyze_fn_def::collect(&body);
-            let finfo = info_fn::FnInfo::new(fn_def, collector, &body);
+            let finfo = info_fn::FnInfo::new(collector, &body);
             _ = writeln!(stdout, "{:#?}\n{:#?}", finfo.callees, &finfo.adts);
-            map_info.insert(fn_def, finfo);
+            map_fn.insert(fn_def, finfo);
         }
     }
+
+    let map_adt = info_adt::adt_info(&map_fn);
+    _ = writeln!(stdout, "{map_adt:#?}");
+
     ControlFlow::Break(())
 }

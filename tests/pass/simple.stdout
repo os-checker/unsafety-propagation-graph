@@ -173,3 +173,88 @@ fn S::write_field(_1: &mut S) -> () {
         MutRef,
     },
 }
+{
+    Adt {
+        def: AdtDef(
+            DefId {
+                id: 5,
+                name: "S",
+            },
+        ),
+        args: GenericArgs(
+            [],
+        ),
+    }: AdtInfo {
+        map: {
+            Ref: [
+                FnDef(
+                    DefId {
+                        id: 0,
+                        name: "S::s_ref",
+                    },
+                ),
+                FnDef(
+                    DefId {
+                        id: 2,
+                        name: "S::field_ref",
+                    },
+                ),
+            ],
+            MutRef: [
+                FnDef(
+                    DefId {
+                        id: 1,
+                        name: "S::s_mut_ref",
+                    },
+                ),
+                FnDef(
+                    DefId {
+                        id: 3,
+                        name: "S::field_mut_ref",
+                    },
+                ),
+                FnDef(
+                    DefId {
+                        id: 4,
+                        name: "S::write_field",
+                    },
+                ),
+            ],
+            DerefVariant(
+                VariantIdx(
+                    0,
+                    ThreadLocalIndex,
+                ),
+            ): [
+                FnDef(
+                    DefId {
+                        id: 4,
+                        name: "S::write_field",
+                    },
+                ),
+            ],
+        },
+    },
+    Adt {
+        def: AdtDef(
+            DefId {
+                id: 7,
+                name: "std::string::String",
+            },
+        ),
+        args: GenericArgs(
+            [],
+        ),
+    }: AdtInfo {
+        map: {
+            Plain: [
+                FnDef(
+                    DefId {
+                        id: 4,
+                        name: "S::write_field",
+                    },
+                ),
+            ],
+        },
+    },
+}
