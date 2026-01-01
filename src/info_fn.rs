@@ -1,5 +1,3 @@
-extern crate rustc_public_bridge;
-
 use crate::analyze_fn_def::Collector;
 use crate::{FxIndexMap, FxIndexSet};
 use rustc_middle::ty::TyCtxt;
@@ -78,9 +76,9 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
                 [ProjectionElem::Field(idx, _), ..] => {
                     let var_idx = VariantIdx::to_val(*idx);
                     let acc = if matches!(mutability, Mutability::Mut) {
-                        AdtAccess::MutRefField(var_idx)
+                        AdtAccess::MutRefVariant(var_idx)
                     } else {
-                        AdtAccess::RefField(var_idx)
+                        AdtAccess::RefVariant(var_idx)
                     };
                     access.insert(acc);
                 }
@@ -128,10 +126,9 @@ pub enum AdtAccess {
     MutRef,
     Deref,
     Plain,
-    RefField(VariantIdx),
-    MutRefField(VariantIdx),
+    RefVariant(VariantIdx),
+    MutRefVariant(VariantIdx),
     DerefVariant(VariantIdx),
-    PlainVariant(VariantIdx),
     Unknown(Box<[ProjectionElem]>),
 }
 
@@ -142,17 +139,13 @@ impl fmt::Debug for AdtAccess {
             Self::MutRef => write!(f, "MutRef"),
             Self::Deref => write!(f, "Deref"),
             Self::Plain => write!(f, "Plain"),
-            Self::RefField(arg0) => f.debug_tuple("RefField").field(&arg0.to_index()).finish(),
-            Self::MutRefField(arg0) => f
-                .debug_tuple("MutRefField")
+            Self::RefVariant(arg0) => f.debug_tuple("RefVariant").field(&arg0.to_index()).finish(),
+            Self::MutRefVariant(arg0) => f
+                .debug_tuple("MutRefVariant")
                 .field(&arg0.to_index())
                 .finish(),
             Self::DerefVariant(arg0) => f
                 .debug_tuple("DerefVariant")
-                .field(&arg0.to_index())
-                .finish(),
-            Self::PlainVariant(arg0) => f
-                .debug_tuple("PlainVariant")
                 .field(&arg0.to_index())
                 .finish(),
             Self::Unknown(arg0) => f
