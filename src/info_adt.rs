@@ -1,5 +1,6 @@
 use crate::FxIndexMap;
 use crate::info_fn::{Adt, AdtAccess, FnInfo};
+use crate::utils::{SmallVec, ThinVec};
 use rustc_public::ty::FnDef;
 use rustc_public_bridge::IndexedVal;
 
@@ -23,10 +24,16 @@ pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> 
 
 #[derive(Debug, Default)]
 pub struct AdtInfo {
+    /// When the adt has nested type parameters, we try to extract all the adts
+    /// from them, e.g. `Result<Struct, Error>` results in three adts `Result`,
+    /// `Struct` and `Error`. Generics will be skipped.
+    /// This helps determin what functions are constructors: if a function returns
+    /// a Result above, it's considered to be a constructors for each adt mentioned.
+    pub flatten_adts: SmallVec<[Adt; 1]>,
     /// The variant access appear in user functions.
-    pub map: FxIndexMap<AdtAccess, Vec<FnDef>>,
+    pub map: FxIndexMap<AdtAccess, ThinVec<FnDef>>,
     /// Functions in the form of `fn(...) -> Self`.
-    pub constructors: Vec<FnDef>,
+    pub constructors: ThinVec<FnDef>,
     /// Functions that access the whole adt.
     pub this: Access,
     /// Functions that access the fields. The slice index corresponds to the field index.
@@ -43,15 +50,19 @@ impl AdtInfo {
         // Backfill access to adt and fields.
         for (access, v_fn) in &self.map {
             match access {
-                AdtAccess::Ref => self.this.read = v_fn.clone(),
-                AdtAccess::MutRef | AdtAccess::Deref => self.this.write.extend(v_fn),
-                AdtAccess::Plain | AdtAccess::Unknown(_) => self.this.other.extend(v_fn),
-                AdtAccess::RefVariant(idx) => self.fields[idx.to_index()].read = v_fn.clone(),
+                AdtAccess::Ref => self.this.read = v_fn.as_slice().into(),
+                AdtAccess::MutRef | AdtAccess::Deref => self.this.write.extend_from_slice(v_fn),
+                AdtAccess::Plain | AdtAccess::Unknown(_) => self.this.other.extend_from_slice(v_fn),
+                AdtAccess::RefVariant(idx) => {
+                    self.fields[idx.to_index()].read = v_fn.as_slice().into()
+                }
                 AdtAccess::MutRefVariant(idx) | AdtAccess::DerefVariant(idx) => {
-                    self.fields[idx.to_index()].write.extend(v_fn);
+                    self.fields[idx.to_index()].write.extend_from_slice(v_fn);
                 }
             }
         }
+
+        // Extract adts from type parameter.
     }
 }
 
@@ -60,9 +71,9 @@ impl AdtInfo {
 pub struct Access {
     /// Functions that only read the place via Ref or RefField.
     /// FIXME: Interior mutability is not handled yet.
-    read: Vec<FnDef>,
+    read: ThinVec<FnDef>,
     /// Functions that can write the place via MutRef, Deref, MutRefField, or DerefVariant.
-    write: Vec<FnDef>,
+    write: ThinVec<FnDef>,
     /// Functions that in other ways access the place, like Plain or Unknown.
-    other: Vec<FnDef>,
+    other: ThinVec<FnDef>,
 }

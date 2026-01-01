@@ -11,6 +11,8 @@ use rustc_public_bridge::IndexedVal;
 use std::fmt;
 
 pub struct FnInfo {
+    /// The return type.
+    pub return_type: Ty,
     /// All types and places mentioned in the function.
     pub collector: Collector,
     /// Direct callees in the function. The order is decided by MirVisitor,
@@ -39,7 +41,10 @@ impl FnInfo {
             }
         }
 
+        let return_type = body.ret_local().ty;
+
         FnInfo {
+            return_type,
             collector,
             callees,
             adts,
