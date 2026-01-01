@@ -5,7 +5,7 @@ use rustc_public::{CrateDef, mir::Body, rustc_internal::internal, ty::FnDef};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub struct OutputFunction {
+pub struct Function {
     pub name: String,
     pub callees: Vec<String>,
     pub adts: FxIndexMap<String, Vec<String>>,
@@ -14,7 +14,7 @@ pub struct OutputFunction {
     pub mir: String,
 }
 
-impl OutputFunction {
+impl Function {
     pub fn new(fn_def: FnDef, info: &FnInfo, body: &Body, tcx: TyCtxt) -> Self {
         let name = fn_def.name();
         let span = &body.span;
@@ -23,7 +23,7 @@ impl OutputFunction {
             _ = body.dump(&mut buf, &name);
             String::from_utf8(buf).unwrap_or_default()
         };
-        OutputFunction {
+        Function {
             name,
             callees: info
                 .callees

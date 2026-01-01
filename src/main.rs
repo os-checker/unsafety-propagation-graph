@@ -40,7 +40,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
             let finfo = info_fn::FnInfo::new(collector, &body);
             // _ = writeln!(stdout, "{:#?}\n{:#?}", finfo.callees, &finfo.adts);
 
-            let out_func = output::OutputFunction::new(fn_def, &finfo, &body, tcx);
+            let out_func = output::Function::new(fn_def, &finfo, &body, tcx);
             serde_json::to_writer_pretty(&mut *stdout, &out_func).unwrap();
             _ = writeln!(stdout);
 
