@@ -5,6 +5,10 @@ struct S {
 }
 
 impl S {
+    fn new(s: String) -> S {
+        S { s }
+    }
+
     fn s_ref(&self) {}
 
     fn s_mut_ref(&mut self) {}
