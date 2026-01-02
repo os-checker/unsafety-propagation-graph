@@ -1,5 +1,5 @@
 use crate::analyze_fn_def::Collector;
-use crate::utils::{FxIndexMap, FxIndexSet, SmallVec};
+use crate::utils::{FxIndexMap, FxIndexSet, SmallVec, ThinVec};
 use rustc_middle::ty::TyCtxt;
 use rustc_public::ty::GenericArgKind;
 use rustc_public::{
@@ -20,6 +20,8 @@ pub struct FnInfo {
     /// This helps determin what functions are constructors: if a function returns
     /// a Result above, it's considered to be a constructors for each adt mentioned.
     pub ret_adts: SmallVec<[Adt; 1]>,
+    /// The number of arguments this function takes.
+    pub arg_count: usize,
     /// All types and places mentioned in the function.
     #[expect(unused)]
     pub collector: Collector,
@@ -27,7 +29,7 @@ pub struct FnInfo {
     /// and called functions is monomorphized.
     pub callees: FxIndexSet<Instance>,
     /// Direct adt places in the function. The adt is monomorphized.
-    pub adts: FxIndexMap<Adt, FxIndexSet<AdtAccess>>,
+    pub adts: FxIndexMap<Adt, LocalsAccess>,
 }
 
 impl FnInfo {
@@ -43,17 +45,25 @@ impl FnInfo {
 
         let mut adts = FxIndexMap::default();
         for place in &collector.v_place {
-            if let Some(local_decl) = body.local_decl(place.place.local) {
-                // println!("[local {}] {:?}", place.place.local, local_decl.ty);
-                push_adt(&local_decl.ty, &place.place.projection, &mut adts);
+            let local_idx = place.place.local;
+            if let Some(local_decl) = body.local_decl(local_idx) {
+                push_adt(
+                    local_idx,
+                    &local_decl.ty,
+                    &place.place.projection,
+                    &mut adts,
+                );
             }
         }
+        // Clean up indices.
+        adts.values_mut().for_each(|l| l.deduplicate_indices());
 
         let mut ret_adts = Default::default();
         flatten_adts(&body.ret_local().ty, &mut ret_adts);
 
         FnInfo {
             ret_adts,
+            arg_count: body.arg_locals().len(),
             collector,
             callees,
             adts,
@@ -62,7 +72,12 @@ impl FnInfo {
 }
 
 /// Add an adt access or adt variant access.
-fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndexSet<AdtAccess>>) {
+fn push_adt(
+    idx: usize,
+    ty: &Ty,
+    proj: &[ProjectionElem],
+    adts: &mut FxIndexMap<Adt, LocalsAccess>,
+) {
     let TyKind::RigidTy(ty) = ty.kind() else {
         return;
     };
@@ -70,14 +85,15 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
     match ty {
         RigidTy::Adt(def, args) => {
             let adt = Adt { def, args };
-            let access = adts.entry(adt).or_default();
+            let local = adts.entry(adt).or_default();
+            local.locals.push(idx);
             match proj {
-                [ProjectionElem::Deref, ProjectionElem::Field(idx, _), ..] => {
-                    access.insert(AdtAccess::DerefVariant(VariantIdx::to_val(*idx)))
-                }
-                [ProjectionElem::Deref] => access.insert(AdtAccess::Deref),
-                [] => access.insert(AdtAccess::Plain),
-                _ => access.insert(AdtAccess::Unknown(proj.into())),
+                [ProjectionElem::Deref, ProjectionElem::Field(idx, _), ..] => local
+                    .access
+                    .insert(AdtAccess::DerefVariant(VariantIdx::to_val(*idx))),
+                [ProjectionElem::Deref] => local.access.insert(AdtAccess::Deref),
+                [] => local.access.insert(AdtAccess::Plain),
+                _ => local.access.insert(AdtAccess::Unknown(proj.into())),
             };
         }
         RigidTy::Ref(_, ref_ty, mutability) => {
@@ -85,7 +101,8 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
                 return;
             };
             let adt = Adt { def, args };
-            let access = adts.entry(adt).or_default();
+            let local = adts.entry(adt).or_default();
+            local.locals.push(idx);
             match proj {
                 [ProjectionElem::Field(idx, _), ..] => {
                     let var_idx = VariantIdx::to_val(*idx);
@@ -94,7 +111,7 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
                     } else {
                         AdtAccess::RefVariant(var_idx)
                     };
-                    access.insert(acc);
+                    local.access.insert(acc);
                 }
                 [] => {
                     let acc = if matches!(mutability, Mutability::Mut) {
@@ -102,13 +119,13 @@ fn push_adt(ty: &Ty, proj: &[ProjectionElem], adts: &mut FxIndexMap<Adt, FxIndex
                     } else {
                         AdtAccess::Ref
                     };
-                    access.insert(acc);
+                    local.access.insert(acc);
                 }
-                _ => push_adt(&ref_ty, proj, adts),
+                _ => push_adt(idx, &ref_ty, proj, adts),
             }
         }
-        RigidTy::Tuple(v) => v.iter().for_each(|ty| push_adt(ty, proj, adts)),
-        RigidTy::Slice(ty) => push_adt(&ty, proj, adts),
+        RigidTy::Tuple(v) => v.iter().for_each(|ty| push_adt(idx, ty, proj, adts)),
+        RigidTy::Slice(ty) => push_adt(idx, &ty, proj, adts),
         _ => (),
     }
 }
@@ -158,6 +175,29 @@ impl Adt {
             &args.print_as_list()
         };
         format!("{adt_name}{args}")
+    }
+}
+
+/// Access to locals including retern place, argument places,
+/// and inner function places.
+#[derive(Debug, Default)]
+pub struct LocalsAccess {
+    /// Local indices. See [`Body::locals`].
+    ///
+    /// 0 means retern place, 1..=arg_count means argument places,
+    /// the rest means inner function places.
+    ///
+    /// [`Body::locals`]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_public/mir/struct.Body.html#structfield.locals
+    pub locals: ThinVec<usize>,
+    pub access: FxIndexSet<AdtAccess>,
+}
+
+impl LocalsAccess {
+    /// Sort and deduplicate indices.
+    fn deduplicate_indices(&mut self) {
+        self.locals.sort_unstable();
+        self.locals.dedup();
+        self.locals.shrink_to_fit();
     }
 }
 

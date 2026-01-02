@@ -41,10 +41,10 @@ impl Function {
             adts: info
                 .adts
                 .iter()
-                .map(|(adt, access)| {
+                .map(|(adt, locals)| {
                     (
                         adt.to_string(tcx),
-                        access.iter().map(|acc| format!("{acc:?}")).collect(),
+                        locals.access.iter().map(|acc| format!("{acc:?}")).collect(),
                     )
                 })
                 .collect(),

@@ -9,11 +9,11 @@ pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> 
 
     for (&fn_def, fn_info) in map_fn {
         // Append the fn_def to adt map.
-        for (adt, access) in &fn_info.adts {
+        for (adt, locals) in &fn_info.adts {
             let adt_info = map_adt.entry(adt.clone()).or_default();
 
-            for acc in access {
-                let v = adt_info.map.entry(acc.clone()).or_default();
+            for access in &locals.access {
+                let v = adt_info.map.entry(access.clone()).or_default();
                 v.push(fn_def);
             }
         }
