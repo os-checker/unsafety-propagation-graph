@@ -3,13 +3,13 @@
     <Flow />
   </div>
   <div :style="codeStyle">
-    <CodeSrc />
-    <CodeMir />
+    <CodeSrc :src="src" />
+    <CodeMarkdown :doc="doc" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useWindowSize } from '@vueuse/core'
+import { useWindowSize } from "@vueuse/core"
 
 const { width, height } = useWindowSize();
 const flowWidthRatio = 0.9;
@@ -21,7 +21,24 @@ const flowStyle = computed(() => ({
 const codeStyle = computed(() => ({
   width: `${width.value * 0.98}px`,
   height: `${height.value * (1 - flowHeightRatio) * 0.9}px`,
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
 }));
+
+const src = `
+async fn main() {
+  spawn().await;
+}`
+
+const doc = `
+# Hello World
+
+This is a *plain* **line**.
+
+\`\`\`rust
+fn main() {
+    let a = String::new();
+}
+\`\`\`
+`;
 </script>
