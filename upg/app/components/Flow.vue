@@ -1,102 +1,50 @@
-<script setup>
-import { ref } from 'vue'
-import { VueFlow } from '@vue-flow/core'
-
-
-// these are our nodes
-const nodes = ref([
-  // an input node, specified by using `type: 'input'`
-  {
-    id: '1',
-    type: 'input',
-    position: { x: 250, y: 5 },
-    // all nodes can have a data object containing any data you want to pass to the node
-    // a label can property can be used for default nodes
-    data: { label: 'Node 1' },
-  },
-
-  // default node, you can omit `type: 'default'` as it's the fallback type
-  {
-    id: '2',
-    position: { x: 100, y: 100 },
-    data: { label: 'Node 2' },
-  },
-
-  // An output node, specified by using `type: 'output'`
-  {
-    id: '3',
-    type: 'output',
-    position: { x: 400, y: 200 },
-    data: { label: 'Node 3' },
-  },
-
-  // this is a custom node
-  // we set it by using a custom type name we choose, in this example `special`
-  // the name can be freely chosen, there are no restrictions as long as it's a string
-  {
-    id: '4',
-    type: 'special', // <-- this is the custom node type name
-    position: { x: 400, y: 200 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
-])
-
-// these are our edges
-const edges = ref([
-  // default bezier edge
-  // consists of an edge id, source node id and target node id
-  {
-    id: 'e1->2',
-    source: '1',
-    target: '2',
-  },
-
-  // set `animated: true` to create an animated edge path
-  {
-    id: 'e2->3',
-    source: '2',
-
-    target: '3',
-    animated: true,
-  },
-
-  // a custom edge, specified by using a custom type name
-  // we choose `type: 'special'` for this example
-  {
-    id: 'e3->4',
-    type: 'special',
-    source: '3',
-    target: '4',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    }
-  },
-])
-</script>
-
 <template>
-  <VueFlow :nodes="nodes" :edges="edges">
-    <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
-    <template #node-special="specialNodeProps">
-      <SpecialNode v-bind="specialNodeProps" />
-    </template>
-
-    <!-- bind your custom edge type to a component by using slots, slot names are always `edge-<type>` -->
-    <template #edge-special="specialEdgeProps">
-      <SpecialEdge v-bind="specialEdgeProps" />
-    </template>
-  </VueFlow>
+  <VueFlow :nodes="data.nodes" :edges="data.edges"></VueFlow>
 </template>
 
-<style>
-/* import the necessary styles for Vue Flow to work */
-@import '@vue-flow/core/dist/style.css';
+<script setup lang="ts">
+import type { Node, Edge } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
 
-/* import the default theme, this is optional but generally recommended */
-@import '@vue-flow/core/dist/theme-default.css';
-</style>
+// const { addNodes, $reset, getNodes } = useVueFlow();
+
+const url = "https://raw.githubusercontent.com/os-checker/unsafety-propogation-graph-data/refs/heads/main/test/demo/function/S%3A%3Awrite_field.json"
+
+type Function = {
+  name: string,
+  safe: boolean,
+  callees: string[],
+  adts: { [key: string]: string[] },
+  span: string,
+  src: string,
+  mir: string
+}
+
+const EMPTY: Function = {
+  name: "", safe: true, callees: [], adts: {}, span: "", src: "", mir: ""
+};
+
+const raw = ref(EMPTY);
+$fetch(url)
+  .then(text => raw.value = JSON.parse(text as string))
+  .catch(err => console.log(err));
+
+const data = computed<{ nodes: Node[], edges: Edge[] }>(() => {
+  const val = raw.value;
+  if (!val.name) return { nodes: [], edges: [] };
+
+  // Add the current function as root node, callees and adts as leaves.
+  const root: Node = { id: val.name, position: { x: 200, y: 100 }, data: { label: val.name } };
+  const callees: Node[] = val.callees.map((callee, idx) => ({ id: `c@${callee}`, type: "input", position: { x: 200 * idx, y: 0 }, label: callee }));
+  const adts: Node[] = Object.keys(val.adts).map((adt, idx) => ({ id: `a@${adt}`, type: "output", position: { x: 200 * idx, y: 200 }, label: adt }));
+  const nodes = [root, ...callees, ...adts];
+
+  let edges: Edge[] = [];
+  // Connect the root with leaves.
+  callees.forEach(leaf => edges.push({ id: `e@${root.id}-${leaf.id}`, source: leaf.id, target: root.id, }));
+  adts.forEach(leaf => edges.push({ id: `e@${root.id}-${leaf.id}`, source: root.id, target: leaf.id, }));
+
+  return { nodes, edges }
+})
+
+</script>
