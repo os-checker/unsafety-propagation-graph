@@ -25,7 +25,7 @@ fn run_mode(dir: &str) {
     compiletest::run_tests(&config);
 }
 
-const RUSTC_DRIVER: &str = "unsafety-propogation-graph";
+const RUSTC_DRIVER: &str = "unsafety-propagation-graph";
 
 static PROFILE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     let current_exe_path = env::current_exe().unwrap();
