@@ -83,12 +83,12 @@ impl AdtInfo {
                     push(&mut self.as_argument.other, &mut self.otherwise.other)
                 }
                 AdtAccess::RefVariantField(idx) => {
-                    if let Some(idx) = idx.field_idx() {
+                    if let Some(idx) = idx.as_field_idx() {
                         self.fields[idx].read = v_fn.iter().map(|f| f.fn_def).collect();
                     }
                 }
                 AdtAccess::MutRefVariantField(idx) | AdtAccess::DerefVariantField(idx) => {
-                    if let Some(idx) = idx.field_idx() {
+                    if let Some(idx) = idx.as_field_idx() {
                         self.fields[idx].write.extend(v_fn.iter().map(|f| f.fn_def));
                     }
                 }

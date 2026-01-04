@@ -190,7 +190,7 @@ impl VaraintFieldIdx {
         self.variant.is_none() & self.field.is_some()
     }
 
-    pub fn field_idx(&self) -> Option<usize> {
+    pub fn as_field_idx(&self) -> Option<usize> {
         if self.variant.is_none()
             && let Some(idx) = self.field
         {
