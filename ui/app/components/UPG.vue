@@ -3,8 +3,14 @@
     <Flow :raw="raw" />
   </div>
   <div :style="codeStyle">
-    <CodeSrc :src="raw.src" />
-    <CodeSrc :src="raw.mir" />
+    <div class="relative">
+      <WidgetSelectPanel v-model="leftPanel" />
+      <CodeSrc :src="raw.src" />
+    </div>
+    <div class="relative">
+      <WidgetSelectPanel v-model="rightPanel" />
+      <CodeSrc :src="raw.mir" />
+    </div>
     <!-- <CodeMarkdown :doc="doc" /> -->
   </div>
 </template>
@@ -13,6 +19,7 @@
 import { useWindowSize } from "@vueuse/core"
 import type { Function } from "~/lib/output"
 import { EMPTY_FUNCTION } from "~/lib/output"
+import { Panel } from "~/lib/panel"
 
 const { width, height } = useWindowSize();
 const flowWidthRatio = 0.9;
@@ -48,4 +55,7 @@ fn main() {
 }
 \`\`\`
 `;
+
+const leftPanel = ref(Panel.Src);
+const rightPanel = ref(Panel.Mir);
 </script>
