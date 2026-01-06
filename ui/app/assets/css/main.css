@@ -24,3 +24,48 @@ html.dark .shiki span {
   text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Disable scrollbars */
+}
+
+.upg {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  height: 100vh;
+  width: 100vw;
+}
+
+.upg-left {
+  height: 100%;
+}
+
+.upg-right {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.upg-right > div {
+  flex: 1 1 auto;
+  max-height: 70%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.upg-panel-header {
+  @apply my-2 mr-2 flex items-center justify-between;
+}
+
+.upg-panel-content {
+  @apply border border-gray-300;
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}

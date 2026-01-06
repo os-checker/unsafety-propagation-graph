@@ -1,12 +1,12 @@
 <template>
-  <div :style="flowStyle">
+  <div class="upg-left">
     <Flow :raw="raw" />
   </div>
-  <div :style="codeStyle">
-    <div class="relative">
+  <div class="upg-right">
+    <div>
       <WidgetSelectPanel v-model="leftPanel" :raw="raw" />
     </div>
-    <div class="relative">
+    <div>
       <WidgetSelectPanel v-model="rightPanel" :raw="raw" />
     </div>
   </div>
@@ -32,7 +32,7 @@ const codeStyle = computed(() => ({
   gridTemplateColumns: "1fr 1fr",
 }));
 
-const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/demo/function/S%3A%3Awrite_field.json"
+const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
 
 const raw = ref<Function>(EMPTY_FUNCTION);
 $fetch(url)
