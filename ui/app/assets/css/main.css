@@ -60,7 +60,7 @@ html, body {
 }
 
 .upg-panel-header {
-  @apply py-2;
+  @apply my-2 mr-2 flex items-center justify-between;
 }
 
 .upg-panel-content {
