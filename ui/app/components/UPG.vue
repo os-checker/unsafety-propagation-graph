@@ -3,10 +3,10 @@
     <Flow :raw="raw" />
   </div>
   <div class="upg-right">
-    <div>
+    <div class="upg-panel">
       <WidgetSelectPanel v-model="leftPanel" :raw="raw" />
     </div>
-    <div>
+    <div class="upg-panel">
       <WidgetSelectPanel v-model="rightPanel" :raw="raw" />
     </div>
   </div>
