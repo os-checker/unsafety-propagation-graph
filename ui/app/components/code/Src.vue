@@ -23,6 +23,5 @@ const renderedHtml = computed(() => {
   white-space: pre-wrap !important;
   word-break: break-all !important;
   overflow-wrap: break-word !important;
-  max-width: 100%;
 }
 </style>
