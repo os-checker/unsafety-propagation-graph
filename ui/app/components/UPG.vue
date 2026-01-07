@@ -1,7 +1,7 @@
 <template>
   <div class="upg-left">
     <WidgetTop v-model:viewSelected="viewSelected" />
-    <Flow :raw="raw" />
+    <Flow :raw="raw" :viewSelected="viewSelected" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
