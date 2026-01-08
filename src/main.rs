@@ -18,6 +18,7 @@ mod adt;
 mod analyze_fn_def;
 mod info_adt;
 mod info_fn;
+mod info_mod;
 mod output;
 
 mod utils;

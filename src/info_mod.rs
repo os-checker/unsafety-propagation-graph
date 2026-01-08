@@ -1,0 +1,208 @@
+use crate::FxIndexMap;
+use rustc_hir::{ImplItemImplKind, ImplItemKind, ItemId, ItemKind, OwnerNode, Ty, def_id::DefId};
+use rustc_middle::ty::{TyCtxt, TyKind};
+use rustc_span::Ident;
+use serde::Serialize;
+
+pub struct FreeItemTree {
+    pub flatten: FlattenFreeItems,
+    pub navi: FxIndexMap<usize, Vec<usize>>,
+}
+
+pub type FlattenFreeItems = Vec<Vec<DefPath>>;
+
+pub fn mod_tree(tcx: TyCtxt) -> FreeItemTree {
+    let mut v_path = FlattenFreeItems::new();
+    for item_id in tcx.hir_free_items() {
+        let item = tcx.hir_item(item_id);
+        match &item.kind {
+            ItemKind::Fn { ident, .. } => {
+                push_plain_item_path(DefPathKind::Fn, ident, &item_id, tcx, &mut v_path);
+            }
+            ItemKind::Struct(ident, ..) => {
+                push_plain_item_path(DefPathKind::Struct, ident, &item_id, tcx, &mut v_path);
+            }
+            ItemKind::Enum(ident, ..) => {
+                push_plain_item_path(DefPathKind::Enum, ident, &item_id, tcx, &mut v_path);
+            }
+            ItemKind::Union(ident, ..) => {
+                push_plain_item_path(DefPathKind::Union, ident, &item_id, tcx, &mut v_path);
+            }
+            ItemKind::Trait(_, _, _, ident, ..) => {
+                push_plain_item_path(DefPathKind::TraitDecl, ident, &item_id, tcx, &mut v_path);
+            }
+            ItemKind::Impl(imp) => {
+                for id in imp.items {
+                    let assoc = tcx.hir_impl_item(*id);
+                    if matches!(assoc.kind, ImplItemKind::Fn(..)) {
+                        let mut implementor_path = DefPath::from_ty(imp.self_ty, tcx);
+                        let fn_name = assoc.ident.as_str();
+                        match assoc.impl_kind {
+                            ImplItemImplKind::Inherent { .. } => {
+                                implementor_path.push(DefPath::new_assoc_fn(fn_name));
+                            }
+                            ImplItemImplKind::Trait {
+                                trait_item_def_id, ..
+                            } => {
+                                if let Ok(did) = trait_item_def_id {
+                                    let trait_name = tcx.def_path_str(did);
+                                    implementor_path.push(DefPath::new_impl_trait(trait_name));
+                                    implementor_path.push(DefPath::new_assoc_fn(fn_name));
+                                }
+                            }
+                        }
+                        v_path.push(implementor_path);
+                    }
+                }
+            }
+            _ => (),
+        }
+    }
+
+    FreeItemTree {
+        flatten: v_path,
+        navi: Default::default(),
+    }
+}
+
+fn push_plain_item_path(
+    kind: DefPathKind,
+    ident: &Ident,
+    item_id: &ItemId,
+    tcx: TyCtxt,
+    v_path: &mut Vec<Vec<DefPath>>,
+) {
+    let mut path = vec![DefPath::new(kind, ident.as_str())];
+    push_parent_paths(&mut path, &item_id, tcx);
+    v_path.push(path);
+}
+
+fn push_parent_paths(path: &mut Vec<DefPath>, item_id: &ItemId, tcx: TyCtxt) {
+    for (_, owner_node) in tcx.hir_parent_owner_iter(item_id.hir_id()) {
+        if let OwnerNode::Item(owner_item) = owner_node
+            && let ItemKind::Mod(mod_ident, _) = owner_item.kind
+        {
+            path.push(DefPath::new_mod(mod_ident.as_str()));
+        }
+    }
+    path.reverse();
+}
+
+#[derive(Debug, Serialize)]
+pub struct DefPath {
+    pub kind: DefPathKind,
+    pub name: Box<str>,
+}
+
+impl DefPath {
+    pub fn new<S: Into<Box<str>>>(kind: DefPathKind, name: S) -> Self {
+        Self {
+            kind,
+            name: name.into(),
+        }
+    }
+
+    pub fn from_ty(ty: &Ty, tcx: TyCtxt) -> Vec<Self> {
+        let hir_id = ty.hir_id;
+        let typeck = tcx.typeck(hir_id.owner.def_id);
+        let typ = typeck.node_type(hir_id);
+        if let TyKind::Adt(def, _) = typ.kind() {
+            def_path(def.did(), tcx)
+        } else {
+            vec![Self::new(DefPathKind::SelfTy, typ.to_string())]
+        }
+    }
+
+    pub fn new_mod(name: &str) -> Self {
+        Self::new(DefPathKind::Mod, name)
+    }
+
+    // pub fn new_fn(name: &str) -> Self {
+    //     Self::new(DefPathKind::Fn, name.into())
+    // }
+
+    pub fn new_assoc_fn(name: &str) -> Self {
+        Self::new(DefPathKind::AssocFn, name)
+    }
+
+    // pub fn new_struct(name: &str) -> Self {
+    //     Self::new(DefPathKind::Struct, name.into())
+    // }
+    //
+    // pub fn new_enum(name: &str) -> Self {
+    //     Self::new(DefPathKind::Enum, name.into())
+    // }
+    //
+    // pub fn new_union(name: &str) -> Self {
+    //     Self::new(DefPathKind::Union, name.into())
+    // }
+    //
+    // pub fn new_trait_decl(name: &str) -> Self {
+    //     Self::new(DefPathKind::TraitDecl, name.into())
+    // }
+
+    pub fn new_impl_trait<S: Into<Box<str>>>(name: S) -> Self {
+        Self::new(DefPathKind::ImplTrait, name.into())
+    }
+}
+
+/// ADT path can be `[Mod, Adt]` where Adt is one of Struct, Enum, and Union.
+///
+/// Function path is a tricky, because there are cases like
+/// * `[Mod, Fn]` for a free function.
+/// * `[Mod, Struct, AssocFn]` for an inherent function.
+/// * `[Mod, Struct, ImplTrait, AssocFn]` for a trait function.
+/// * `[Mod, TraitDecl, AssocFn]` for a trait function definition.
+/// * `[SelfTy, AssocFn]` for an unusual associated function like `impl &Adt`.
+/// * `[SelfTy, ImplTrait, AssocFn]` for an unusual trait function like `impl Trait for &Adt`,
+///   `impl Trait for (Adt1, Adt2)`, `impl<T> Trait for T`, or even `impl<T: Trait> Trait for T::U`.
+#[derive(Debug, Serialize)]
+pub enum DefPathKind {
+    Mod,
+    Fn,
+    AssocFn,
+    Struct,
+    Enum,
+    Union,
+    TraitDecl,
+    SelfTy,
+    ImplTrait,
+}
+
+fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
+    use rustc_hir::{def::DefKind, definitions::DefPathData};
+
+    let default = || vec![DefPath::new(DefPathKind::SelfTy, tcx.def_path_str(did))];
+
+    let def_kind = tcx.def_kind(did);
+    let def_path_kind = match def_kind {
+        DefKind::Struct => DefPathKind::Struct,
+        DefKind::Enum => DefPathKind::Enum,
+        DefKind::Union => DefPathKind::Union,
+        DefKind::Trait => DefPathKind::TraitDecl,
+        _ => return default(),
+    };
+
+    if let Some((_, kind)) = tcx.assoc_parent(did) {
+        assert!(
+            matches!(kind, DefKind::Mod),
+            "We suppose FnDef {did:?} to be an accessible fn item from module path"
+        );
+        let mut v_path = Vec::new();
+        let mod_path = tcx.def_path(did);
+        let crate_name = tcx.crate_name(mod_path.krate);
+        v_path.push(DefPath::new(DefPathKind::Mod, crate_name.as_str()));
+        for data in &mod_path.data {
+            if let DefPathData::TypeNs(sym) = data.data {
+                v_path.push(DefPath::new(DefPathKind::Mod, sym.as_str()));
+            } else {
+                unimplemented!("{data:?} is not a type namespace, check out {did:?}")
+            }
+        }
+
+        let last_path_seg = v_path.last_mut().unwrap();
+        last_path_seg.kind = def_path_kind;
+    }
+
+    default()
+}
