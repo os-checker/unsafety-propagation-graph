@@ -1,10 +1,9 @@
-use std::mem;
-
 use crate::FxIndexMap;
 use rustc_hir::{ImplItemImplKind, ImplItemKind, ItemId, ItemKind, OwnerNode, Ty, def_id::DefId};
 use rustc_middle::ty::{TyCtxt, TyKind};
 use rustc_span::Ident;
 use serde::Serialize;
+use std::mem;
 
 #[derive(Debug, Serialize)]
 pub struct Navigation {
@@ -16,7 +15,7 @@ pub type ItemPath = Vec<DefPath>;
 pub type FlattenFreeItems = Vec<ItemPath>;
 pub type Navi = FxIndexMap<usize, Vec<usize>>;
 
-fn to_navi(v_path: &mut FlattenFreeItems, tcx: TyCtxt) -> Navi {
+fn to_navi(v_path: &mut FlattenFreeItems, crate_root: &DefPath) -> Navi {
     #[derive(Debug, Default)]
     struct Meta {
         parent_paths: FxIndexMap<DefPathKind, ItemPath>,
@@ -27,14 +26,13 @@ fn to_navi(v_path: &mut FlattenFreeItems, tcx: TyCtxt) -> Navi {
         Default::default(),
     );
     // Add root module path.
-    let crate_root = DefPath::crate_root(tcx);
     map_paths.insert(vec![crate_root.clone()], Default::default());
 
     // Collect mod paths and move all paths to the map.
     // The idx will be backfilled once v_path is sorted, so 0 is fake here.
     for free_item in mem::take(v_path) {
         assert_eq!(
-            free_item[0], crate_root,
+            &free_item[0], crate_root,
             "{free_item:?} must start from {crate_root:?}"
         );
 
@@ -100,6 +98,7 @@ fn to_navi(v_path: &mut FlattenFreeItems, tcx: TyCtxt) -> Navi {
 
 pub fn mod_tree(tcx: TyCtxt) -> Navigation {
     let mut v_path = FlattenFreeItems::new();
+    let crate_root = DefPath::crate_root(tcx);
 
     // Free items: those items may be inaccesible from user's perspective,
     // and item paths are as per source code definitions.
@@ -107,19 +106,54 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
         let item = tcx.hir_item(item_id);
         match &item.kind {
             ItemKind::Fn { ident, .. } => {
-                push_plain_item_path(DefPathKind::Fn, ident, &item_id, tcx, &mut v_path);
+                push_plain_item_path(
+                    DefPathKind::Fn,
+                    ident,
+                    &item_id,
+                    tcx,
+                    &mut v_path,
+                    &crate_root,
+                );
             }
             ItemKind::Struct(ident, ..) => {
-                push_plain_item_path(DefPathKind::Struct, ident, &item_id, tcx, &mut v_path);
+                push_plain_item_path(
+                    DefPathKind::Struct,
+                    ident,
+                    &item_id,
+                    tcx,
+                    &mut v_path,
+                    &crate_root,
+                );
             }
             ItemKind::Enum(ident, ..) => {
-                push_plain_item_path(DefPathKind::Enum, ident, &item_id, tcx, &mut v_path);
+                push_plain_item_path(
+                    DefPathKind::Enum,
+                    ident,
+                    &item_id,
+                    tcx,
+                    &mut v_path,
+                    &crate_root,
+                );
             }
             ItemKind::Union(ident, ..) => {
-                push_plain_item_path(DefPathKind::Union, ident, &item_id, tcx, &mut v_path);
+                push_plain_item_path(
+                    DefPathKind::Union,
+                    ident,
+                    &item_id,
+                    tcx,
+                    &mut v_path,
+                    &crate_root,
+                );
             }
             ItemKind::Trait(_, _, _, ident, ..) => {
-                push_plain_item_path(DefPathKind::TraitDecl, ident, &item_id, tcx, &mut v_path);
+                push_plain_item_path(
+                    DefPathKind::TraitDecl,
+                    ident,
+                    &item_id,
+                    tcx,
+                    &mut v_path,
+                    &crate_root,
+                );
             }
             ItemKind::Impl(imp) => {
                 for id in imp.items {
@@ -152,7 +186,7 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
         }
     }
 
-    let navi = to_navi(&mut v_path, tcx);
+    let navi = to_navi(&mut v_path, &crate_root);
     Navigation {
         flatten: v_path,
         navi,
@@ -165,13 +199,14 @@ fn push_plain_item_path(
     item_id: &ItemId,
     tcx: TyCtxt,
     v_path: &mut Vec<Vec<DefPath>>,
+    crate_root: &DefPath,
 ) {
     let mut path = vec![DefPath::new(kind, ident.as_str())];
-    push_parent_paths(&mut path, item_id, tcx);
+    push_parent_paths(&mut path, item_id, tcx, crate_root);
     v_path.push(path);
 }
 
-fn push_parent_paths(path: &mut Vec<DefPath>, item_id: &ItemId, tcx: TyCtxt) {
+fn push_parent_paths(path: &mut Vec<DefPath>, item_id: &ItemId, tcx: TyCtxt, crate_root: &DefPath) {
     for (_, owner_node) in tcx.hir_parent_owner_iter(item_id.hir_id()) {
         match owner_node {
             OwnerNode::Item(owner_item) => {
@@ -179,7 +214,7 @@ fn push_parent_paths(path: &mut Vec<DefPath>, item_id: &ItemId, tcx: TyCtxt) {
                     path.push(DefPath::new(DefPathKind::Mod, mod_ident.as_str()));
                 }
             }
-            OwnerNode::Crate(_) => path.push(DefPath::crate_root(tcx)),
+            OwnerNode::Crate(_) => path.push(crate_root.clone()),
             _ => (),
         }
     }
