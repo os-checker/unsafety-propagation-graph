@@ -1,6 +1,6 @@
 <template>
   <div class="upg-left">
-    <WidgetTop v-model:viewSelected="viewSelected" />
+    <WidgetTopBar v-model:viewSelected="viewSelected" />
     <Flow :raw="raw" :viewSelected="viewSelected" />
   </div>
   <div class="upg-right">
