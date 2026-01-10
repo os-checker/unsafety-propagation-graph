@@ -61,4 +61,5 @@ export type Navigation = {
   data: ItemPath[],
   navi: { [key: number]: number[] },
   name_to_path: { [key: string]: number },
+  path_to_name: { [key: number]: string },
 }

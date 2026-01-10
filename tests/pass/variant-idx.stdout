@@ -427,5 +427,14 @@
     "variant_idx::E::mutate_plain": 7,
     "variant_idx::S": 1,
     "variant_idx::E": 4
+  },
+  "path_to_name": {
+    "3": "variant_idx::S::mutate_a",
+    "2": "variant_idx::S::mutate",
+    "5": "variant_idx::E::mutate1",
+    "6": "variant_idx::E::mutate2",
+    "7": "variant_idx::E::mutate_plain",
+    "1": "variant_idx::S",
+    "4": "variant_idx::E"
   }
 }

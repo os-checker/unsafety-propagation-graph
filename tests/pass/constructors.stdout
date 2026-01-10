@@ -183,5 +183,10 @@
     "constructors::S": 2,
     "constructors::a": 1,
     "constructors::S::new": 3
+  },
+  "path_to_name": {
+    "2": "constructors::S",
+    "1": "constructors::a",
+    "3": "constructors::S::new"
   }
 }

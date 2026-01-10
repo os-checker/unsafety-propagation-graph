@@ -9,7 +9,10 @@ use std::mem;
 pub struct Navigation {
     pub data: FlattenFreeItems,
     pub navi: Navi,
+    /// local `tcx.def_path_str` => local `Vec<DefPath>`
     pub name_to_path: FxIndexMap<String, usize>,
+    ///  local `Vec<DefPath>` => local `tcx.def_path_str`
+    pub path_to_name: FxIndexMap<usize, String>,
 }
 
 impl Navigation {
@@ -222,10 +225,15 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
     }
 
     let (navi, name_to_path) = to_navi(&mut v_path, &crate_root, map_name_to_path);
+    let path_to_name = name_to_path
+        .iter()
+        .map(|(name, path_idx)| (*path_idx, name.clone()))
+        .collect();
     Navigation {
         data: v_path,
         navi,
         name_to_path,
+        path_to_name,
     }
 }
 

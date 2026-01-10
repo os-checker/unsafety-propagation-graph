@@ -198,5 +198,10 @@
     "plain_places::main": 1,
     "plain_places::S": 2,
     "plain_places::E": 3
+  },
+  "path_to_name": {
+    "1": "plain_places::main",
+    "2": "plain_places::S",
+    "3": "plain_places::E"
   }
 }

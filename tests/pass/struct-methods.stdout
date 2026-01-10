@@ -363,5 +363,14 @@
     "struct_methods::S::field_ref": 3,
     "struct_methods::S::field_mut_ref": 2,
     "struct_methods::S::write_field": 7
+  },
+  "path_to_name": {
+    "1": "struct_methods::S",
+    "4": "struct_methods::S::new",
+    "6": "struct_methods::S::s_ref",
+    "5": "struct_methods::S::s_mut_ref",
+    "3": "struct_methods::S::field_ref",
+    "2": "struct_methods::S::field_mut_ref",
+    "7": "struct_methods::S::write_field"
   }
 }

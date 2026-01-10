@@ -77,5 +77,9 @@
   "name_to_path": {
     "free_functions::a": 1,
     "free_functions::b": 2
+  },
+  "path_to_name": {
+    "1": "free_functions::a",
+    "2": "free_functions::b"
   }
 }

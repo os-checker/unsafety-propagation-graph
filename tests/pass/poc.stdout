@@ -537,5 +537,12 @@
     "poc::SecretRegion::set_len": 4,
     "poc::SecretRegion::xor_secret_region": 5,
     "poc::f": 1
+  },
+  "path_to_name": {
+    "2": "poc::SecretRegion",
+    "3": "poc::SecretRegion::from",
+    "4": "poc::SecretRegion::set_len",
+    "5": "poc::SecretRegion::xor_secret_region",
+    "1": "poc::f"
   }
 }
