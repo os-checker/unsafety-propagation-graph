@@ -26,7 +26,7 @@ pub struct Function {
     pub safe: bool,
     pub callees: Vec<String>,
     pub adts: FxIndexMap<String, Vec<String>>,
-    pub path: Vec<String>,
+    pub path: OutputPath,
     pub span: String,
     pub src: String,
     pub mir: String,
@@ -200,12 +200,21 @@ fn v_fn_name(v: &[FnDef]) -> Vec<String> {
     v.iter().map(|c| c.name()).collect()
 }
 
-fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> Vec<String> {
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum OutputPath {
+    Local(usize),
+    External(Box<str>),
+}
+
+fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
     let did = internal(tcx, def_id);
     let def_path_str = tcx.def_path_str(did);
-    let def_path_str = format!("{}::{def_path_str}", navi.crate_root());
-    navi.name_to_path(&def_path_str)
-        .unwrap_or_else(|| vec![def_path_str])
+    let def_path_str_maybe_local = format!("{}::{def_path_str}", navi.crate_root());
+    match navi.name_to_path_idx(&def_path_str_maybe_local) {
+        Some(idx) => OutputPath::Local(idx),
+        None => OutputPath::External(def_path_str.into()),
+    }
 }
 
 /// Span to string and source code.

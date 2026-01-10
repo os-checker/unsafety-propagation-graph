@@ -4,6 +4,7 @@ export type Function = {
   safe: boolean,
   callees: string[],
   adts: { [key: string]: string[] },
+  path: number | string,
   span: string,
   src: string,
   mir: string,
@@ -37,7 +38,7 @@ export enum TagType {
 }
 
 export const EMPTY_FUNCTION: Function = {
-  name: "", safe: true, callees: [], adts: {}, span: "",
+  name: "", safe: true, callees: [], adts: {}, path: "", span: "",
   src: "", mir: "", doc: "", tags: { tags: [], spec: {}, docs: [] },
 };
 

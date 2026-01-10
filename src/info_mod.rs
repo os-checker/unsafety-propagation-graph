@@ -16,9 +16,8 @@ pub struct Navigation {
 }
 
 impl Navigation {
-    pub fn name_to_path(&self, def_path_str: &str) -> Option<Vec<String>> {
-        let idx = *self.name_to_path.get(def_path_str)?;
-        Some(self.data[idx].iter().map(|p| p.name.to_string()).collect())
+    pub fn name_to_path_idx(&self, def_path_str: &str) -> Option<usize> {
+        self.name_to_path.get(def_path_str).copied()
     }
 
     pub fn crate_root(&self) -> &str {
