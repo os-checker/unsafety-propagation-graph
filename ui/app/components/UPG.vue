@@ -47,7 +47,7 @@ watch(url, val => {
   $fetch(val)
     .then(text => raw.value = JSON.parse(text as string))
     .catch(err => console.log(err));
-})
+}, { immediate: true });
 
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Mir);
