@@ -2,6 +2,7 @@ use crate::{
     adt::Adt as RawAdt,
     info_adt::{Access as RawAccess, AdtInfo},
     info_fn::FnInfo,
+    info_mod::Navigation,
     utils::FxIndexMap,
 };
 use rustc_middle::ty::TyCtxt;
@@ -12,6 +13,10 @@ use rustc_public::{
     ty::{FnDef, Span},
 };
 use rustc_span::def_id::DefId as IDefId;
+use safety_parser::{
+    configuration::Tag as TagSpec,
+    safety::{PropertiesAndReason, Property},
+};
 use serde::Serialize;
 use std::{fs, io, path::PathBuf};
 
@@ -21,14 +26,16 @@ pub struct Function {
     pub safe: bool,
     pub callees: Vec<String>,
     pub adts: FxIndexMap<String, Vec<String>>,
+    pub path: OutputPath,
     pub span: String,
     pub src: String,
     pub mir: String,
     pub doc: String,
+    pub tags: Tags,
 }
 
 impl Function {
-    pub fn new(fn_def: FnDef, info: &FnInfo, body: &Body, tcx: TyCtxt) -> Self {
+    pub fn new(fn_def: FnDef, info: &FnInfo, body: &Body, tcx: TyCtxt, navi: &Navigation) -> Self {
         let name = fn_def.name();
         let [span, src] = span_to_src(body.span, tcx);
         let mir = {
@@ -54,10 +61,12 @@ impl Function {
                     )
                 })
                 .collect(),
+            path: def_path(fn_def.def_id(), tcx, navi),
             span,
             src,
             mir,
             doc: doc_string(fn_def.def_id(), tcx),
+            tags: Tags::new(&info.v_sp),
         }
     }
 
@@ -161,8 +170,51 @@ pub struct VariantField {
     pub doc: String,
 }
 
+#[derive(Debug, Default, Serialize)]
+pub struct Tags {
+    pub tags: Vec<Property>,
+    pub spec: FxIndexMap<String, TagSpec>,
+    pub docs: Vec<Box<str>>,
+}
+
+impl Tags {
+    pub fn new(v_sp: &[PropertiesAndReason]) -> Self {
+        let mut this = Self::default();
+        for sp in v_sp {
+            this.docs.push(sp.gen_hover_doc());
+            this.tags.extend_from_slice(&sp.tags);
+            for tag in &sp.tags {
+                let name = tag.tag.name();
+                if let Some(spec) = tag.tag.get_spec()
+                    && this.spec.get(name).is_none()
+                {
+                    this.spec.insert(name.to_owned(), spec.clone());
+                }
+            }
+        }
+        this
+    }
+}
+
 fn v_fn_name(v: &[FnDef]) -> Vec<String> {
     v.iter().map(|c| c.name()).collect()
+}
+
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum OutputPath {
+    Local(usize),
+    External(Box<str>),
+}
+
+fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
+    let did = internal(tcx, def_id);
+    let def_path_str = tcx.def_path_str(did);
+    let def_path_str_maybe_local = format!("{}::{def_path_str}", navi.crate_root());
+    match navi.name_to_path_idx(&def_path_str_maybe_local) {
+        Some(idx) => OutputPath::Local(idx),
+        None => OutputPath::External(def_path_str.into()),
+    }
 }
 
 /// Span to string and source code.
@@ -216,7 +268,7 @@ impl Writer {
         }
     }
 
-    fn dump_json(&self, parent: &str, fname_stem: &str, data: &impl Serialize) {
+    pub fn dump_json(&self, parent: &str, fname_stem: &str, data: &impl Serialize) {
         match self {
             Writer::BaseDir(dir) => {
                 let parent = dir.join(parent);

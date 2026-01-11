@@ -1,5 +1,6 @@
 #![feature(rustc_private)]
 
+extern crate itertools;
 extern crate rustc_abi;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
@@ -11,16 +12,18 @@ extern crate rustc_public_bridge;
 extern crate rustc_span;
 
 use rustc_middle::ty::TyCtxt;
+use rustc_public::CrateDef;
 use std::ops::ControlFlow;
 
 mod adt;
 mod analyze_fn_def;
 mod info_adt;
 mod info_fn;
+mod info_mod;
 mod output;
 
 mod utils;
-pub use utils::{FxIndexMap, FxIndexSet};
+pub use utils::{FxIndexMap, FxIndexSet, ThinVec};
 
 fn main() {
     let rustc_args: Vec<_> = std::env::args().collect();
@@ -31,16 +34,26 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let local_crate = rustc_public::local_crate();
     let fn_defs = local_crate.fn_defs();
 
+    let navi = info_mod::mod_tree(tcx);
+
     let mut cache_adt = Default::default();
     let writer = output::Writer::new(&local_crate.name);
     let mut map_fn = FxIndexMap::with_capacity_and_hasher(fn_defs.len(), Default::default());
 
     for fn_def in fn_defs {
         if let Some(body) = fn_def.body() {
-            let collector = analyze_fn_def::collect(&body);
-            let finfo = info_fn::FnInfo::new(collector, &body, &mut cache_adt);
+            let v_sp: ThinVec<_> = fn_def
+                .all_tool_attrs()
+                .iter()
+                .flat_map(|attr| {
+                    safety_parser::safety::parse_attr_and_get_properties(attr.as_str())
+                })
+                .collect();
 
-            let out_func = output::Function::new(fn_def, &finfo, &body, tcx);
+            let collector = analyze_fn_def::collect(&body);
+            let finfo = info_fn::FnInfo::new(collector, &body, v_sp, &mut cache_adt);
+
+            let out_func = output::Function::new(fn_def, &finfo, &body, tcx, &navi);
             out_func.dump(&writer);
 
             map_fn.insert(fn_def, finfo);
@@ -52,6 +65,8 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
         let out_adt = output::Adt::new(adt, adt_info, tcx);
         out_adt.dump(&writer);
     }
+
+    writer.dump_json("navi", "navi", &navi);
 
     ControlFlow::Break(())
 }

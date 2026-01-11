@@ -1,6 +1,6 @@
 <template>
   <div class="upg-left">
-    <WidgetTop v-model:viewSelected="viewSelected" />
+    <WidgetTopBar v-model:viewSelected="viewSelected" v-model:itemName="itemName" />
     <Flow :raw="raw" :viewSelected="viewSelected" />
   </div>
   <div class="upg-right">
@@ -17,16 +17,37 @@
 import type { Function } from "~/lib/output"
 import { EMPTY_FUNCTION } from "~/lib/output"
 import { Panel } from "~/lib/panel"
-import { ALL_VIEW_TYPES, ViewType } from "~/lib/topbar";
+import { ALL_VIEW_TYPES, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
 
 const viewSelected = ref<ViewType[]>(ALL_VIEW_TYPES);
+const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "poc::f", kind: DefPathKind.Fn });
 
-const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
+// const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
+function getFunctionUrl(name: string, kind: DefPathKind): string | undefined {
+  // name must be `{crate_name}::{func_name}`
+  const pat = /(\w+)::(.*)/;
+  const matched = name.match(pat);
+  if (!matched) return undefined;
+  const crate = matched[1];
+  const fn = matched[2];
+  const k = urlKind(kind);
+  return (crate && fn) ?
+    `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/${crate}/${k}/${fn}.json` :
+    undefined;
+}
+
+const url = computed<string>(() => {
+  const { name, kind } = itemName.value;
+  return getFunctionUrl(name, kind) ?? "";
+});
 
 const raw = ref<Function>(EMPTY_FUNCTION);
-$fetch(url)
-  .then(text => raw.value = JSON.parse(text as string))
-  .catch(err => console.log(err));
+watch(url, val => {
+  if (!val) return;
+  $fetch(val)
+    .then(text => raw.value = JSON.parse(text as string))
+    .catch(err => console.log(err));
+}, { immediate: true });
 
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Mir);

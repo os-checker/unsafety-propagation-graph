@@ -11,10 +11,16 @@
       "Plain"
     ]
   },
+  "path": 4,
   "span": "$DIR/struct-methods.rs:13:5: 15:6",
   "src": "fn new(s: String) -> S {/n        S { s }/n    }",
   "mir": "fn S::new(_1: std::string::String) -> S {/n    let mut _0: S;/n    debug s => _1;/n    bb0: {/n        _0 = S(_1);/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -26,10 +32,16 @@
       "Ref"
     ]
   },
+  "path": 6,
   "span": "$DIR/struct-methods.rs:17:5: 17:23",
   "src": "fn s_ref(&self) {}",
   "mir": "fn S::s_ref(_1: &S) -> () {/n    let mut _0: ();/n    debug self => _1;/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -41,10 +53,16 @@
       "MutRef"
     ]
   },
+  "path": 5,
   "span": "$DIR/struct-methods.rs:19:5: 19:31",
   "src": "fn s_mut_ref(&mut self) {}",
   "mir": "fn S::s_mut_ref(_1: &mut S) -> () {/n    let mut _0: ();/n    debug self => _1;/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -56,10 +74,16 @@
       "Ref"
     ]
   },
+  "path": 3,
   "span": "$DIR/struct-methods.rs:21:5: 23:6",
   "src": "fn field_ref(&self) {/n        _ = &self.s;/n    }",
   "mir": "fn S::field_ref(_1: &S) -> () {/n    let mut _0: ();/n    debug self => _1;/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -71,10 +95,16 @@
       "MutRef"
     ]
   },
+  "path": 2,
   "span": "$DIR/struct-methods.rs:25:5: 27:6",
   "src": "fn field_mut_ref(&mut self) {/n        _ = &mut self.s;/n    }",
   "mir": "fn S::field_mut_ref(_1: &mut S) -> () {/n    let mut _0: ();/n    debug self => _1;/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -92,10 +122,16 @@
       "MutRef"
     ]
   },
+  "path": 7,
   "span": "$DIR/struct-methods.rs:30:5: 32:6",
   "src": "fn write_field(&mut self) {/n        self.s = String::new();/n    }",
   "mir": "fn S::write_field(_1: &mut S) -> () {/n    let mut _0: ();/n    let mut _2: std::string::String;/n    debug self => _1;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        drop(((*_1).0: std::string::String)) -> [return: bb2, unwind: bb3];/n    }/n    bb2: {/n        ((*_1).0: std::string::String) = move _2;/n        return;/n    }/n    bb3: {/n        ((*_1).0: std::string::String) = move _2;/n        resume;/n    }/n}/n",
-  "doc": " Update the field./n"
+  "doc": " Update the field./n",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -176,5 +212,188 @@
       "name": "vec",
       "doc": ""
     }
+  }
+}
+
+{
+  "data": [
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "field_mut_ref"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "field_ref"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "new"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "s_mut_ref"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "s_ref"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "struct_methods"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "write_field"
+      }
+    ]
+  ],
+  "navi": {
+    "0": {
+      "subitems": [
+        {
+          "idx": 1,
+          "name": "S",
+          "kind": "Struct"
+        }
+      ],
+      "groups": {
+        "Struct": [
+          0
+        ]
+      }
+    },
+    "1": {
+      "subitems": [
+        {
+          "idx": 2,
+          "name": "field_mut_ref",
+          "kind": "AssocFn"
+        },
+        {
+          "idx": 3,
+          "name": "field_ref",
+          "kind": "AssocFn"
+        },
+        {
+          "idx": 4,
+          "name": "new",
+          "kind": "AssocFn"
+        },
+        {
+          "idx": 5,
+          "name": "s_mut_ref",
+          "kind": "AssocFn"
+        },
+        {
+          "idx": 6,
+          "name": "s_ref",
+          "kind": "AssocFn"
+        },
+        {
+          "idx": 7,
+          "name": "write_field",
+          "kind": "AssocFn"
+        }
+      ],
+      "groups": {
+        "AssocFn": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    }
+  },
+  "name_to_path": {
+    "struct_methods::S": 1,
+    "struct_methods::S::new": 4,
+    "struct_methods::S::s_ref": 6,
+    "struct_methods::S::s_mut_ref": 5,
+    "struct_methods::S::field_ref": 3,
+    "struct_methods::S::field_mut_ref": 2,
+    "struct_methods::S::write_field": 7
+  },
+  "path_to_name": {
+    "1": "struct_methods::S",
+    "4": "struct_methods::S::new",
+    "6": "struct_methods::S::s_ref",
+    "5": "struct_methods::S::s_mut_ref",
+    "3": "struct_methods::S::field_ref",
+    "2": "struct_methods::S::field_mut_ref",
+    "7": "struct_methods::S::write_field"
   }
 }

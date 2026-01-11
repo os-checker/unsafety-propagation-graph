@@ -13,10 +13,16 @@
       "Plain"
     ]
   },
+  "path": 1,
   "span": "$DIR/constructors.rs:7:1: 9:2",
   "src": "fn a() -> S {/n    S { s: String::new() }/n}",
   "mir": "fn a() -> S {/n    let mut _0: S;/n    let mut _1: std::string::String;/n    bb0: {/n        _1 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        _0 = S(move _1);/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -30,10 +36,16 @@
       "Plain"
     ]
   },
+  "path": 3,
   "span": "$DIR/constructors.rs:12:5: 14:6",
   "src": "fn new() -> S {/n        a()/n    }",
   "mir": "fn S::new() -> S {/n    let mut _0: S;/n    bb0: {/n        _0 = a() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        return;/n    }/n}/n",
-  "doc": ""
+  "doc": "",
+  "tags": {
+    "tags": [],
+    "spec": {},
+    "docs": []
+  }
 }
 
 {
@@ -105,5 +117,98 @@
       "name": "s",
       "doc": ""
     }
+  }
+}
+
+{
+  "data": [
+    [
+      {
+        "kind": "Mod",
+        "name": "constructors"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "constructors"
+      },
+      {
+        "kind": "Fn",
+        "name": "a"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "constructors"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      }
+    ],
+    [
+      {
+        "kind": "Mod",
+        "name": "constructors"
+      },
+      {
+        "kind": "Struct",
+        "name": "S"
+      },
+      {
+        "kind": "AssocFn",
+        "name": "new"
+      }
+    ]
+  ],
+  "navi": {
+    "0": {
+      "subitems": [
+        {
+          "idx": 1,
+          "name": "a",
+          "kind": "Fn"
+        },
+        {
+          "idx": 2,
+          "name": "S",
+          "kind": "Struct"
+        }
+      ],
+      "groups": {
+        "Fn": [
+          0
+        ],
+        "Struct": [
+          1
+        ]
+      }
+    },
+    "2": {
+      "subitems": [
+        {
+          "idx": 3,
+          "name": "new",
+          "kind": "AssocFn"
+        }
+      ],
+      "groups": {
+        "AssocFn": [
+          0
+        ]
+      }
+    }
+  },
+  "name_to_path": {
+    "constructors::S": 2,
+    "constructors::a": 1,
+    "constructors::S::new": 3
+  },
+  "path_to_name": {
+    "2": "constructors::S",
+    "1": "constructors::a",
+    "3": "constructors::S::new"
   }
 }
