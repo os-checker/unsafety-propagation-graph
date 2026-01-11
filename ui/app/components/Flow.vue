@@ -1,6 +1,6 @@
 <template>
   <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="layoutGraph('LR')" />
-  <div ref="codeRef" />
+  <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
 </template>
 
 <script setup lang="ts">
@@ -11,24 +11,13 @@ import { ViewType } from '~/lib/topbar';
 
 const props = defineProps<{ raw: Function, viewSelected: ViewType[] }>();
 
-const codeRef = ref();
-const chPx = ref(0);
-
-// Creat an invisible span to get how many px a ch represents.
-const updateChWidth = () => {
-  if (!codeRef.value) return;
-
-  const tester = document.createElement('span');
-  tester.style.width = '1ch'; tester.style.position = 'absolute'; tester.style.visibility = 'hidden'; tester.style.padding = '0';
-
-  codeRef.value.appendChild(tester);
-  const width = tester.getBoundingClientRect().width;
-  chPx.value = width;
-  codeRef.value.removeChild(tester);
-};
-
-onMounted(() => { updateChWidth(); window.addEventListener('resize', updateChWidth); });
-onUnmounted(() => { window.removeEventListener('resize', updateChWidth) });
+const chPx = ref(9.375);
+onMounted(() => {
+  const bridge = document.getElementById('bridge');
+  if (!bridge) return;
+  const pxValue = parseFloat(getComputedStyle(bridge).width);
+  chPx.value = pxValue;
+});
 
 const { fitView } = useVueFlow();
 const { layout } = useLayout();
@@ -50,7 +39,7 @@ watch(props, ({ raw: val, viewSelected }) => {
   // Placeholder for initial position. The layout will be recomputed later.
   const POS = { x: 0, y: 0 };
   const px = chPx.value;
-  const dim = (label: string) => ({ height: 4 * px, width: (label.length + 6) * px, class: "upg-elem" });
+  const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
 
   // Add the current function as root node, callees and adts as leaves.
   const root: Node = { id: val.name, type: viewBoth ? "default" : "input", label: val.name, position: POS, ...dim(val.name) };
