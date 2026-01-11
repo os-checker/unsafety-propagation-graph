@@ -17,9 +17,9 @@
 import type { Function } from "~/lib/output"
 import { EMPTY_FUNCTION } from "~/lib/output"
 import { Panel } from "~/lib/panel"
-import { ALL_VIEW_TYPES, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
+import { DEFAULT_VIEW_TYPES, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
 
-const viewSelected = ref<ViewType[]>(ALL_VIEW_TYPES);
+const viewSelected = ref<ViewType[]>(DEFAULT_VIEW_TYPES);
 const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "poc::f", kind: DefPathKind.Fn });
 
 // const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"

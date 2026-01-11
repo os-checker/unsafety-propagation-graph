@@ -20,7 +20,15 @@ export type Tags = {
 
 export type Property = {
   tag: { name: string, typ: TagType | null },
-  args: string,
+  args: string[],
+}
+export function tagName(tag: Property): string {
+  const { typ, name } = tag.tag;
+  switch (typ) {
+    case null: return `${name}(${tag.args.join(", ")})`;
+    case TagType.Precond: return `${name}(${tag.args.join(", ")})`;
+    default: return `${typ}.${name}`;
+  }
 }
 
 export type TagSpec = {

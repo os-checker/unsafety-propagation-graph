@@ -103,3 +103,7 @@ html, body {
 .def-ty {
   @apply text-pink-600 dark:text-pink-400
 }
+
+.upg-elem {
+  @apply flex items-center text-lg font-mono whitespace-nowrap;
+}
