@@ -3,7 +3,7 @@
     <UNavigationMenu :items="navi_menu" class="w-1/2" trailing-icon="tabler:chevron-right">
       <template #item-content="{ index: stack_idx }">
         <div class="flex gap-4 m-2">
-          <div v-for="[kind, v_sub_navi_idx] in Object.entries(currentNaviItem(stack_idx)?.groups ?? {})" :key="kind">
+          <div v-for="[kind, v_sub_navi_idx] in Object.entries(currentNaviItem(stack_idx)?.groups ?? {})">
             <div :class="[colorClass(kind), 'text-center font-bold']">{{ kind }}</div>
             <div>
               <ul @click="(event) => naviItemClick(event, stack_idx)">
@@ -46,8 +46,11 @@ $fetch(NAVI_URL)
 
 // Expanded navi items. The value is data idx in Navigation.
 const navi_stack = ref<number[]>([]);
+function stack_idx_to_data_idx(stack_idx: number): number | undefined {
+  return navi_stack.value[stack_idx];
+}
 function currentNaviItem(stack_idx: number): NaviItem | undefined {
-  const idx = navi_stack.value[stack_idx];
+  const idx = stack_idx_to_data_idx(stack_idx);
   if (idx === undefined) return undefined;
   return navi.value.navi[idx]
 }
@@ -86,20 +89,23 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
     //   full_path: navi.value.data[idx]!,
     //   short: navi.value.navi[stack_idx]?.subitems[sub_navi_idx]!
     // };
-    const clicked = navi.value.navi[stack_idx]?.subitems[sub_navi_idx]!;
+    const data_idx = stack_idx_to_data_idx(stack_idx);
+    if (data_idx === undefined) return;
+    const clicked = navi.value.navi[data_idx]?.subitems[sub_navi_idx];
 
     // This can be null when fn item is clicked or the item has no sub items.
-    // const target = navi.value.navi[idx]?.subitems;
-    // console.log("\nstack_idx:", stack_idx, "\nsub_navi_idx:", sub_navi_idx, "\nclicked:", clicked, "\ntarget:", target);
+    const target = navi.value.navi[idx]?.subitems;
+    console.log("\nstack_idx:", stack_idx, "\nsub_navi_idx:", sub_navi_idx, "\nclicked:", clicked, "\ntarget:", target, "\nidx:", idx, "\ndata_dix:", data_idx);
 
+    if (!clicked) return;
     const clicked_kind = clicked.kind;
     if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
       navi_stack.value.push(clicked.idx);
       navi_menu.value.push({
         label: clicked.name,
-        icon: icon(clicked.kind),
+        icon: icon(clicked_kind),
         // children: target?.map(item => ({ label: item.name, icon: icon(item.kind) })) ?? []
-      })
+      });
     }
   }
 }
