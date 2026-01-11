@@ -58,7 +58,6 @@ function currentNaviItem(stack_idx: number): NaviItem | undefined {
 const navi_menu = ref<NavigationMenuItem[]>([]);
 watch(navi, val => {
   const data = val.data;
-  const nav = val.navi;
   const root = data[0]?.[0];
   if (!root) {
     navi_menu.value = [];
@@ -66,10 +65,7 @@ watch(navi, val => {
     return;
   }
 
-  const tree: NavigationMenuItem[] = [{
-    label: root.name, icon: icon(root.kind),
-    // children: nav[0]?.subitems?.map(item => ({ label: item.name, icon: icon(item.kind) })) ?? []
-  }];
+  const tree: NavigationMenuItem[] = [{ label: root.name }];
   navi_menu.value = tree;
   navi_stack.value.push(0);
 });
@@ -82,35 +78,30 @@ const itemName = defineModel<{ name: string, kind: DefPathKind }>("itemName");
 */
 function naviItemClick(event: MouseEvent, stack_idx: number) {
   const li = (event.target as HTMLElement).closest('li')
-  if (li && (event.currentTarget as HTMLElement).contains(li)) {
-    const idx = parseInt(li.dataset.idx ?? "");
-    const sub_navi_idx = parseInt(li.dataset.subNaviIdx ?? "");
+  if (!li || !(event.currentTarget as HTMLElement).contains(li)) return;
+  const idx = parseInt(li.dataset.idx ?? "");
+  const sub_navi_idx = parseInt(li.dataset.subNaviIdx ?? "");
 
-    // This is never null, because we just clicked it.
-    // const clicked = {
-    //   full_path: navi.value.data[idx]!,
-    //   short: navi.value.navi[stack_idx]?.subitems[sub_navi_idx]!
-    // };
-    const data_idx = stack_idx_to_data_idx(stack_idx);
-    if (data_idx === undefined) return;
-    const clicked = navi.value.navi[data_idx]?.subitems[sub_navi_idx];
+  // This is never null, because we just clicked it.
+  // const clicked = {
+  //   full_path: navi.value.data[idx]!,
+  //   short: navi.value.navi[stack_idx]?.subitems[sub_navi_idx]!
+  // };
+  const data_idx = stack_idx_to_data_idx(stack_idx);
+  if (data_idx === undefined) return;
+  const clicked = navi.value.navi[data_idx]?.subitems[sub_navi_idx];
 
-    // This can be null when fn item is clicked or the item has no sub items.
-    const target = navi.value.navi[idx]?.subitems;
-    console.log("\nstack_idx:", stack_idx, "\nsub_navi_idx:", sub_navi_idx, "\nclicked:", clicked, "\ntarget:", target, "\nidx:", idx, "\ndata_dix:", data_idx);
+  // This can be null when fn item is clicked or the item has no sub items.
+  // const target = navi.value.navi[idx]?.subitems;
+  // console.log("\nstack_idx:", stack_idx, "\nsub_navi_idx:", sub_navi_idx, "\nclicked:", clicked, "\ntarget:", target, "\nidx:", idx, "\ndata_dix:", data_idx);
 
-    if (!clicked) return;
-    const clicked_kind = clicked.kind;
-    if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
-      navi_stack.value.push(clicked.idx);
-      navi_menu.value.push({
-        label: clicked.name,
-        icon: icon(clicked_kind),
-        // children: target?.map(item => ({ label: item.name, icon: icon(item.kind) })) ?? []
-      });
-    }
-    const name = navi.value.path_to_name[idx];
-    if (name) itemName.value = { name, kind: clicked_kind };
+  if (!clicked) return;
+  const clicked_kind = clicked.kind;
+  if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
+    navi_stack.value.push(clicked.idx);
+    navi_menu.value.push({ label: clicked.name });
   }
+  const name = navi.value.path_to_name[idx];
+  if (name) itemName.value = { name, kind: clicked_kind };
 }
 </script>
