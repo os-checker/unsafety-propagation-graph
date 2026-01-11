@@ -65,7 +65,7 @@ watch(navi, val => {
     return;
   }
 
-  const tree: NavigationMenuItem[] = [{ label: root.name }];
+  const tree: NavigationMenuItem[] = [{ label: root.name, icon: icon(root.kind) }];
   navi_menu.value = tree;
   navi_stack.value.push(0);
 });
@@ -99,7 +99,7 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
   const clicked_kind = clicked.kind;
   if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
     navi_stack.value.push(clicked.idx);
-    navi_menu.value.push({ label: clicked.name });
+    navi_menu.value.push({ label: clicked.name, icon: icon(clicked_kind) });
   }
   const name = navi.value.path_to_name[idx];
   if (name) itemName.value = { name, kind: clicked_kind };
