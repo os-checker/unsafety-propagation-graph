@@ -2,10 +2,15 @@
 export enum ViewType {
   Callees = "Callees",
   Adts = "Adts",
+  Tags = "Tags",
 }
 
 export const ALL_VIEW_TYPES: ViewType[] = [
-  ViewType.Callees, ViewType.Adts
+  ViewType.Callees, ViewType.Adts, ViewType.Tags
+];
+
+export const DEFAULT_VIEW_TYPES: ViewType[] = [
+  ViewType.Callees, ViewType.Tags
 ];
 
 // Navigation
