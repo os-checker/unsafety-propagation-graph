@@ -97,9 +97,21 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
 
   if (!clicked) return;
   const clicked_kind = clicked.kind;
+  const clicked_idx = clicked.idx;
   if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
-    navi_stack.value.push(clicked.idx);
-    navi_menu.value.push({ label: clicked.name, icon: icon(clicked_kind) });
+    // Update navi_stack only when the item is deeper.
+    if (navi_stack.value.every(v => v < clicked_idx)) {
+      navi_stack.value.push(clicked.idx);
+      navi_menu.value.push({ label: clicked.name, icon: icon(clicked_kind) });
+    }
+  } else {
+    // Shrink the stack when a shallow item is clicked.
+    const newLen = stack_idx + 1;
+    const shrink = newLen < navi_stack.value.length;
+    if (shrink) {
+      navi_menu.value.length = newLen;
+      navi_stack.value.length = newLen;
+    }
   }
   const name = navi.value.path_to_name[idx];
   if (name) itemName.value = { name, kind: clicked_kind };
