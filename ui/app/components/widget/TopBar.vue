@@ -74,6 +74,8 @@ watch(navi, val => {
   navi_stack.value.push(0);
 });
 
+const itemName = defineModel<{ name: string, kind: DefPathKind }>("itemName");
+
 /** Respond to which navi item is clicked.
 * stack_idx refers to the current position in navi_stack.
 * li id refers to navi data idx.
@@ -107,6 +109,8 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
         // children: target?.map(item => ({ label: item.name, icon: icon(item.kind) })) ?? []
       });
     }
+    const name = navi.value.path_to_name[idx];
+    if (name) itemName.value = { name, kind: clicked_kind };
   }
 }
 </script>

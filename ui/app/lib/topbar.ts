@@ -54,6 +54,21 @@ export function colorClass(kind: DefPathKind | string): string {
   }
 }
 
+export function urlKind(kind: DefPathKind): string {
+  switch (kind) {
+    case DefPathKind.Mod: return "mod";
+    case DefPathKind.Fn: return "function";
+    case DefPathKind.AssocFn: return "function";
+    case DefPathKind.Struct: return "adt";
+    case DefPathKind.Enum: return "adt";
+    case DefPathKind.Union: return "adt";
+    case DefPathKind.TraitDecl: return "adt";
+    case DefPathKind.SelfTy: return "unknown";
+    case DefPathKind.ImplTrait: return "adt";
+    default: return "unknown";
+  }
+}
+
 export type DefPath = {
   kind: DefPathKind,
   name: string,
