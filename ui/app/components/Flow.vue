@@ -5,8 +5,8 @@
 
 <script setup lang="ts">
 import type { Node, Edge } from '@vue-flow/core'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function } from "~/lib/output"
+import { Position, VueFlow, useVueFlow } from '@vue-flow/core'
+import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } from "~/lib/output"
 import { ViewType } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
 
@@ -40,67 +40,43 @@ watch(props, async ({ raw: fn, viewSelected }) => {
 
   // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
   const px = Math.ceil(chPx.value);
-  const size = (label: string) => ({ height: 5 * px, width: (label.length + 4) * px });
-
-  // Add the current function as root node, callees and adts as leaves.
-  // const root: Node = { id: val.name, type: viewBoth ? "default" : "input", label: val.name, position: POS, ...dim(val.name) };
-  //
-  // let callees: Node[] = [];
-  // let edges: Edge[] = [];
-  //
-  // if (viewCallees) {
-  //   const type = viewBoth ? "input" : "default";
-  //   callees = val.callees.map(callee => ({ id: `c@${callee}`, type, label: callee, position: POS, ...dim(callee) }));
-  //   callees.forEach(leaf => edges.push({
-  //     id: `e@${root.id}-${leaf.id}`,
-  //     ...(viewBoth ? { source: leaf.id, target: root.id, } : { source: root.id, target: leaf.id, })
-  //   }));
-  // }
-  //
-  // let adts: Node[] = [];
-  // if (viewAdts) {
-  //   adts = Object.keys(val.adts).map(adt => ({ id: `adt@${adt}`, type: "default", label: adt, position: POS, ...dim(adt) }));
-  //   adts.forEach(leaf => edges.push({ id: `e@${root.id}-${leaf.id}`, source: root.id, target: leaf.id, }));
-  // }
-  //
-  // let tags: Node[] = [];
-  // if (viewTags) {
-  //   tags = val.tags.tags.map(tag => {
-  //     const name = tagName(tag);
-  //     return { id: `tag@${name}`, label: name, position: POS, parentNode: root.id, ...dim(name) };
-  //   });
-  //   // tags.forEach(tag => );
-  // }
-
-  // const adts_access: Node[] = Object.values(val.adts).flat().map(access => ({ id: `access@${access}`, type: "output", label: access, position: POS }));
-  // const nodes = [root, ...callees, ...adts, ...adts_access];
-  // const nodes = [root, ...callees, ...adts, ...tags];
+  type Dim = { height: number, width: number };
+  const size = (label: string): Dim => ({ height: 5 * px, width: (label.length + 4) * px });
 
   // Put label top-center inside the node.
-  const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", };
-
-  const root: ElkNode = {
-    id: fn.name,
-    layoutOptions,
-    labels: [{ text: fn.name, ...size(fn.name) }],
-    children: fn.tags.tags.map(tag => {
+  const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
+  // Treat label size as node size if no tags are inside.
+  const fnDim = (tags: Tags, dim: Dim) => (tags.tags.length === 0) ? dim : {};
+  function tagChildren(tags: Tags): ElkNode[] {
+    return tags.tags.map(tag => {
       const name = tagName(tag);
       const dim = size(name);
       return {
         id: idTag(name),
+        layoutOptions,
         labels: [{ text: name, ...dim }],
         ...dim
       }
     })
   }
 
-  const callees: ElkNode[] = Object.entries(fn.callees).map(([name, _info]) => {
-    const dim = size(name);
+  const rootLabelDim = size(fn.name);
+  const root: ElkNode = {
+    id: fn.name,
+    layoutOptions,
+    labels: [{ text: fn.name, ...rootLabelDim }],
+    children: tagChildren(fn.tags),
+    ...fnDim(fn.tags, rootLabelDim)
+  }
+
+  const callees: ElkNode[] = Object.entries(fn.callees).map(([name, info]) => {
+    const labelDim = size(name);
     return {
       id: idCalleeNonGeneric(name),
       layoutOptions,
-      labels: [{ text: name, ...dim }],
-      ...dim
+      labels: [{ text: name, ...labelDim }],
+      children: tagChildren(info.tags),
+      ...fnDim(info.tags, labelDim)
     }
   })
 
@@ -109,31 +85,30 @@ watch(props, async ({ raw: fn, viewSelected }) => {
 
   const graph: ElkNode = {
     id: "__root",
-    layoutOptions: { "elk.algorithm": "mrtree" },
+    layoutOptions: { "elk.algorithm": "layered", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', },
     children: [root, ...callees],
     edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
   };
-  console.log(`[${new Date().toISOString()}]`, "graph:", graph)
 
   const tree = await elk.layout(graph);
-  console.log(`[${new Date().toISOString()}]`, "tree:", tree)
 
   const nodes: Node[] = [];
   for (const node of tree.children ?? []) {
     nodes.push({
       id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
       position: { x: node.x!, y: node.y! }, class: "upg-node-fn",
+      targetPosition: Position.Left, sourcePosition: Position.Right,
     })
     for (const tag of node.children ?? []) {
       nodes.push({
         id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
         position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag",
-        parentNode: node.id
+        parentNode: node.id,
+        targetPosition: Position.Left, sourcePosition: Position.Right,
       })
     }
   }
 
-  // console.log(`update nodes: ${nodes.length} and edges: ${edges.length}`);
   data.value = { nodes, edges };
 })
 
