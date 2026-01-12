@@ -7,12 +7,10 @@
 import type { Node, Edge } from '@vue-flow/core'
 import { Position, VueFlow, useVueFlow } from '@vue-flow/core'
 import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } from "~/lib/output"
-import { ViewType } from '~/lib/topbar';
+import { ViewType, type FlowOpts } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
-import type { EdgeType, ELKAlgorithm } from '~/lib/elk';
 
-const layout = defineModel<ELKAlgorithm>('layout');
-const edgeType = defineModel<EdgeType>('edgeType');
+const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 
 const elk = new ELK()
 
@@ -33,10 +31,11 @@ const EMPTY_DATA = { nodes: [], edges: [] };
 
 const data = ref<Data>(EMPTY_DATA);
 
-watch(props, async ({ raw: fn, viewSelected }) => {
+watchEffect(async () => {
+  const fn = props.raw;
   if (!fn.name) return;
 
-  const view = new Set(viewSelected);
+  const view = new Set(props.viewSelected);
   const viewCallees = view.has(ViewType.Callees);
   const viewAdts = view.has(ViewType.Adts);
   const viewBoth = viewCallees && viewAdts;
@@ -85,12 +84,12 @@ watch(props, async ({ raw: fn, viewSelected }) => {
   })
 
   const edges: Edge[] =
-    callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType.value as string }))
+    callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: flowOpts.value.edge as string }))
 
   const graph: ElkNode = {
     id: "__root",
     layoutOptions: {
-      "elk.algorithm": layout.value as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT',
+      "elk.algorithm": flowOpts.value.layout as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT',
     },
     children: [root, ...callees],
     edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
@@ -118,11 +117,10 @@ watch(props, async ({ raw: fn, viewSelected }) => {
   data.value = { nodes, edges };
 })
 
-const fit_view = defineModel<boolean>('fitView');
-watch(fit_view, val => {
+watch(() => flowOpts.value.fit, val => {
   if (val) {
     fitView();
-    fit_view.value = false;
+    flowOpts.value.fit = false;
   }
 })
 
