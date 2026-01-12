@@ -42,21 +42,15 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
 
     for fn_def in fn_defs {
         if let Some(body) = fn_def.body() {
-            let v_sp: ThinVec<_> = fn_def
-                .all_tool_attrs()
-                .iter()
-                .flat_map(|attr| {
-                    safety_parser::safety::parse_attr_and_get_properties(attr.as_str())
-                })
-                .collect();
+            let v_sp = get_tags(fn_def);
 
             let collector = analyze_fn_def::collect(&body);
-            let finfo = info_fn::FnInfo::new(collector, &body, v_sp, &mut cache_adt);
+            let finfo = info_fn::FnInfo::new(collector, &body, v_sp.into(), &mut cache_adt);
 
-            let out_func = output::Function::new(fn_def, &finfo, &body, tcx, &navi);
+            let finfo = &*map_fn.entry(fn_def).or_insert(finfo);
+
+            let out_func = output::Function::new(fn_def, finfo, &body, tcx, &navi);
             out_func.dump(&writer);
-
-            map_fn.insert(fn_def, finfo);
         }
     }
 
@@ -69,4 +63,12 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     writer.dump_json("navi", "navi", &navi);
 
     ControlFlow::Break(())
+}
+
+fn get_tags(fn_def: rustc_public::ty::FnDef) -> Vec<safety_parser::safety::PropertiesAndReason> {
+    fn_def
+        .all_tool_attrs()
+        .iter()
+        .flat_map(|attr| safety_parser::safety::parse_attr_and_get_properties(attr.as_str()))
+        .collect()
 }

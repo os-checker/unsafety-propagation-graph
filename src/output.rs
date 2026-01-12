@@ -1,5 +1,6 @@
 use crate::{
     adt::Adt as RawAdt,
+    get_tags,
     info_adt::{Access as RawAccess, AdtInfo},
     info_fn::FnInfo,
     info_mod::Navigation,
@@ -24,7 +25,8 @@ use std::{fs, io, path::PathBuf};
 pub struct Function {
     pub name: String,
     pub safe: bool,
-    pub callees: Vec<String>,
+    /// Direct callees. The key is generic FnDef name, the value is Instance info.
+    pub callees: FxIndexMap<String, CalleeInfo>,
     pub adts: FxIndexMap<String, Vec<String>>,
     pub path: OutputPath,
     pub span: String,
@@ -45,12 +47,8 @@ impl Function {
         };
         Function {
             name,
-            safe: matches!(fn_def.fn_sig().value.safety, Safety::Safe),
-            callees: info
-                .callees
-                .iter()
-                .map(|instance| instance.name())
-                .collect(),
+            safe: is_safe(fn_def),
+            callees: output_callee(info, tcx),
             adts: info
                 .adts
                 .iter()
@@ -246,6 +244,39 @@ fn doc_string_internel_did(did: IDefId, tcx: TyCtxt) -> String {
         }
     }
     buf
+}
+
+#[derive(Debug, Serialize)]
+pub struct CalleeInfo {
+    pub instance_name: Vec<String>,
+    pub safe: bool,
+    pub tags: Tags,
+    pub doc: String,
+}
+
+pub fn output_callee(finfo: &FnInfo, tcx: TyCtxt) -> FxIndexMap<String, CalleeInfo> {
+    let mut map = FxIndexMap::<String, CalleeInfo>::default();
+    for info in finfo.callees.values() {
+        let instance_name = info.instance_name.clone();
+        if let Some(cinfo) = map.get_mut(&info.non_instance_name) {
+            cinfo.instance_name.push(instance_name);
+        } else {
+            let fn_def = info.fn_def;
+            let callee_info = CalleeInfo {
+                instance_name: vec![instance_name],
+                safe: is_safe(fn_def),
+                // TODO: optimize this.
+                tags: Tags::new(&get_tags(fn_def)),
+                doc: doc_string(fn_def.def_id(), tcx),
+            };
+            map.insert(info.non_instance_name.clone(), callee_info);
+        }
+    }
+    map
+}
+
+fn is_safe(fn_def: FnDef) -> bool {
+    matches!(fn_def.fn_sig().value.safety, Safety::Safe)
 }
 
 pub enum Writer {
