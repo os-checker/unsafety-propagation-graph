@@ -99,6 +99,19 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
   const clicked_kind = clicked.kind;
   const clicked_idx = clicked.idx;
   if (clicked_kind !== DefPathKind.Fn && clicked_kind !== DefPathKind.AssocFn) {
+    // Clear last fn item, because fn item don't have accessible items.
+    const last_stack_idx = navi_stack.value.at(-1);
+    if (last_stack_idx) {
+      const last_data_idx = stack_idx_to_data_idx(last_stack_idx);
+      if (last_data_idx) {
+        if (navi.value.navi[last_data_idx]?.non_mod_kinds?.find(k => k === DefPathKind.Fn || k === DefPathKind.AssocFn)) {
+          const newLen = stack_idx + 1;
+          navi_menu.value.length = newLen;
+          navi_stack.value.length = newLen;
+        }
+      }
+    }
+
     // Update navi_stack only when the item is deeper.
     if (navi_stack.value.every(v => v < clicked_idx)) {
       navi_stack.value.push(clicked.idx);
@@ -107,11 +120,11 @@ function naviItemClick(event: MouseEvent, stack_idx: number) {
   } else {
     // Shrink the stack when a shallow item is clicked.
     const newLen = stack_idx + 1;
-    const shrink = newLen < navi_stack.value.length;
-    if (shrink) {
-      navi_menu.value.length = newLen;
-      navi_stack.value.length = newLen;
-    }
+    navi_menu.value.length = newLen;
+    navi_stack.value.length = newLen;
+    // Append the clicked function.
+    navi_stack.value.push(clicked.idx);
+    navi_menu.value.push({ label: clicked.name, icon: icon(clicked_kind) });
   }
   const name = navi.value.path_to_name[idx];
   if (name) itemName.value = { name, kind: clicked_kind };

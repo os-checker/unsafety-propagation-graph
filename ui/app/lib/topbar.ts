@@ -83,6 +83,7 @@ export type SubNaviItem = {
   idx: number, name: string, kind: DefPathKind,
 }
 export type NaviItem = {
+  non_mod_kinds: DefPathKind[],
   subitems: SubNaviItem[],
   /** The key is DefPathKind, and each number in the value points to the element in subitems. */
   groups: { [key: string]: number[] },
