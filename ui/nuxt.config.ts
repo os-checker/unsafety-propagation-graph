@@ -23,6 +23,8 @@ export default defineNuxtConfig({
         'tabler:alert-circle', // something wrong
         'tabler:chevron-right', // separator
         'tabler:arrow-autofit-height', // fit view
+        'tabler:layout-board-split-filled', // layout
+        'tabler:braces', // graph view kind
       ],
     }
   },

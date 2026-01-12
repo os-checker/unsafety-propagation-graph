@@ -20,14 +20,18 @@
       </template>
     </UNavigationMenu>
 
-    <div class="top-menu mr-2 gap-4">
-      <UTooltip text="Fit to screen">
+    <div class="top-menu mr-2 gap-1">
+      <UTooltip text="Layout Algorithm">
+        <USelectMenu v-model="layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false" class="w-32"
+          icon="tabler:layout-board-split-filled" />
+      </UTooltip>
+      <UTooltip text="Fit To Screen">
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
-      <div>
-        Graph View:
-        <USelectMenu v-model="viewSelected" multiple :items="views" :search-input="false" class="w-50" />
-      </div>
+      <UTooltip text="Graph View">
+        <USelectMenu v-model="viewSelected" multiple :items="views" :search-input="false" class="w-45"
+          icon="tabler:braces" />
+      </UTooltip>
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
     </div>
@@ -36,12 +40,13 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
+import { ELK_LAYOUTS, ELKAlgorithm } from '~/lib/elk';
 import { ViewType, ALL_VIEW_TYPES, EMPTY_NAVI, NAVI_URL, type Navigation, icon, colorClass, DefPathKind, type NaviItem } from '~/lib/topbar';
 
 const fitView = defineModel<boolean>('fitView');
-function fitViewHandle() {
-  fitView.value = true;
-}
+function fitViewHandle() { fitView.value = true }
+
+const layout = defineModel<ELKAlgorithm>('layout');
 
 const viewSelected = defineModel<ViewType[]>('viewSelected');
 
