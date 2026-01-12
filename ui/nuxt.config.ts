@@ -25,6 +25,7 @@ export default defineNuxtConfig({
         'tabler:arrow-autofit-height', // fit view
         'tabler:layout-board-split-filled', // layout
         'tabler:braces', // graph view kind
+        'tabler:line', // edge type
       ],
     }
   },

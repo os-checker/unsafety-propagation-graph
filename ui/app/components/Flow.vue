@@ -9,9 +9,10 @@ import { Position, VueFlow, useVueFlow } from '@vue-flow/core'
 import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } from "~/lib/output"
 import { ViewType } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
-import type { ELKAlgorithm } from '~/lib/elk';
+import type { EdgeType, ELKAlgorithm } from '~/lib/elk';
 
 const layout = defineModel<ELKAlgorithm>('layout');
+const edgeType = defineModel<EdgeType>('edgeType');
 
 const elk = new ELK()
 
@@ -84,11 +85,13 @@ watch(props, async ({ raw: fn, viewSelected }) => {
   })
 
   const edges: Edge[] =
-    callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id }))
+    callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType.value as string }))
 
   const graph: ElkNode = {
     id: "__root",
-    layoutOptions: { "elk.algorithm": layout.value as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', },
+    layoutOptions: {
+      "elk.algorithm": layout.value as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT',
+    },
     children: [root, ...callees],
     edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
   };

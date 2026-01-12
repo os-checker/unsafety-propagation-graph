@@ -10,3 +10,14 @@ export enum ELKAlgorithm {
 export const ELK_LAYOUTS = [
   ELKAlgorithm.layered, ELKAlgorithm.mrtree, ELKAlgorithm.radial, ELKAlgorithm.force,
 ]
+
+export enum EdgeType {
+  bezier = "bezier",
+  step = "step",
+  smoothstep = "smoothstep",
+  straight = "straight",
+}
+
+export const EDGE_TYPES = [
+  EdgeType.bezier, EdgeType.step, EdgeType.smoothstep, EdgeType.straight
+]

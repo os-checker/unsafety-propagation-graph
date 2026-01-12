@@ -22,8 +22,12 @@
 
     <div class="top-menu mr-2 gap-1">
       <UTooltip text="Layout Algorithm">
-        <USelectMenu v-model="layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false" class="w-32"
+        <USelectMenu v-model="layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false" class="w-31"
           icon="tabler:layout-board-split-filled" />
+      </UTooltip>
+      <UTooltip text="Edge Type">
+        <USelectMenu v-model="edgeType" placeholder="Edge Type" :items="EDGE_TYPES" :search-input="false" class="w-28"
+          icon="tabler:line" />
       </UTooltip>
       <UTooltip text="Fit To Screen">
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
@@ -40,13 +44,14 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { ELK_LAYOUTS, ELKAlgorithm } from '~/lib/elk';
+import { EDGE_TYPES, EdgeType, ELK_LAYOUTS, ELKAlgorithm } from '~/lib/elk';
 import { ViewType, ALL_VIEW_TYPES, EMPTY_NAVI, NAVI_URL, type Navigation, icon, colorClass, DefPathKind, type NaviItem } from '~/lib/topbar';
 
 const fitView = defineModel<boolean>('fitView');
 function fitViewHandle() { fitView.value = true }
 
 const layout = defineModel<ELKAlgorithm>('layout');
+const edgeType = defineModel<EdgeType>('edgeType');
 
 const viewSelected = defineModel<ViewType[]>('viewSelected');
 
