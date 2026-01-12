@@ -21,6 +21,9 @@
     </UNavigationMenu>
 
     <div class="top-menu mr-2 gap-4">
+      <UTooltip text="Fit to screen">
+        <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
+      </UTooltip>
       <div>
         Graph View:
         <USelectMenu v-model="viewSelected" multiple :items="views" :search-input="false" class="w-50" />
@@ -34,6 +37,11 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
 import { ViewType, ALL_VIEW_TYPES, EMPTY_NAVI, NAVI_URL, type Navigation, icon, colorClass, DefPathKind, type NaviItem } from '~/lib/topbar';
+
+const fitView = defineModel<boolean>('fitView');
+function fitViewHandle() {
+  fitView.value = true;
+}
 
 const viewSelected = defineModel<ViewType[]>('viewSelected');
 

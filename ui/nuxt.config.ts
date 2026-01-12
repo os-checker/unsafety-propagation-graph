@@ -22,6 +22,7 @@ export default defineNuxtConfig({
         'tabler:square-rounded-letter-p-filled', // safety property
         'tabler:alert-circle', // something wrong
         'tabler:chevron-right', // separator
+        'tabler:arrow-autofit-height', // fit view
       ],
     }
   },

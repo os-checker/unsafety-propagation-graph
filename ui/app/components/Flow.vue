@@ -1,5 +1,5 @@
 <template>
-  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" />
+  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" @nodes-initialized="fit" />
   <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
 </template>
 
@@ -135,6 +135,14 @@ watch(props, async ({ raw: fn, viewSelected }) => {
 
   // console.log(`update nodes: ${nodes.length} and edges: ${edges.length}`);
   data.value = { nodes, edges };
+})
+
+const fit_view = defineModel<boolean>('fitView');
+watch(fit_view, val => {
+  if (val) {
+    fitView();
+    fit_view.value = false;
+  }
 })
 
 /** Fit view.  */

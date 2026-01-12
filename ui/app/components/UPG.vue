@@ -1,7 +1,7 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:viewSelected="viewSelected" v-model:itemName="itemName" />
-    <Flow :raw="raw" :viewSelected="viewSelected" />
+    <WidgetTopBar v-model:viewSelected="viewSelected" v-model:itemName="itemName" v-model:fitView="fitView" />
+    <Flow :raw="raw" :viewSelected="viewSelected" v-model:fitView="fitView" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
@@ -20,6 +20,7 @@ import { Panel } from "~/lib/panel"
 import { DEFAULT_VIEW_TYPES, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
 
 const viewSelected = ref<ViewType[]>(DEFAULT_VIEW_TYPES);
+const fitView = ref<boolean>(false);
 const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "poc::f", kind: DefPathKind.Fn });
 
 // const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
