@@ -1,7 +1,7 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:viewSelected="viewSelected" v-model:itemName="itemName" v-model:flowOpts="flowOpts" />
-    <Flow :raw="raw" :viewSelected="viewSelected" v-model:flowOpts="flowOpts" />
+    <WidgetTopBar v-model:itemName="itemName" v-model:flowOpts="flowOpts" />
+    <Flow :raw="raw" v-model:flowOpts="flowOpts" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
@@ -17,10 +17,9 @@
 import type { Function } from "~/lib/output"
 import { EMPTY_FUNCTION } from "~/lib/output"
 import { Panel } from "~/lib/panel"
-import { FLOW_OPTS, DEFAULT_VIEW_TYPES, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
+import { FLOW_OPTS, DefPathKind, urlKind, ViewType } from "~/lib/topbar";
 import type { FlowOpts } from "~/lib/topbar"
 
-const viewSelected = ref<ViewType[]>(DEFAULT_VIEW_TYPES);
 const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "poc::f", kind: DefPathKind.Fn });
 

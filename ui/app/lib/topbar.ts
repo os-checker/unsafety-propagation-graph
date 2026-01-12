@@ -5,13 +5,10 @@ export enum ViewType {
   Tags = "Tags",
 }
 
-export const ALL_VIEW_TYPES: ViewType[] = [
+export const VIEW_TYPES: ViewType[] = [
   ViewType.Callees, ViewType.Adts, ViewType.Tags
 ];
 
-export const DEFAULT_VIEW_TYPES: ViewType[] = [
-  ViewType.Callees, ViewType.Tags
-];
 
 // Navigation
 
@@ -124,5 +121,10 @@ export const EDGE_TYPES = [
   EdgeType.bezier, EdgeType.straight, EdgeType.step, EdgeType.smoothstep,
 ]
 
-export type FlowOpts = { layout: ELKAlgorithm, edge: EdgeType, fit: boolean };
-export const FLOW_OPTS = { layout: ELKAlgorithm.mrtree, edge: EdgeType.bezier, fit: false };
+export type FlowOpts = { layout: ELKAlgorithm, edge: EdgeType, fit: boolean, view: ViewType[] };
+export const FLOW_OPTS = {
+  layout: ELKAlgorithm.mrtree,
+  edge: EdgeType.bezier,
+  fit: false,
+  view: [ViewType.Callees, ViewType.Tags]
+};

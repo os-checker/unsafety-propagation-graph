@@ -14,7 +14,7 @@ const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 
 const elk = new ELK()
 
-const props = defineProps<{ raw: Function, viewSelected: ViewType[] }>();
+const props = defineProps<{ raw: Function }>();
 
 const chPx = ref(9.375);
 onMounted(() => {
@@ -35,11 +35,8 @@ watchEffect(async () => {
   const fn = props.raw;
   if (!fn.name) return;
 
-  const view = new Set(props.viewSelected);
-  const viewCallees = view.has(ViewType.Callees);
-  const viewAdts = view.has(ViewType.Adts);
-  const viewBoth = viewCallees && viewAdts;
-  const viewTags = view.has(ViewType.Tags);
+  const viewSet = new Set(flowOpts.value.view);
+  const view = { callees: viewSet.has(ViewType.Callees), adts: viewSet.has(ViewType.Adts), tags: viewSet.has(ViewType.Tags) };
 
   // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
   const px = Math.ceil(chPx.value);
@@ -48,8 +45,8 @@ watchEffect(async () => {
 
   // Put label top-center inside the node.
   const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
-  // Treat label size as node size if no tags are inside.
-  const fnDim = (tags: Tags, dim: Dim) => (tags.tags.length === 0) ? dim : {};
+  // Treat label size as node size if no tags are inside or viewed.
+  const fnDim = (tags: Tags, dim: Dim) => (!view.tags || tags.tags.length === 0) ? dim : {};
   function tagChildren(tags: Tags): ElkNode[] {
     return tags.tags.map(tag => {
       const name = tagName(tag);
@@ -68,7 +65,7 @@ watchEffect(async () => {
     id: fn.name,
     layoutOptions,
     labels: [{ text: fn.name, ...rootLabelDim }],
-    children: tagChildren(fn.tags),
+    children: view.tags ? tagChildren(fn.tags) : [],
     ...fnDim(fn.tags, rootLabelDim)
   }
 
@@ -78,7 +75,7 @@ watchEffect(async () => {
       id: idCalleeNonGeneric(name),
       layoutOptions,
       labels: [{ text: name, ...labelDim }],
-      children: tagChildren(info.tags),
+      children: view.tags ? tagChildren(info.tags) : [],
       ...fnDim(info.tags, labelDim)
     }
   })

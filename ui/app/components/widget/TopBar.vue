@@ -33,7 +33,7 @@
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
       <UTooltip text="Graph View">
-        <USelectMenu v-model="viewSelected" multiple :items="views" :search-input="false" class="w-45"
+        <USelectMenu v-model="flowOpts.view" multiple :items="VIEW_TYPES" :search-input="false" class="w-45"
           icon="tabler:braces" />
       </UTooltip>
       <UColorModeButton />
@@ -44,15 +44,11 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { ViewType, ALL_VIEW_TYPES, EMPTY_NAVI, NAVI_URL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, } from '~/lib/topbar';
+import { ViewType, VIEW_TYPES, EMPTY_NAVI, NAVI_URL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, } from '~/lib/topbar';
 import type { Navigation, NaviItem, FlowOpts } from '~/lib/topbar';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
-
-const viewSelected = defineModel<ViewType[]>('viewSelected');
-
-const views = ref<ViewType[]>(ALL_VIEW_TYPES);
 
 const navi = ref<Navigation>(EMPTY_NAVI);
 $fetch(NAVI_URL)
