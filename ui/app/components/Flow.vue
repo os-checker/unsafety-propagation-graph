@@ -23,7 +23,6 @@ onMounted(() => {
 });
 
 const { fitView } = useVueFlow();
-const { layout } = useLayout();
 
 type Data = { nodes: Node[], edges: Edge[] };
 const EMPTY_DATA = { nodes: [], edges: [] };
