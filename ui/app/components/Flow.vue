@@ -1,38 +1,20 @@
 <template>
-  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="layoutGraph('LR')" />
+  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" @nodes-initialized="fit" />
   <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
 </template>
 
 <script setup lang="ts">
 import type { Node, Edge } from '@vue-flow/core'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { tagName, type Function } from "~/lib/output"
-import { ViewType } from '~/lib/topbar';
+import { Position, VueFlow, useVueFlow } from '@vue-flow/core'
+import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } from "~/lib/output"
+import { ViewType, type FlowOpts } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
+
+const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 
 const elk = new ELK()
 
-const graph = {
-  id: "root",
-  layoutOptions: { 'elk.algorithm': 'layered' },
-  children: [
-    { id: "n1", width: 30, height: 30 },
-    { id: "n2", width: 30, height: 30 },
-
-    { id: "n3", width: 30, height: 30 }
-  ],
-  edges: [
-    { id: "e1", sources: ["n1"], targets: ["n2"] },
-    { id: "e2", sources: ["n1"], targets: ["n3"] }
-  ]
-}
-
-elk.layout(graph)
-  .then(console.log)
-  .catch(console.error)
-
-
-const props = defineProps<{ raw: Function, viewSelected: ViewType[] }>();
+const props = defineProps<{ raw: Function }>();
 
 const chPx = ref(9.375);
 onMounted(() => {
@@ -43,117 +25,105 @@ onMounted(() => {
 });
 
 const { fitView } = useVueFlow();
-const { layout } = useLayout();
 
 type Data = { nodes: Node[], edges: Edge[] };
 const EMPTY_DATA = { nodes: [], edges: [] };
 
 const data = ref<Data>(EMPTY_DATA);
 
-watch(props, async ({ raw: val, viewSelected }) => {
-  if (!val.name) return;
+watchEffect(async () => {
+  const fn = props.raw;
+  if (!fn.name) return;
 
-  const view = new Set(viewSelected);
-  const viewCallees = view.has(ViewType.Callees);
-  const viewAdts = view.has(ViewType.Adts);
-  const viewBoth = viewCallees && viewAdts;
-  const viewTags = view.has(ViewType.Tags);
+  const viewSet = new Set(flowOpts.value.view);
+  const view = { callees: viewSet.has(ViewType.Callees), adts: viewSet.has(ViewType.Adts), tags: viewSet.has(ViewType.Tags) };
 
-  // Placeholder for initial position. The layout will be recomputed later.
-  const POS = { x: 0, y: 0 };
-  const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
+  // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
   const px = Math.ceil(chPx.value);
-  const size = (label: string) => ({ height: 5 * px, width: (label.length + 4) * px });
-
-  // Add the current function as root node, callees and adts as leaves.
-  const root: Node = { id: val.name, type: viewBoth ? "default" : "input", label: val.name, position: POS, ...dim(val.name) };
-
-  let callees: Node[] = [];
-  let edges: Edge[] = [];
-
-  if (viewCallees) {
-    const type = viewBoth ? "input" : "default";
-    callees = val.callees.map(callee => ({ id: `c@${callee}`, type, label: callee, position: POS, ...dim(callee) }));
-    callees.forEach(leaf => edges.push({
-      id: `e@${root.id}-${leaf.id}`,
-      ...(viewBoth ? { source: leaf.id, target: root.id, } : { source: root.id, target: leaf.id, })
-    }));
-  }
-
-  let adts: Node[] = [];
-  if (viewAdts) {
-    adts = Object.keys(val.adts).map(adt => ({ id: `adt@${adt}`, type: "default", label: adt, position: POS, ...dim(adt) }));
-    adts.forEach(leaf => edges.push({ id: `e@${root.id}-${leaf.id}`, source: root.id, target: leaf.id, }));
-  }
-
-  let tags: Node[] = [];
-  if (viewTags) {
-    tags = val.tags.tags.map(tag => {
-      const name = tagName(tag);
-      return { id: `tag@${name}`, label: name, position: POS, parentNode: root.id, ...dim(name) };
-    });
-    // tags.forEach(tag => );
-  }
-
-  // const adts_access: Node[] = Object.values(val.adts).flat().map(access => ({ id: `access@${access}`, type: "output", label: access, position: POS }));
-  // const nodes = [root, ...callees, ...adts, ...adts_access];
-  const nodes = [root, ...callees, ...adts, ...tags];
+  type Dim = { height: number, width: number };
+  const size = (label: string): Dim => ({ height: 5 * px, width: (label.length + 4) * px });
 
   // Put label top-center inside the node.
-  const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", };
+  const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
+  // Treat label size as node size if no tags are inside or viewed.
+  const fnDim = (tags: Tags, dim: Dim) => (!view.tags || tags.tags.length === 0) ? dim : {};
+  function tagChildren(tags: Tags): ElkNode[] {
+    return tags.tags.map(tag => {
+      const name = tagName(tag);
+      const dim = size(name);
+      return {
+        id: idTag(name),
+        layoutOptions,
+        labels: [{ text: name, ...dim }],
+        ...dim
+      }
+    })
+  }
+
+  const rootLabelDim = size(fn.name);
+  const root: ElkNode = {
+    id: fn.name,
+    layoutOptions,
+    labels: [{ text: fn.name, ...rootLabelDim }],
+    children: view.tags ? tagChildren(fn.tags) : [],
+    ...fnDim(fn.tags, rootLabelDim)
+  }
+
+  const callees: ElkNode[] = Object.entries(fn.callees).map(([name, info]) => {
+    const labelDim = size(name);
+    return {
+      id: idCalleeNonGeneric(name),
+      layoutOptions,
+      labels: [{ text: name, ...labelDim }],
+      children: view.tags ? tagChildren(info.tags) : [],
+      ...fnDim(info.tags, labelDim)
+    }
+  })
+
+  const edges: Edge[] =
+    callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: flowOpts.value.edge as string }))
+
   const graph: ElkNode = {
     id: "__root",
-    layoutOptions: { "elk.algorithm": "mrtree" },
-    children: [
-      {
-        id: root.id,
-        layoutOptions,
-        labels: [{ text: root.label as string, ...size(root.label as string) }],
-        children: tags.map(node => ({
-          id: node.id,
-          labels: [{ text: node.label as string, ...size(node.label as string) }],
-          ...size(node.label as string)
-        }))
-      },
-      ...[...callees, ...adts].map(node => ({
-        id: node.id,
-        layoutOptions,
-        labels: [{ text: node.label as string, ...size(node.label as string) }],
-        ...size(node.label as string)
-      })),
-    ],
+    layoutOptions: {
+      "elk.algorithm": flowOpts.value.layout as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT',
+    },
+    children: [root, ...callees],
     edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
   };
-  console.log(`[${new Date().toISOString()}]`, "graph:", graph)
 
   const tree = await elk.layout(graph);
-  console.log(`[${new Date().toISOString()}]`, "tree:", tree)
-  const newNodes: Node[] = [];
+
+  const nodes: Node[] = [];
   for (const node of tree.children ?? []) {
-    newNodes.push({
+    nodes.push({
       id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
       position: { x: node.x!, y: node.y! }, class: "upg-node-fn",
+      targetPosition: Position.Left, sourcePosition: Position.Right,
     })
     for (const tag of node.children ?? []) {
-      newNodes.push({
+      nodes.push({
         id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
         position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag",
-        parentNode: node.id
+        parentNode: node.id,
+        targetPosition: Position.Left, sourcePosition: Position.Right,
       })
     }
   }
 
-  // console.log(`update nodes: ${nodes.length} and edges: ${edges.length}`);
-  data.value = { nodes: newNodes, edges };
+  data.value = { nodes, edges };
 })
 
-/** Recompute node layout (position). */
-function layoutGraph(_direction: string) {
+watch(() => flowOpts.value.fit, val => {
+  if (val) {
+    fitView();
+    flowOpts.value.fit = false;
+  }
+})
+
+/** Fit view.  */
+function fit() {
   if (data.value.nodes.length === 0) return;
-  // await nextTick(() => {
-  //   data.value.nodes = layout(data.value.nodes, data.value.edges, direction)
-  //   // console.log(`update layout: nodes: ${data.value.nodes.length} edges: ${data.value.edges.length}`);
-  // });
   nextTick(fitView);
 }
 

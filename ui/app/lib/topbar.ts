@@ -5,13 +5,10 @@ export enum ViewType {
   Tags = "Tags",
 }
 
-export const ALL_VIEW_TYPES: ViewType[] = [
+export const VIEW_TYPES: ViewType[] = [
   ViewType.Callees, ViewType.Adts, ViewType.Tags
 ];
 
-export const DEFAULT_VIEW_TYPES: ViewType[] = [
-  ViewType.Callees, ViewType.Tags
-];
 
 // Navigation
 
@@ -83,6 +80,7 @@ export type SubNaviItem = {
   idx: number, name: string, kind: DefPathKind,
 }
 export type NaviItem = {
+  non_mod_kinds: DefPathKind[],
   subitems: SubNaviItem[],
   /** The key is DefPathKind, and each number in the value points to the element in subitems. */
   groups: { [key: string]: number[] },
@@ -96,3 +94,37 @@ export type Navigation = {
 
 export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
 export const NAVI_URL = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/navi/navi.json";
+
+// flow options
+
+export enum ELKAlgorithm {
+  layered = "layered",
+  stress = "stress",
+  mrtree = "mrtree",
+  radial = "radial",
+  force = "force",
+  disco = "disco",
+}
+
+export const ELK_LAYOUTS = [
+  ELKAlgorithm.mrtree, ELKAlgorithm.layered, ELKAlgorithm.radial, ELKAlgorithm.force,
+]
+
+export enum EdgeType {
+  bezier = "bezier",
+  step = "step",
+  smoothstep = "smoothstep",
+  straight = "straight",
+}
+
+export const EDGE_TYPES = [
+  EdgeType.bezier, EdgeType.straight, EdgeType.step, EdgeType.smoothstep,
+]
+
+export type FlowOpts = { layout: ELKAlgorithm, edge: EdgeType, fit: boolean, view: ViewType[] };
+export const FLOW_OPTS = {
+  layout: ELKAlgorithm.mrtree,
+  edge: EdgeType.bezier,
+  fit: false,
+  view: [ViewType.Callees, ViewType.Tags]
+};

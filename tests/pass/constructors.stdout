@@ -2,9 +2,20 @@
 {
   "name": "a",
   "safe": true,
-  "callees": [
-    "std::string::String::new"
-  ],
+  "callees": {
+    "std::string::String::new": {
+      "instance_name": [
+        "std::string::String::new"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+    }
+  },
   "adts": {
     "std::string::String": [
       "Plain"
@@ -28,9 +39,20 @@
 {
   "name": "S::new",
   "safe": true,
-  "callees": [
-    "a"
-  ],
+  "callees": {
+    "a": {
+      "instance_name": [
+        "a"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": ""
+    }
+  },
   "adts": {
     "S": [
       "Plain"
@@ -165,6 +187,7 @@
   ],
   "navi": {
     "0": {
+      "non_mod_kinds": [],
       "subitems": [
         {
           "idx": 1,
@@ -186,7 +209,17 @@
         ]
       }
     },
+    "1": {
+      "non_mod_kinds": [
+        "Fn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
     "2": {
+      "non_mod_kinds": [
+        "Struct"
+      ],
       "subitems": [
         {
           "idx": 3,
@@ -199,6 +232,14 @@
           0
         ]
       }
+    },
+    "3": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
     }
   },
   "name_to_path": {

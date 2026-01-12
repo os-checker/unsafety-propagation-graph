@@ -2,15 +2,147 @@
 {
   "name": "f",
   "safe": true,
-  "callees": [
-    "alloc::alloc::exchange_malloc",
-    "std::vec::Vec::<u32>::into_raw_parts",
-    "SecretRegion::from",
-    "SecretRegion::set_len",
-    "core::slice::<impl [u32]>::as_mut_ptr",
-    "SecretRegion::xor_secret_region",
-    "std::slice::<impl [u32]>::into_vec::<std::alloc::Global>"
-  ],
+  "callees": {
+    "alloc::alloc::exchange_malloc": {
+      "instance_name": [
+        "alloc::alloc::exchange_malloc"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": ""
+    },
+    "std::vec::Vec::<T>::into_raw_parts": {
+      "instance_name": [
+        "std::vec::Vec::<u32>::into_raw_parts"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Decomposes a `Vec<T>` into its raw components: `(pointer, length, capacity)`./n/n Returns the raw pointer to the underlying data, the length of/n the vector (in elements), and the allocated capacity of the/n data (in elements). These are the same arguments in the same/n order as the arguments to [`from_raw_parts`]./n/n After calling this function, the caller is responsible for the/n memory previously managed by the `Vec`. Most often, one does/n this by converting the raw pointer, length, and capacity back/n into a `Vec` with the [`from_raw_parts`] function; more generally,/n if `T` is non-zero-sized and the capacity is nonzero, one may use/n any method that calls [`dealloc`] with a layout of/n `Layout::array::<T>(capacity)`; if `T` is zero-sized or the/n capacity is zero, nothing needs to be done./n/n [`from_raw_parts`]: Vec::from_raw_parts/n [`dealloc`]: crate::alloc::GlobalAlloc::dealloc/n/n # Examples/n/n ```/n let v: Vec<i32> = vec![-1, 0, 1];/n/n let (ptr, len, cap) = v.into_raw_parts();/n/n let rebuilt = unsafe {/n     // We can now make changes to the components, such as/n     // transmuting the raw pointer to a compatible type./n     let ptr = ptr as *mut u32;/n/n     Vec::from_raw_parts(ptr, len, cap)/n };/n assert_eq!(rebuilt, [4294967295, 0, 1]);/n ```/n"
+    },
+    "SecretRegion::from": {
+      "instance_name": [
+        "SecretRegion::from"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [
+          {
+            "tag": {
+              "typ": null,
+              "name": "ValidPtr"
+            },
+            "args": [
+              "v"
+            ]
+          },
+          {
+            "tag": {
+              "typ": null,
+              "name": "InitializedInLen"
+            },
+            "args": [
+              "l"
+            ]
+          }
+        ],
+        "spec": {},
+        "docs": [
+          "* ValidPtr/n* InitializedInLen/n"
+        ]
+      },
+      "doc": ""
+    },
+    "SecretRegion::set_len": {
+      "instance_name": [
+        "SecretRegion::set_len"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [
+          {
+            "tag": {
+              "typ": "hazard",
+              "name": "InitializedInLen"
+            },
+            "args": [
+              "l"
+            ]
+          }
+        ],
+        "spec": {},
+        "docs": [
+          "* InitializedInLen/n"
+        ]
+      },
+      "doc": ""
+    },
+    "core::slice::<impl [T]>::as_mut_ptr": {
+      "instance_name": [
+        "core::slice::<impl [u32]>::as_mut_ptr"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Returns an unsafe mutable pointer to the slice's buffer./n/n The caller must ensure that the slice outlives the pointer this/n function returns, or else it will end up dangling./n/n Modifying the container referenced by this slice may cause its buffer/n to be reallocated, which would also make any pointers to it invalid./n/n # Examples/n/n ```/n let x = &mut [1, 2, 4];/n let x_ptr = x.as_mut_ptr();/n/n unsafe {/n     for i in 0..x.len() {/n         *x_ptr.add(i) += 2;/n     }/n }/n assert_eq!(x, &[3, 4, 6]);/n ```/n"
+    },
+    "SecretRegion::xor_secret_region": {
+      "instance_name": [
+        "SecretRegion::xor_secret_region"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [
+          {
+            "tag": {
+              "typ": null,
+              "name": "ValidPtr"
+            },
+            "args": [
+              "ptr"
+            ]
+          },
+          {
+            "tag": {
+              "typ": null,
+              "name": "ValidPtr"
+            },
+            "args": [
+              "self . buffer",
+              "offset"
+            ]
+          }
+        ],
+        "spec": {},
+        "docs": [
+          "* ValidPtr/n* ValidPtr/n"
+        ]
+      },
+      "doc": ""
+    },
+    "std::slice::<impl [T]>::into_vec": {
+      "instance_name": [
+        "std::slice::<impl [u32]>::into_vec::<std::alloc::Global>"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Converts `self` into a vector without clones or allocation./n/n The resulting vector can be converted back into a box via/n `Vec<T>`'s `into_boxed_slice` method./n/n # Examples/n/n ```/n let s: Box<[i32]> = Box::new([10, 40, 30]);/n let x = s.into_vec();/n // `s` cannot be used anymore because it has been converted into `x`./n/n assert_eq!(x, vec![10, 40, 30]);/n ```/n"
+    }
+  },
   "adts": {
     "std::ptr::NonNull[[u32; 3]]": [
       "Plain"
@@ -49,7 +181,7 @@
 {
   "name": "SecretRegion::from",
   "safe": false,
-  "callees": [],
+  "callees": {},
   "adts": {
     "SecretRegion": [
       "Plain"
@@ -91,7 +223,7 @@
 {
   "name": "SecretRegion::set_len",
   "safe": false,
-  "callees": [],
+  "callees": {},
   "adts": {
     "SecretRegion": [
       "DerefVariantField(VariantIdx(None)-FieldIdx(Some(1)))",
@@ -125,10 +257,32 @@
 {
   "name": "SecretRegion::xor_secret_region",
   "safe": false,
-  "callees": [
-    "std::ptr::mut_ptr::<impl *mut u32>::read",
-    "std::ptr::mut_ptr::<impl *mut u32>::offset"
-  ],
+  "callees": {
+    "std::ptr::mut_ptr::<impl *mut T>::read": {
+      "instance_name": [
+        "std::ptr::mut_ptr::<impl *mut u32>::read"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Reads the value from `self` without moving it. This leaves the/n memory in `self` unchanged./n/n See [`ptr::read`] for safety concerns and examples./n/n [`ptr::read`]: crate::ptr::read()/n"
+    },
+    "std::ptr::mut_ptr::<impl *mut T>::offset": {
+      "instance_name": [
+        "std::ptr::mut_ptr::<impl *mut u32>::offset"
+      ],
+      "safe": false,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": "/n # Examples/n/n ```/n let mut s = [1, 2, 3];/n let ptr: *mut u32 = s.as_mut_ptr();/n/n unsafe {/n     assert_eq!(2, *ptr.offset(1));/n     assert_eq!(3, *ptr.offset(2));/n }/n ```/n"
+    }
+  },
   "adts": {
     "SecretRegion": [
       "DerefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
@@ -507,6 +661,7 @@
   ],
   "navi": {
     "0": {
+      "non_mod_kinds": [],
       "subitems": [
         {
           "idx": 1,
@@ -528,7 +683,17 @@
         ]
       }
     },
+    "1": {
+      "non_mod_kinds": [
+        "Fn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
     "2": {
+      "non_mod_kinds": [
+        "Struct"
+      ],
       "subitems": [
         {
           "idx": 3,
@@ -553,6 +718,30 @@
           2
         ]
       }
+    },
+    "3": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "4": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "5": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
     }
   },
   "name_to_path": {

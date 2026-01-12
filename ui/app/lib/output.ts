@@ -2,7 +2,7 @@
 export type Function = {
   name: string,
   safe: boolean,
-  callees: string[],
+  callees: { [key: string]: CalleeInfo },
   adts: { [key: string]: string[] },
   path: number | string,
   span: string,
@@ -10,6 +10,13 @@ export type Function = {
   mir: string,
   doc: string,
   tags: Tags
+}
+
+export type CalleeInfo = {
+  instance_name: string[],
+  safe: boolean,
+  tags: Tags,
+  doc: string,
 }
 
 export type Tags = {
@@ -46,7 +53,18 @@ export enum TagType {
 }
 
 export const EMPTY_FUNCTION: Function = {
-  name: "", safe: true, callees: [], adts: {}, path: "", span: "",
+  name: "", safe: true, callees: {}, adts: {}, path: "", span: "",
   src: "", mir: "", doc: "", tags: { tags: [], spec: {}, docs: [] },
 };
 
+export function idTag(name: string) {
+  return `tag@${name}`
+}
+
+export function idEdge(src: string, dst: string) {
+  return `e@${src}-${dst}`
+}
+
+export function idCalleeNonGeneric(name: string) {
+  return `c@${name}`
+}

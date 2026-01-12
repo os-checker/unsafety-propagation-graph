@@ -2,9 +2,20 @@
 {
   "name": "S::mutate_a",
   "safe": true,
-  "callees": [
-    "std::string::String::new"
-  ],
+  "callees": {
+    "std::string::String::new": {
+      "instance_name": [
+        "std::string::String::new"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+    }
+  },
   "adts": {
     "std::string::String": [
       "Plain"
@@ -29,10 +40,32 @@
 {
   "name": "S::mutate",
   "safe": true,
-  "callees": [
-    "std::string::String::new",
-    "std::string::String::push"
-  ],
+  "callees": {
+    "std::string::String::new": {
+      "instance_name": [
+        "std::string::String::new"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+    },
+    "std::string::String::push": {
+      "instance_name": [
+        "std::string::String::push"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n"
+    }
+  },
   "adts": {
     "std::string::String": [
       "Plain",
@@ -59,9 +92,20 @@
 {
   "name": "E::mutate1",
   "safe": true,
-  "callees": [
-    "std::string::String::push"
-  ],
+  "callees": {
+    "std::string::String::push": {
+      "instance_name": [
+        "std::string::String::push"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n"
+    }
+  },
   "adts": {
     "E": [
       "Deref",
@@ -87,10 +131,32 @@
 {
   "name": "E::mutate2",
   "safe": true,
-  "callees": [
-    "std::string::String::push",
-    "std::string::String::new"
-  ],
+  "callees": {
+    "std::string::String::push": {
+      "instance_name": [
+        "std::string::String::push"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n"
+    },
+    "std::string::String::new": {
+      "instance_name": [
+        "std::string::String::new"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+    }
+  },
   "adts": {
     "E": [
       "Deref",
@@ -119,9 +185,20 @@
 {
   "name": "E::mutate_plain",
   "safe": true,
-  "callees": [
-    "std::string::String::new"
-  ],
+  "callees": {
+    "std::string::String::new": {
+      "instance_name": [
+        "std::string::String::new"
+      ],
+      "safe": true,
+      "tags": {
+        "tags": [],
+        "spec": {},
+        "docs": []
+      },
+      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+    }
+  },
   "adts": {
     "E": [
       "Deref",
@@ -386,6 +463,7 @@
   ],
   "navi": {
     "0": {
+      "non_mod_kinds": [],
       "subitems": [
         {
           "idx": 1,
@@ -408,6 +486,9 @@
       }
     },
     "1": {
+      "non_mod_kinds": [
+        "Struct"
+      ],
       "subitems": [
         {
           "idx": 2,
@@ -427,7 +508,26 @@
         ]
       }
     },
+    "2": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "3": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
     "4": {
+      "non_mod_kinds": [
+        "Enum"
+      ],
       "subitems": [
         {
           "idx": 5,
@@ -452,6 +552,30 @@
           2
         ]
       }
+    },
+    "5": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "6": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "7": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
     }
   },
   "name_to_path": {
