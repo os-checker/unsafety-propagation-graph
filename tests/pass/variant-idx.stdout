@@ -463,6 +463,7 @@
   ],
   "navi": {
     "0": {
+      "non_mod_kinds": [],
       "subitems": [
         {
           "idx": 1,
@@ -485,6 +486,9 @@
       }
     },
     "1": {
+      "non_mod_kinds": [
+        "Struct"
+      ],
       "subitems": [
         {
           "idx": 2,
@@ -504,7 +508,26 @@
         ]
       }
     },
+    "2": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "3": {
+      "non_mod_kinds": [
+        "Struct",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
     "4": {
+      "non_mod_kinds": [
+        "Enum"
+      ],
       "subitems": [
         {
           "idx": 5,
@@ -529,6 +552,30 @@
           2
         ]
       }
+    },
+    "5": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "6": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "7": {
+      "non_mod_kinds": [
+        "Enum",
+        "AssocFn"
+      ],
+      "subitems": [],
+      "groups": {}
     }
   },
   "name_to_path": {

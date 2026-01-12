@@ -197,6 +197,7 @@
   ],
   "navi": {
     "0": {
+      "non_mod_kinds": [],
       "subitems": [
         {
           "idx": 1,
@@ -225,6 +226,27 @@
           2
         ]
       }
+    },
+    "1": {
+      "non_mod_kinds": [
+        "Fn"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "2": {
+      "non_mod_kinds": [
+        "Struct"
+      ],
+      "subitems": [],
+      "groups": {}
+    },
+    "3": {
+      "non_mod_kinds": [
+        "Enum"
+      ],
+      "subitems": [],
+      "groups": {}
     }
   },
   "name_to_path": {
