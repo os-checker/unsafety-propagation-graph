@@ -32,6 +32,8 @@ pub type Navi = FxIndexMap<usize, NaviItem>;
 
 #[derive(Debug, Default, Serialize)]
 pub struct NaviItem {
+    /// Non Mod kinds in the path.
+    non_mod_kinds: Vec<DefPathKind>,
     subitems: Vec<SubNaviItem>,
     /// The usize idx refers to subitems.
     groups: FxIndexMap<DefPathKind, Vec<usize>>,
@@ -54,8 +56,12 @@ fn to_navi(
     #[derive(Debug, Default)]
     struct Meta {
         parent_paths: FxIndexMap<DefPathKind, ItemPath>,
+        /// The real value will be recomputed once all items are sorted.
         item_idx: usize,
+        /// As a hint for identifying the core item kind.
+        non_mod_kinds: Vec<DefPathKind>,
     }
+
     let mut map_paths = FxIndexMap::<ItemPath, Meta>::with_capacity_and_hasher(
         v_path.len() * 3 / 2,
         Default::default(),
@@ -84,9 +90,15 @@ fn to_navi(
 
         // Insert free item path with parent item path.
         let mod_path = &free_item[..mod_sep];
-        let item_parent_path = &mut map_paths.entry(free_item.clone()).or_default().parent_paths;
+        let meta = map_paths.entry(free_item.clone()).or_default();
+        let item_parent_path = &mut meta.parent_paths;
 
-        match free_item[mod_sep].kind {
+        meta.non_mod_kinds = free_item[mod_sep..]
+            .iter()
+            .filter_map(|x| (x.kind != DefPathKind::Mod).then_some(x.kind))
+            .collect();
+        let sep_kind = free_item[mod_sep].kind;
+        match sep_kind {
             DefPathKind::AssocFn | DefPathKind::Mod => (),
             // Put the assoc item under an ADT or trait path.
             kind if mod_sep + 1 != len => {
@@ -117,6 +129,11 @@ fn to_navi(
 
     let mut navi = Navi::default();
     for (current_item, current_meta) in &map_paths {
+        // sep_kind will be updated for non-Mod kind, and since all parent modules are inserted
+        // with default empty Vec, we only need to set it up for free_item.
+        navi.entry(current_meta.item_idx).or_default().non_mod_kinds =
+            current_meta.non_mod_kinds.clone();
+
         for parent_path in current_meta.parent_paths.values() {
             let parent_meta = map_paths.get(parent_path).unwrap();
 
@@ -345,8 +362,9 @@ impl DefPath {
 /// * `[SelfTy, AssocFn]` for an unusual associated function like `impl &Adt`.
 /// * `[Mod, ImplTrait, SelfTy, AssocFn]` for an unusual trait function like `impl Trait for &Adt`,
 ///   `impl Trait for (Adt1, Adt2)`, `impl<T> Trait for T`, or even `impl<T: Trait> Trait for T::U`.
-#[derive(Clone, Copy, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Clone, Copy, Default, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum DefPathKind {
+    #[default]
     Mod,
     Fn,
     AssocFn,
