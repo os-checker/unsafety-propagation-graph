@@ -1,5 +1,5 @@
 <template>
-  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="layoutGraph('LR')" />
+  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" />
   <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
 </template>
 
@@ -11,26 +11,6 @@ import { ViewType } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
 
 const elk = new ELK()
-
-const graph = {
-  id: "root",
-  layoutOptions: { 'elk.algorithm': 'layered' },
-  children: [
-    { id: "n1", width: 30, height: 30 },
-    { id: "n2", width: 30, height: 30 },
-
-    { id: "n3", width: 30, height: 30 }
-  ],
-  edges: [
-    { id: "e1", sources: ["n1"], targets: ["n2"] },
-    { id: "e2", sources: ["n1"], targets: ["n3"] }
-  ]
-}
-
-elk.layout(graph)
-  .then(console.log)
-  .catch(console.error)
-
 
 const props = defineProps<{ raw: Function, viewSelected: ViewType[] }>();
 
@@ -147,13 +127,9 @@ watch(props, async ({ raw: val, viewSelected }) => {
   data.value = { nodes: newNodes, edges };
 })
 
-/** Recompute node layout (position). */
-function layoutGraph(_direction: string) {
+/** Fit view.  */
+function fit() {
   if (data.value.nodes.length === 0) return;
-  // await nextTick(() => {
-  //   data.value.nodes = layout(data.value.nodes, data.value.edges, direction)
-  //   // console.log(`update layout: nodes: ${data.value.nodes.length} edges: ${data.value.edges.length}`);
-  // });
   nextTick(fitView);
 }
 
