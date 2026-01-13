@@ -9,12 +9,15 @@ import { Position, VueFlow, useVueFlow } from '@vue-flow/core'
 import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } from "~/lib/output"
 import { ViewType, type FlowOpts } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
+import type { PanelContent } from '~/lib/panel';
+import updateNodePosition from '~/utils/updateNodePosition';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
+const panelContent = defineModel<PanelContent>('panelContent', { required: true });
 
 const elk = new ELK()
 
-const props = defineProps<{ raw: Function }>();
+const props = defineProps<{ fn: Function }>();
 
 const chPx = ref(9.375);
 onMounted(() => {
@@ -24,15 +27,25 @@ onMounted(() => {
   chPx.value = pxValue;
 });
 
-const { fitView } = useVueFlow();
+const { fitView, onNodeClick } = useVueFlow();
 
-type Data = { nodes: Node[], edges: Edge[] };
-const EMPTY_DATA = { nodes: [], edges: [] };
+/** id_to_item: Node id to item (fn, callee, adt) name.
+    Rust forbids identical path to different items, so the name is trustworthy. */
+type IdToItem = { [key: string]: { name: string, doc: string, safe: boolean } };
+type Data = { nodes: Node[], edges: Edge[], id_to_item: IdToItem };
+const EMPTY_DATA = { nodes: [], edges: [], id_to_item: {} };
 
 const data = ref<Data>(EMPTY_DATA);
 
+// Render current fn item doc as defualt.
+watch(() => props.fn, fn => panelContent.value.doc = fn.doc);
+// Respond to node click.
+onNodeClick(event => {
+  panelContent.value.doc = data.value.id_to_item[event.node.id]?.doc ?? props.fn.doc;
+})
+
 watchEffect(async () => {
-  const fn = props.raw;
+  const fn = props.fn;
   if (!fn.name) return;
 
   const viewSet = new Set(flowOpts.value.view);
@@ -60,6 +73,8 @@ watchEffect(async () => {
     })
   }
 
+  let id_to_item: IdToItem = {}
+
   const rootLabelDim = size(fn.name);
   const root: ElkNode = {
     id: fn.name,
@@ -68,12 +83,14 @@ watchEffect(async () => {
     children: view.tags ? tagChildren(fn.tags) : [],
     ...fnDim(fn.tags, rootLabelDim)
   }
+  id_to_item[root.id] = { name: fn.name, doc: fn.doc, safe: fn.safe };
 
   const callees: ElkNode[] = Object.entries(fn.callees).map(([name, info]) => {
     const labelDim = size(name);
+    const id = idCalleeNonGeneric(name);
+    id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
     return {
-      id: idCalleeNonGeneric(name),
-      layoutOptions,
+      id, layoutOptions,
       labels: [{ text: name, ...labelDim }],
       children: view.tags ? tagChildren(info.tags) : [],
       ...fnDim(info.tags, labelDim)
@@ -98,7 +115,8 @@ watchEffect(async () => {
   for (const node of tree.children ?? []) {
     nodes.push({
       id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
-      position: { x: node.x!, y: node.y! }, class: "upg-node-fn",
+      position: { x: node.x!, y: node.y! },
+      class: id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
       targetPosition: Position.Left, sourcePosition: Position.Right,
     })
     for (const tag of node.children ?? []) {
@@ -111,7 +129,9 @@ watchEffect(async () => {
     }
   }
 
-  data.value = { nodes, edges };
+  updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+
+  data.value = { nodes, edges, id_to_item };
 })
 
 watch(() => flowOpts.value.fit, val => {
@@ -126,5 +146,6 @@ function fit() {
   if (data.value.nodes.length === 0) return;
   nextTick(fitView);
 }
+
 
 </script>

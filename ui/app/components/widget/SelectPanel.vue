@@ -10,15 +10,17 @@
     <CodeSrc v-if="selected === Panel.Src" :src="raw.src" :isWrapped="isWrapped" />
     <CodeSrc v-else-if="selected === Panel.Mir" :src="raw.mir" :isWrapped="isWrapped" />
     <CodeSrc v-else-if="selected === Panel.Raw" :src="JSON.stringify(raw, undefined, 2)" :isWrapped="isWrapped" />
-    <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="raw.doc" />
+    <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="panelContent.doc" :isWrapped="isWrapped" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Panel, PANELS } from "~/lib/panel"
+import { Panel, PANELS, type PanelContent } from "~/lib/panel"
 import type { Function } from "~/lib/output"
 
 const selected = defineModel<Panel>();
+
+const panelContent = defineModel<PanelContent>("panelContent", { required: true });
 
 const props = defineProps<{ raw: Function }>();
 

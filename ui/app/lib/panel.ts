@@ -6,3 +6,11 @@ export const enum Panel {
 }
 
 export const PANELS: Panel[] = [Panel.Src, Panel.Mir, Panel.Doc, Panel.Raw];
+
+export type PanelContent = {
+  doc: string,
+}
+
+export const PANEL_CONTENT: PanelContent = {
+  doc: "",
+}

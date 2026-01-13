@@ -7,17 +7,17 @@
 /* this contains the default theme, these are optional styles */
 @import '@vue-flow/core/dist/theme-default.css';
 
-/* General pre code styles. */
-.shiki,
-.shiki span {
-  @apply !text-lg;
+/* General codeblock styles. */
+.shiki, .shiki span {
+  @apply !leading-tight !text-base;
 }
 
 /* Triggered only in the dark theme. */
 html.dark .shiki,
 html.dark .shiki span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  /* background-color: var(--shiki-dark-bg) !important; */
+  background-color: transparent !important;
   /* Optional, if you also want font styles */
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
@@ -67,7 +67,7 @@ html, body {
 }
 
 .upg-panel-content {
-  @apply border border-gray-300;
+  @apply border border-teal-400 dark:!border-teal-300 rounded-md px-2;
   overflow: auto;
 }
 
@@ -104,14 +104,78 @@ html, body {
   @apply text-pink-600 dark:text-pink-400
 }
 
-.upg-elem {
-  @apply flex items-center text-lg font-mono whitespace-nowrap;
-}
-
-.upg-node-fn {
-  @apply text-lg font-mono whitespace-nowrap;
-}
-
+.upg-node,
+.upg-node-fn,
+.upg-node-unsafe-fn,
 .upg-node-tag {
-  @apply text-lg font-mono whitespace-nowrap text-orange-600 dark:text-orange-400;
+  @apply text-lg font-mono whitespace-nowrap;
+  @variant dark {
+    @apply bg-gray-800 text-white border-gray-100;
+  };
+}
+.upg-node-tag {
+  @apply text-orange-600 dark:text-orange-400 font-bold;
+}
+.upg-node-unsafe-fn {
+  @apply bg-red-100 dark:bg-rose-900/30;
+}
+
+.vue-flow__node.selected {
+  @apply !border-teal-400 dark:!border-teal-300 !border-3;
+}
+
+@plugin "@tailwindcss/typography";
+@layer base {
+  /* 针对技术文档的深度定制 */
+  .prose {
+    /* 1. 去掉行内代码前后的反引号 (`) */
+    --tw-prose-quote-borders: none;
+    
+    :not(pre) > code {
+      @apply !bg-gray-100 dark:!bg-gray-800 !text-pink-600 dark:!text-pink-400 
+             px-1.5 py-0.5 rounded-md font-medium text-[0.9em];
+      
+      &::before, &::after {
+        content: "" !important; /* 彻底移除反引号 */
+      }
+    }
+
+    a code {
+      /* 颜色继承链接的蓝色，而不是原本的粉色 */
+      @apply !text-inherit; 
+      
+      /* 稍微加深一点背景色，或者稍微调整边框，让它看起来像个可点击的按钮 */
+      @apply !bg-blue-50 dark:!bg-blue-900/30 transition-colors;
+    }
+
+    /* 解决 hover 边框被遮挡的问题 */
+    a {
+      /* 增加一点底部内边距，确保边框在 code 的背景范围之外 */
+      @apply pb-0.5 !text-sky-600 dark:!text-sky-300;
+    }
+
+    /* 3. 悬浮交互增强 */
+    a:hover code {
+      /* 鼠标悬浮在链接上时，内部代码块的背景色也跟着变深一点 */
+      @apply !bg-blue-200 dark:!bg-blue-400/50;
+    }
+
+    /* 3. 优化列表符号颜色 */
+    ul > li::marker {
+      @apply !text-blue-500;
+    }
+
+    /* 4. 优化代码块外观 */
+    /* pre { */
+    /*   @apply bg-slate-50/50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 shadow-sm; */
+    /* } */
+
+    h1 {
+      @apply !text-2xl !text-orange-600 dark:!text-orange-400;
+    }
+
+    h2 {
+      @apply !text-2xl !text-teal-600 dark:!text-teal-400;
+    }
+  }
 }
