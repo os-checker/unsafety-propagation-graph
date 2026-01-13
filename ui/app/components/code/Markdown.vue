@@ -33,7 +33,7 @@ const html = computed(() => {
 /* Force wrapping if parent has .code-wrap class. */
 .code-wrap pre {
   white-space: pre-wrap !important;
-  word-break: break-all;
+  /* word-break: break-all; */
   /* overflow-x: visible; */
 }
 </style>
