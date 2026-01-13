@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { ViewType, VIEW_TYPES, EMPTY_NAVI, NAVI_URL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, } from '~/lib/topbar';
+import { VIEW_TYPES, EMPTY_NAVI, NAVI_URL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, } from '~/lib/topbar';
 import type { Navigation, NaviItem, FlowOpts } from '~/lib/topbar';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
