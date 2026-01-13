@@ -10,6 +10,7 @@ import { idCalleeNonGeneric, idEdge, idTag, tagName, type Function, type Tags } 
 import { ViewType, type FlowOpts } from '~/lib/topbar';
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js'
 import type { PanelContent } from '~/lib/panel';
+import updateNodePosition from '~/utils/updateNodePosition';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 const panelContent = defineModel<PanelContent>('panelContent', { required: true });
@@ -127,6 +128,8 @@ watchEffect(async () => {
       })
     }
   }
+
+  updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
 
   data.value = { nodes, edges, id_to_item };
 })

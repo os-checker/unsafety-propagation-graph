@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxt/ui": "^4.3.0",
     "@vue-flow/core": "^1.48.1",
+    "@dagrejs/dagre": "^1.1.8",
     "elkjs": "^0.11.0",
     "nuxt": "^4.2.2",
     "vue": "^3.5.26",
