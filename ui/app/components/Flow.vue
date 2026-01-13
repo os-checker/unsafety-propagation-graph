@@ -30,7 +30,7 @@ const { fitView, onNodeClick } = useVueFlow();
 
 /** id_to_item: Node id to item (fn, callee, adt) name.
     Rust forbids identical path to different items, so the name is trustworthy. */
-type IdToItem = { [key: string]: { name: string, doc: string } };
+type IdToItem = { [key: string]: { name: string, doc: string, safe: boolean } };
 type Data = { nodes: Node[], edges: Edge[], id_to_item: IdToItem };
 const EMPTY_DATA = { nodes: [], edges: [], id_to_item: {} };
 
@@ -82,12 +82,12 @@ watchEffect(async () => {
     children: view.tags ? tagChildren(fn.tags) : [],
     ...fnDim(fn.tags, rootLabelDim)
   }
-  id_to_item[root.id] = { name: fn.name, doc: fn.doc };
+  id_to_item[root.id] = { name: fn.name, doc: fn.doc, safe: fn.safe };
 
   const callees: ElkNode[] = Object.entries(fn.callees).map(([name, info]) => {
     const labelDim = size(name);
     const id = idCalleeNonGeneric(name);
-    id_to_item[id] = { name: name, doc: info.doc };
+    id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
     return {
       id, layoutOptions,
       labels: [{ text: name, ...labelDim }],
@@ -114,7 +114,8 @@ watchEffect(async () => {
   for (const node of tree.children ?? []) {
     nodes.push({
       id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
-      position: { x: node.x!, y: node.y! }, class: "upg-node-fn",
+      position: { x: node.x!, y: node.y! },
+      class: id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
       targetPosition: Position.Left, sourcePosition: Position.Right,
     })
     for (const tag of node.children ?? []) {
