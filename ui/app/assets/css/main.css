@@ -9,7 +9,7 @@
 
 /* General codeblock styles. */
 .shiki, .shiki span {
-  @apply !leading-tight;
+  @apply !leading-tight !text-base;
 }
 
 /* Triggered only in the dark theme. */
@@ -67,7 +67,7 @@ html, body {
 }
 
 .upg-panel-content {
-  @apply border border-teal-300 rounded-md px-2;
+  @apply border border-teal-400 dark:!border-teal-300 rounded-md px-2;
   overflow: auto;
 }
 
@@ -104,16 +104,20 @@ html, body {
   @apply text-pink-600 dark:text-pink-400
 }
 
-.upg-elem {
-  @apply flex items-center text-lg font-mono whitespace-nowrap;
-}
-
-.upg-node-fn {
-  @apply text-lg font-mono whitespace-nowrap;
-}
-
+.upg-node,
+.upg-node-fn,
 .upg-node-tag {
-  @apply text-lg font-mono whitespace-nowrap text-orange-600 dark:text-orange-400;
+  @apply text-lg font-mono whitespace-nowrap;
+  @variant dark {
+    @apply bg-gray-800 text-white border-gray-100;
+  };
+}
+.upg-node-tag {
+  @apply text-orange-600 dark:text-orange-400 font-bold;
+}
+
+.vue-flow__node.selected {
+  @apply !border-teal-400 dark:!border-teal-300 !border-3;
 }
 
 @plugin "@tailwindcss/typography";
