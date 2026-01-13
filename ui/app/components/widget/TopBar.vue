@@ -21,7 +21,7 @@
     </UNavigationMenu>
 
     <div class="top-menu mr-2 gap-1">
-      <UTooltip text="Layout Algorithm">
+      <UTooltip v-if="false" text="Layout Algorithm">
         <USelectMenu v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false"
           class="w-31" icon="tabler:layout-board-split-filled" />
       </UTooltip>
