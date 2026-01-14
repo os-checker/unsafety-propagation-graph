@@ -1,5 +1,9 @@
 <template>
-  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" @nodes-initialized="fit" />
+  <VueFlow :nodes="data.nodes" :edges="data.edges" @update:edges="fit" @nodes-initialized="fit">
+    <template #node-no-handle="props">
+      <NodeNoHandle v-bind="props" />
+    </template>
+  </VueFlow>
   <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
 </template>
 

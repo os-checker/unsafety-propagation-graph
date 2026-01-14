@@ -245,7 +245,7 @@ export class Plot {
         const adtFnKindID = adtKind.id;
         nodes.push({
           id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
-          position: { x: adtKind.x!, y: adtKind.y! },
+          position: { x: adtKind.x!, y: adtKind.y! }, type: "no-handle",
           class: isAdtFnKindID(adtFnKindID) ? "upg-node-adt-fn-kind" : undefined,
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
