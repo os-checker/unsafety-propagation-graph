@@ -85,3 +85,11 @@ export function idAdt(name: string) {
 export function isAdtID(id: string) {
   return id.startsWith("adt@")
 }
+
+export function idAdtFnKind(adt_id: string, fn_kind: string) {
+  return `kind@${fn_kind}@${adt_id}`
+}
+
+export function isAdtFnKindID(id: string) {
+  return id.startsWith("kind@")
+}

@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Tags, Function, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idTag, isAdtID, tagName } from "~/lib/output";
+import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, idTag, isAdtID, tagName, isAdtFnKindID } from "~/lib/output";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 
@@ -184,8 +184,8 @@ export class Plot {
     const callees_with_adt = new Set<string>(); // Callee names.
     const adtNodes: ElkNode[] = Object.entries(adts).map(([name, callees]) => {
       const labelDim = config.size(name);
-      const id = idAdt(name);
-      id_to_adt[id] = { name: name, doc: "", safe: true };
+      const adt_id = idAdt(name);
+      id_to_adt[adt_id] = { name: name, doc: "", safe: true };
 
       const kinds: { [key: string]: Callees } = {};
       for (const { kind, name, info } of callees) {
@@ -194,14 +194,14 @@ export class Plot {
         callees_with_adt.add(name);
       }
       const kindsChildren: ElkNode[] = Object.entries(kinds).map(([kind, callees]) => ({
-        id: `${id} kind@${kind}`, layoutOptions: FnLayoutOptions,
+        id: idAdtFnKind(adt_id, kind), layoutOptions: FnLayoutOptions,
         labels: [{ text: kind, ...config.size(kind) }],
         children: config.calleeChildren(callees, id_to_callee_with_adt),
         // size will be computed from children
       }));
 
       return {
-        id, layoutOptions: FnLayoutOptions,
+        id: adt_id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
         children: kindsChildren
       }
@@ -230,6 +230,7 @@ export class Plot {
 
     const tree = await this.elk.layout(graph);
 
+    const id_to_callee = { ...id_to_callee_no_adt, ...id_to_callee_with_adt };
     const nodes: Node[] = [];
     for (const node of tree.children ?? []) {
       // Node is root fn and adt names.
@@ -241,10 +242,11 @@ export class Plot {
         targetPosition: Position.Left, sourcePosition: Position.Right,
       });
       for (const adtKind of node.children ?? []) {
-        const adtKindID = adtKind.id;
+        const adtFnKindID = adtKind.id;
         nodes.push({
-          id: adtKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
-          position: { x: adtKind.x!, y: adtKind.y! }, class: "upg-node-fn", // TODO: fill class
+          id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
+          position: { x: adtKind.x!, y: adtKind.y! },
+          class: isAdtFnKindID(adtFnKindID) ? "upg-node-adt-fn-kind" : undefined,
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
         });
@@ -252,8 +254,9 @@ export class Plot {
           const calleeID = callee.id;
           nodes.push({
             id: calleeID, label: callee.labels![0]!.text!, width: callee.width, height: callee.height,
-            position: { x: callee.x!, y: callee.y! }, class: "upg-node-fn", // TODO: fill class
-            parentNode: adtKindID,
+            position: { x: callee.x!, y: callee.y! },
+            class: id_to_callee[calleeID]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
+            parentNode: adtFnKindID,
             targetPosition: Position.Left, sourcePosition: Position.Right,
           })
           for (const tag of callee.children ?? []) {
