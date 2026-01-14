@@ -81,7 +81,13 @@ export class Plot {
     this.elk = elk;
   }
 
+  clear() {
+    Object.assign(this, { nodes: [], edges: [], id_to_item: {} });
+  }
+
+  /** Generate the graph with callees and optional tags. */
   async callee_tag(fn: Function) {
+    this.clear();
     const config = this.config;
     const rootLabelDim = config.size(fn.name);
     const root: ElkNode = {
@@ -91,12 +97,13 @@ export class Plot {
       children: config.view.tags ? config.tagChildren(fn.tags) : [],
       ...config.fnDim(fn.tags, rootLabelDim)
     };
-    this.id_to_item[root.id] = { name: fn.name, doc: fn.doc, safe: fn.safe };
+    const id_to_item: IdToItem = {};
+    id_to_item[root.id] = { name: fn.name, doc: fn.doc, safe: fn.safe };
 
     const callees: ElkNode[] = Object.entries(fn.callees).map(([name, info]) => {
       const labelDim = config.size(name);
       const id = idCalleeNonGeneric(name);
-      this.id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
+      id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
       return {
         id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
@@ -121,7 +128,7 @@ export class Plot {
       nodes.push({
         id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
         position: { x: node.x!, y: node.y! },
-        class: this.id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
+        class: id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
         targetPosition: Position.Left, sourcePosition: Position.Right,
       });
       for (const tag of node.children ?? []) {
@@ -134,8 +141,13 @@ export class Plot {
       }
     }
 
-    updateNodePosition(nodes.filter(n => this.id_to_item[n.id] !== undefined), edges);
-    this.nodes = nodes;
-    this.edges = edges;
+    updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+    Object.assign(this, { nodes, edges, id_to_item });
+  }
+
+  /** Generate the graph with callee and adt nodes. */
+  async callee_adt(fn: Function) {
+    this.clear()
+
   }
 }
