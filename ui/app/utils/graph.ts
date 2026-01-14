@@ -176,7 +176,8 @@ export class Plot {
       }
     }
 
-    const id_to_callee: IdToItem = {};
+    const id_to_callee_with_adt: IdToItem = {};
+    const callees_with_adt = new Set<string>(); // Callee names.
     const adtNodes: ElkNode[] = Object.entries(adts).map(([name, callees]) => {
       const labelDim = config.size(name);
       const id = idAdt(name);
@@ -186,11 +187,12 @@ export class Plot {
       for (const { kind, name, info } of callees) {
         kinds[kind] ??= {};
         kinds[kind][name] = info;
+        callees_with_adt.add(name);
       }
       const kindsChildren: ElkNode[] = Object.entries(kinds).map(([kind, callees]) => ({
         id: `${id} kind@${kind}`, layoutOptions: FnLayoutOptions,
         labels: [{ text: kind, ...config.size(kind) }],
-        children: config.calleeChildren(callees, id_to_callee),
+        children: config.calleeChildren(callees, id_to_callee_with_adt),
         // size will be computed from children
       }));
 
@@ -201,12 +203,21 @@ export class Plot {
       }
     })
 
+    // Add callees that have no adts to the graph.
+    const callees_no_adt: Callees = {};
+    for (const [name, info] of Object.entries(fn.callees)) {
+      if (!callees_with_adt.has(name)) callees_no_adt[name] = info;
+    }
+    const id_to_callee_no_adt: IdToItem = {};
+    const calleesNoAdt = config.calleeChildren(callees_no_adt, id_to_callee_no_adt);
+    Object.assign(id_to_item, id_to_callee_no_adt);
+
     const edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: config.flowOpts.edge as string }));
 
     const graph: ElkNode = {
       id: "__root",
       layoutOptions: config.rootLayoutOptions,
-      children: [root, ...adtNodes],
+      children: [root, ...adtNodes, ...calleesNoAdt],
       edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
     };
 
@@ -249,9 +260,16 @@ export class Plot {
       }
     }
 
+    // Connect root with callees without adt.
+    for (const callee_no_adt_id of Object.keys(id_to_callee_no_adt)) {
+      edges.push({ id: idEdge(root.id, callee_no_adt_id), source: root.id, target: callee_no_adt_id });
+    }
+
     updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+
     // Add callee items to id_to_item, because we need it to render documentation.
-    Object.assign(this.id_to_item, id_to_callee);
+    Object.assign(id_to_item, id_to_callee_with_adt);
+
     Object.assign(this, { nodes, edges });
   }
 }
