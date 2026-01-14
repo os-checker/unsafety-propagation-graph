@@ -168,7 +168,6 @@ export class Plot {
     this.clear()
     const root = this.rootNode(fn);
     const config = this.config;
-    const id_to_item = this.id_to_item;
 
     // The key is adt name, the value is callee name.
     const adts: { [keys: string]: { name: string, kind: AdtFnKind, info: CalleeInfo }[] } = {};
@@ -180,12 +179,13 @@ export class Plot {
       }
     }
 
+    const id_to_adt: IdToItem = {};
     const id_to_callee_with_adt: IdToItem = {};
     const callees_with_adt = new Set<string>(); // Callee names.
     const adtNodes: ElkNode[] = Object.entries(adts).map(([name, callees]) => {
       const labelDim = config.size(name);
       const id = idAdt(name);
-      id_to_item[id] = { name: name, doc: "", safe: true };
+      id_to_adt[id] = { name: name, doc: "", safe: true };
 
       const kinds: { [key: string]: Callees } = {};
       for (const { kind, name, info } of callees) {
@@ -214,7 +214,9 @@ export class Plot {
     }
     const id_to_callee_no_adt: IdToItem = {};
     const calleesNoAdt = config.calleeChildren(callees_no_adt, id_to_callee_no_adt);
-    Object.assign(id_to_item, id_to_callee_no_adt);
+
+    Object.assign(this.id_to_item, id_to_adt);
+    Object.assign(this.id_to_item, id_to_callee_no_adt);
 
     const edgeType = config.edgeType();
     let edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: edgeType }));
@@ -234,7 +236,8 @@ export class Plot {
       nodes.push({
         id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
         position: { x: node.x!, y: node.y! },
-        class: id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn",
+        class: (id_to_adt[node.id] !== undefined) ? "upg-node-adt" :
+          (this.id_to_item[node.id]!.safe ? "upg-node-fn" : "upg-node-unsafe-fn"),
         targetPosition: Position.Left, sourcePosition: Position.Right,
       });
       for (const adtKind of node.children ?? []) {
@@ -271,7 +274,7 @@ export class Plot {
     }
 
     // Refine layout with orphan callees and adts.
-    updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+    updateNodePosition(nodes.filter(n => this.id_to_item[n.id] !== undefined), edges);
 
     // Connect root with callees that are binded to adts.
     for (const callee_with_adt of Object.keys(id_to_callee_with_adt)) {
@@ -282,7 +285,7 @@ export class Plot {
     edges = edges.filter(e => !isAdtID(e.target));
 
     // Add callee items to id_to_item, because we need it to render documentation.
-    Object.assign(id_to_item, id_to_callee_with_adt);
+    Object.assign(this.id_to_item, id_to_callee_with_adt);
 
     Object.assign(this, { nodes, edges });
   }

@@ -119,6 +119,13 @@ html, body {
 .upg-node-unsafe-fn {
   @apply bg-red-100 dark:bg-rose-900/30;
 }
+.upg-node-fn-kind {
+.upg-node-adt {
+  @apply text-lg font-mono whitespace-nowrap bg-transparent text-gray-500;
+  @variant dark {
+    @apply border-gray-100;
+  };
+}
 
 .vue-flow__node.selected {
   @apply !border-teal-400 dark:!border-teal-300 !border-3;
