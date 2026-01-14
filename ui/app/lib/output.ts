@@ -2,7 +2,7 @@
 export type Function = {
   name: string,
   safe: boolean,
-  callees: { [key: string]: CalleeInfo },
+  callees: Callees,
   adts: { [key: string]: string[] },
   path: number | string,
   span: string,
@@ -11,6 +11,8 @@ export type Function = {
   doc: string,
   tags: Tags
 }
+
+export type Callees = { [key: string]: CalleeInfo };
 
 export type CalleeInfo = {
   instance_name: string[],
@@ -74,4 +76,8 @@ export function idEdge(src: string, dst: string) {
 
 export function idCalleeNonGeneric(name: string) {
   return `c@${name}`
+}
+
+export function idAdt(name: string) {
+  return `adt@${name}`
 }

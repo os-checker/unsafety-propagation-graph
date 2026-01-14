@@ -7,7 +7,7 @@
 import type { Node, Edge } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { type Function, } from "~/lib/output"
-import { ViewType, type FlowOpts } from '~/lib/topbar';
+import { type FlowOpts } from '~/lib/topbar';
 import ELK from 'elkjs/lib/elk.bundled.js'
 import type { PanelContent } from '~/lib/panel';
 import { Plot, PlotConfig, type IdToItem } from '~/utils/graph';
@@ -47,9 +47,9 @@ watchEffect(async () => {
 
   const px = Math.ceil(chPx.value);
   const plotConfig = new PlotConfig(px, flowOpts.value);
-  const plot = new Plot(plotConfig, elk);
 
-  await plot.callee_tag(fn);
+  const plot = new Plot(plotConfig, elk);
+  await plot.plot(fn);
 
   const { nodes, edges, id_to_item } = plot;
   data.value = { nodes, edges, id_to_item };
