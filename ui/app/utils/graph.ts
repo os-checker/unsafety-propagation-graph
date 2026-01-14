@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Tags, Function, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idTag, tagName } from "~/lib/output";
+import { idAdt, idCalleeNonGeneric, idEdge, idTag, isAdtID, tagName } from "~/lib/output";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 
@@ -72,6 +72,10 @@ export class PlotConfig {
 
   fnDim(tags: Tags, dim: Dim) {
     return (!this.view.tags || tags.tags.length === 0) ? dim : {};
+  }
+
+  edgeType(): string {
+    return this.flowOpts.edge as string
   }
 }
 
@@ -212,7 +216,8 @@ export class Plot {
     const calleesNoAdt = config.calleeChildren(callees_no_adt, id_to_callee_no_adt);
     Object.assign(id_to_item, id_to_callee_no_adt);
 
-    const edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: config.flowOpts.edge as string }));
+    const edgeType = config.edgeType();
+    let edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: edgeType }));
 
     const graph: ElkNode = {
       id: "__root",
@@ -260,12 +265,21 @@ export class Plot {
       }
     }
 
-    // Connect root with callees without adt.
+    // Connect root with callees that are not binded to adts (orphan callees).
     for (const callee_no_adt_id of Object.keys(id_to_callee_no_adt)) {
-      edges.push({ id: idEdge(root.id, callee_no_adt_id), source: root.id, target: callee_no_adt_id });
+      edges.push({ id: idEdge(root.id, callee_no_adt_id), source: root.id, target: callee_no_adt_id, type: edgeType });
     }
 
+    // Refine layout with orphan callees and adts.
     updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+
+    // Connect root with callees that are binded to adts.
+    for (const callee_with_adt of Object.keys(id_to_callee_with_adt)) {
+      edges.push({ id: idEdge(root.id, callee_with_adt), source: root.id, target: callee_with_adt, type: edgeType });
+    }
+
+    // Disconnect root from adts.
+    edges = edges.filter(e => !isAdtID(e.target));
 
     // Add callee items to id_to_item, because we need it to render documentation.
     Object.assign(id_to_item, id_to_callee_with_adt);

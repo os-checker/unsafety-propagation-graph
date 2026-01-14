@@ -81,3 +81,7 @@ export function idCalleeNonGeneric(name: string) {
 export function idAdt(name: string) {
   return `adt@${name}`
 }
+
+export function isAdtID(id: string) {
+  return id.startsWith("adt@")
+}
