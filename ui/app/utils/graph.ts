@@ -1,5 +1,5 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
-import type { ELK, ElkNode } from "elkjs";
+import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Tags, Function } from "~/lib/output";
 import { idCalleeNonGeneric, idEdge, idTag, tagName } from "~/lib/output";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
@@ -8,7 +8,7 @@ import updateNodePosition from "./updateNodePosition";
 type Dim = { height: number, width: number };
 
 // Put label top-center inside the node.
-const layoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
+const FnLayoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
 
 export type View = { callees: boolean, adts: boolean, tags: boolean };
 
@@ -17,7 +17,10 @@ export class PlotConfig {
   px: number;
   // Graph view type.
   view: View;
+  // Interaction with TopBar.
   flowOpts: FlowOpts;
+  // ELK options.
+  rootLayoutOptions: LayoutOptions;
 
   constructor(px: number, flowOpts: FlowOpts) {
     this.px = px;
@@ -25,6 +28,12 @@ export class PlotConfig {
 
     const viewSet = new Set(flowOpts.view);
     this.view = { callees: viewSet.has(ViewType.Callees), adts: viewSet.has(ViewType.Adts), tags: viewSet.has(ViewType.Tags) };
+
+    this.rootLayoutOptions = {
+      "elk.algorithm": flowOpts.layout as string,
+      'elk.direction': 'RIGHT',
+      'elk.alignment': 'LEFT',
+    };
   }
 
   size(label: string): Dim {
@@ -40,7 +49,7 @@ export class PlotConfig {
       const dim = this.size(name);
       return {
         id: idTag(name),
-        layoutOptions,
+        layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...dim }],
         ...dim
       }
@@ -77,7 +86,7 @@ export class Plot {
     const rootLabelDim = config.size(fn.name);
     const root: ElkNode = {
       id: fn.name,
-      layoutOptions,
+      layoutOptions: FnLayoutOptions,
       labels: [{ text: fn.name, ...rootLabelDim }],
       children: config.view.tags ? config.tagChildren(fn.tags) : [],
       ...config.fnDim(fn.tags, rootLabelDim)
@@ -89,7 +98,7 @@ export class Plot {
       const id = idCalleeNonGeneric(name);
       this.id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
       return {
-        id, layoutOptions,
+        id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
         children: config.view.tags ? config.tagChildren(info.tags) : [],
         ...config.fnDim(info.tags, labelDim)
@@ -100,9 +109,7 @@ export class Plot {
 
     const graph: ElkNode = {
       id: "__root",
-      layoutOptions: {
-        "elk.algorithm": config.flowOpts.layout as string, 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT',
-      },
+      layoutOptions: config.rootLayoutOptions,
       children: [root, ...callees],
       edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
     };
