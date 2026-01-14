@@ -3,7 +3,11 @@ use crate::{
     info_fn::FnInfo,
     utils::{FxIndexMap, ThinVec},
 };
-use rustc_public::ty::FnDef;
+use rustc_public::{
+    CrateDef,
+    ty::{AdtDef, FnDef},
+};
+use serde::Serialize;
 
 pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
     let mut map_adt =
@@ -115,4 +119,82 @@ pub struct Access {
     pub write: ThinVec<FnDef>,
     /// Functions that in other ways access the place, like Plain or Unknown.
     pub other: ThinVec<FnDef>,
+}
+
+/// The less, the more strict/privileged kind.
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord)]
+pub enum AdtFnKind {
+    Constructor,
+    MutableAsArgument,
+    ImmutableAsArgument,
+    // The list is not exhuastive, because we can further look in to field access.
+    Fn,
+}
+
+/// Each FnDef may be affiliated to several Adts, but each Adt only has one kind
+/// for such FnDef, because we choose the most privileged AdtFnKind for simplicity.
+pub type AdtFnKindMap = FxIndexMap<AdtDef, AdtFnKind>;
+pub type FnAdtMap = FxIndexMap<FnDef, AdtFnKindMap>;
+/// The outer key is caller FnDef, the inner key is Callee FnDef name string.
+/// AdtFnKindMap only collects Adts that are accessed directly in the caller.
+/// We haven't push field access or interprcedural kinds.
+pub type CallerCalleeMap = FxIndexMap<FnDef, FxIndexMap<String, AdtFnKindMap>>;
+
+#[derive(Default)]
+pub struct AdtFnCollector {
+    pub fn_adt_map: FnAdtMap,
+    pub caller_callee_map: CallerCalleeMap,
+}
+
+impl AdtFnCollector {
+    pub fn new(map_adt: &FxIndexMap<Adt, AdtInfo>, map_fn: &FxIndexMap<FnDef, FnInfo>) -> Self {
+        let mut this = Self::default();
+        let Self {
+            fn_adt_map,
+            caller_callee_map,
+        } = &mut this;
+
+        for (adt, info) in map_adt {
+            for constructor in &info.constructors {
+                push_adt_fn(fn_adt_map, adt, *constructor, AdtFnKind::Constructor);
+            }
+            for immutable in &info.as_argument.read {
+                push_adt_fn(fn_adt_map, adt, *immutable, AdtFnKind::ImmutableAsArgument);
+            }
+            for mutable in &info.as_argument.write {
+                push_adt_fn(fn_adt_map, adt, *mutable, AdtFnKind::MutableAsArgument);
+            }
+        }
+
+        for (caller, info) in map_fn {
+            let map = caller_callee_map.entry(*caller).or_default();
+            for (callee, _callee_info) in &info.callees {
+                // Callee is an Instance, but we strip the mono types, and use FnDef name
+                // as in output Function CalleeInfo.
+                if let Some(rustc_public::ty::RigidTy::FnDef(callee_fn_def, _)) =
+                    callee.ty().kind().rigid()
+                    && let Some(adt_fn_kind) = fn_adt_map.get(callee_fn_def)
+                {
+                    let adt_map = map.entry(callee_fn_def.name()).or_default();
+                    for adt in info.adts.keys() {
+                        // Ignore mono types.
+                        let adt = adt.def;
+                        if let Some(kind) = adt_fn_kind.get(&adt) {
+                            adt_map.insert(adt, *kind);
+                        }
+                    }
+                }
+            }
+        }
+
+        this
+    }
+}
+
+fn push_adt_fn(map: &mut FnAdtMap, adt: &Adt, fn_def: FnDef, fn_kind: AdtFnKind) {
+    let adt_map = map.entry(fn_def).or_default();
+    adt_map
+        .entry(adt.def)
+        .and_modify(|old| *old = fn_kind.min(*old))
+        .or_insert(fn_kind);
 }
