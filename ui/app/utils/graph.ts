@@ -176,6 +176,7 @@ export class Plot {
       }
     }
 
+    const id_to_callee: IdToItem = {};
     const adtNodes: ElkNode[] = Object.entries(adts).map(([name, callees]) => {
       const labelDim = config.size(name);
       const id = idAdt(name);
@@ -189,7 +190,7 @@ export class Plot {
       const kindsChildren: ElkNode[] = Object.entries(kinds).map(([kind, callees]) => ({
         id: `${id} kind@${kind}`, layoutOptions: FnLayoutOptions,
         labels: [{ text: kind, ...config.size(kind) }],
-        children: config.calleeChildren(callees, {}), // We don't care about inner callee nodes.
+        children: config.calleeChildren(callees, id_to_callee),
         // size will be computed from children
       }));
 
@@ -249,6 +250,8 @@ export class Plot {
     }
 
     updateNodePosition(nodes.filter(n => id_to_item[n.id] !== undefined), edges);
+    // Add callee items to id_to_item, because we need it to render documentation.
+    Object.assign(this.id_to_item, id_to_callee);
     Object.assign(this, { nodes, edges });
   }
 }
