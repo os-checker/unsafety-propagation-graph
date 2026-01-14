@@ -17,6 +17,13 @@ export type CalleeInfo = {
   safe: boolean,
   tags: Tags,
   doc: string,
+  adt: { [key: string]: AdtFnKind },
+}
+export enum AdtFnKind {
+  Constructor = "Constructor",
+  MutableAsArgument = "MutableAsArgument",
+  ImmutableAsArgument = "ImmutableAsArgument",
+  Fn = "Fn",
 }
 
 export type Tags = {
