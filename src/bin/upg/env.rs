@@ -1,5 +1,6 @@
 use crate::Result;
 use std::{env::var, path::PathBuf, sync::LazyLock};
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[allow(non_snake_case)]
 pub struct EnvVar {
@@ -57,8 +58,10 @@ fn UPG_DIR() -> PathBuf {
         .create(true)
         .open(dir.join("upg.log"))
         .unwrap();
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_writer(log_file)
+
+    tracing_subscriber::registry()
+        .with(fmt::layer().with_writer(log_file))
+        .with(EnvFilter::from_default_env())
         .init();
 
     dir

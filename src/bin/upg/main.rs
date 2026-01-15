@@ -62,13 +62,14 @@ fn run(cmd: &str, args: &[String], vars: &[(&str, &str)]) -> Result<()> {
     let mut command = Command::new(cmd);
     let rustflags = &*ENV.CARGO_ENCODED_RUSTFLAGS;
 
-    if let Some(library) = ENV.UPG_RUST_STD_LIBRARY.as_deref() {
+    debug!(cmd, ?args, ?vars,);
+    let _span = if let Some(library) = ENV.UPG_RUST_STD_LIBRARY.as_deref() {
         // Build std if the library path is set.
         command.env("__CARGO_TESTS_ONLY_SRC_ROOT", library);
-        let _span = debug_span!("run", cmd, ?library, ?args, ?vars,).entered();
+        debug_span!("run", cmd, ?library, ?args, ?vars,).entered()
     } else {
-        let _span = debug_span!("run", cmd, ?args, ?vars,).entered();
-    }
+        debug_span!("run", cmd, ?args, ?vars,).entered()
+    };
 
     let status = command
         .args(args)

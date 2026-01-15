@@ -9,4 +9,5 @@ rm "$UPG_DIR" -rf
 mkdir "$UPG_DIR"
 
 pushd tests/demo
+export RUST_LOG=debug
 upg
