@@ -280,12 +280,12 @@ export class Plot {
     updateNodePosition(nodes.filter(n => this.id_to_item[n.id] !== undefined), edges);
 
     // Connect root with callees that are binded to adts.
-    for (const callee_with_adt of Object.keys(id_to_callee_with_adt)) {
-      edges.push({ id: idEdge(root.id, callee_with_adt), source: root.id, target: callee_with_adt, type: edgeType });
-    }
+    // for (const callee_with_adt of Object.keys(id_to_callee_with_adt)) {
+    //   edges.push({ id: idEdge(root.id, callee_with_adt), source: root.id, target: callee_with_adt, type: edgeType });
+    // }
 
     // Disconnect root from adts.
-    edges = edges.filter(e => !isAdtID(e.target));
+    // edges = edges.filter(e => !isAdtID(e.target));
 
     // Add callee items to id_to_item, because we need it to render documentation.
     Object.assign(this.id_to_item, id_to_callee_with_adt);
