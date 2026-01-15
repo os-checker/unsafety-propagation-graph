@@ -1,0 +1,12 @@
+package.name = "demo"
+
+[tag.ValidPtr]
+args = ["p", "T", "len"]
+desc = "pointer `{p}` must be valid for reading and writing the `sizeof({T})*{len}` memory from it"
+expr = "Size(T, 0) || (!Size(T,0) && Deref(p, T, len))"
+url = "https://doc.rust-lang.org/std/ptr/index.html#safety"
+
+[tag.InitializedInLen]
+args = ["len"]
+desc = "memory after the length {len} of type must be initialized"
+types = ["hazard"]

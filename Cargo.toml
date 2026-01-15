@@ -10,6 +10,16 @@ indexmap = { version = "2.12.1", features = ["serde"] }
 derive_more = { version = "2.1.1", features = ["display", "debug"] }
 safety-parser = { git = "https://github.com/Artisan-Lab/tag-std", rev = "302e096" }
 
+# error handling
+eyre = "0.6"
+color-eyre = "0.6"
+
+# logger
+log = "0.4.27"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-error = "0.2"
+
 [dev-dependencies]
 compiletest_rs = { git = "https://github.com/Manishearth/compiletest-rs.git", rev = "02b1226", features = [
   "rustc",
