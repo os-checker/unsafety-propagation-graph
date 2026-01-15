@@ -247,29 +247,47 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                 for id in imp.items {
                     let assoc = tcx.hir_impl_item(*id);
                     if let ImplItemKind::Fn(_, body) = assoc.kind {
-                        let mut implementor_path = DefPath::from_ty(imp.self_ty, tcx);
+                        let mut impl_path = DefPath::from_ty(imp.self_ty, tcx);
                         let fn_name = assoc.ident.as_str();
                         match assoc.impl_kind {
                             ImplItemImplKind::Inherent { .. } => {
-                                implementor_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
+                                impl_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
                             }
                             ImplItemImplKind::Trait {
                                 trait_item_def_id, ..
                             } => {
                                 if let Ok(did) = trait_item_def_id {
-                                    let mut trait_name = def_path(did, tcx);
-                                    // Put SelfTy under trait path.
-                                    trait_name.extend(mem::take(&mut implementor_path));
-                                    implementor_path = trait_name;
-                                    implementor_path
-                                        .push(DefPath::new(DefPathKind::AssocFn, fn_name));
+                                    let trait_did =
+                                        tcx.opt_associated_item(did).unwrap().container_id(tcx);
+                                    let mut trait_path = def_path(trait_did, tcx);
+                                    if is_local_path(&impl_path, &crate_root) {
+                                        // The Self type is local, and put trait fn under Self.
+                                        // Repr: [local type path, trait path, assoc fn]
+                                        impl_path.extend(trait_path);
+                                    } else if is_local_path(&trait_path, &crate_root) {
+                                        // The trait is local, but Self is not, so put fn under trait.
+                                        // Repr [local trait path, external type path, assoc fn]
+                                        trait_path.extend(mem::take(&mut impl_path));
+                                        impl_path = trait_path;
+                                    } else {
+                                        // Neither Self or trait is not local. This is possible
+                                        // when Self is a fundamental type (see
+                                        // https://doc.rust-lang.org/reference/items/implementations.html#r-items.impl.trait.orphan-rule
+                                        // ), or coherence rules are relaxed to the whole project.
+                                        // As a workaround, we still have crate name as root, but
+                                        // set a phony submodule `__phony` before item path.
+                                        impl_path.extend(trait_path);
+                                        impl_path.insert(0, DefPath::phony());
+                                        impl_path.insert(0, crate_root.clone());
+                                    }
+                                    impl_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
                                 }
                             }
                         }
-                        v_path.push(implementor_path.clone());
+                        v_path.push(impl_path.clone());
                         let def_path_str = tcx.def_path_str(body.hir_id.owner);
                         let def_path_str = format!("{}::{def_path_str}", crate_root.name);
-                        map_name_to_path.insert(def_path_str, implementor_path);
+                        map_name_to_path.insert(def_path_str, impl_path);
                     }
                 }
             }
@@ -342,13 +360,29 @@ impl DefPath {
         if let TyKind::Adt(def, _) = typ.kind() {
             def_path(def.did(), tcx)
         } else {
-            vec![Self::new(DefPathKind::SelfTy, typ.to_string())]
+            vec![Self::new(DefPathKind::Ty, typ.to_string())]
         }
     }
 
     fn crate_root(tcx: TyCtxt) -> Self {
         let crate_name = tcx.crate_name(rustc_span::def_id::CrateNum::ZERO);
         DefPath::new(DefPathKind::Mod, crate_name.as_str())
+    }
+
+    /// A fake submodule under root to host non-local items.
+    fn phony() -> Self {
+        DefPath {
+            kind: DefPathKind::Mod,
+            name: "__phony".into(),
+        }
+    }
+}
+
+fn is_local_path(v: &[DefPath], crate_root: &DefPath) -> bool {
+    if v.is_empty() {
+        unimplemented!()
+    } else {
+        v[0] == *crate_root
     }
 }
 
@@ -372,14 +406,14 @@ pub enum DefPathKind {
     Enum,
     Union,
     TraitDecl,
-    SelfTy,
+    Ty,
     ImplTrait,
 }
 
 fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
     use rustc_hir::{def::DefKind, definitions::DefPathData};
 
-    let default = || vec![DefPath::new(DefPathKind::SelfTy, tcx.def_path_str(did))];
+    let default = || vec![DefPath::new(DefPathKind::Ty, tcx.def_path_str(did))];
 
     let def_kind = tcx.def_kind(did);
     let def_path_kind = match def_kind {
