@@ -2,7 +2,7 @@
 export type Function = {
   name: string,
   safe: boolean,
-  callees: { [key: string]: CalleeInfo },
+  callees: Callees,
   adts: { [key: string]: string[] },
   path: number | string,
   span: string,
@@ -12,11 +12,20 @@ export type Function = {
   tags: Tags
 }
 
+export type Callees = { [key: string]: CalleeInfo };
+
 export type CalleeInfo = {
   instance_name: string[],
   safe: boolean,
   tags: Tags,
   doc: string,
+  adt: { [key: string]: AdtFnKind },
+}
+export enum AdtFnKind {
+  Constructor = "Constructor",
+  MutableAsArgument = "MutableAsArgument",
+  ImmutableAsArgument = "ImmutableAsArgument",
+  Fn = "Fn",
 }
 
 export type Tags = {
@@ -67,4 +76,20 @@ export function idEdge(src: string, dst: string) {
 
 export function idCalleeNonGeneric(name: string) {
   return `c@${name}`
+}
+
+export function idAdt(name: string) {
+  return `adt@${name}`
+}
+
+export function isAdtID(id: string) {
+  return id.startsWith("adt@")
+}
+
+export function idAdtFnKind(adt_id: string, fn_kind: string) {
+  return `kind@${fn_kind}@${adt_id}`
+}
+
+export function isAdtFnKindID(id: string) {
+  return id.startsWith("kind@")
 }

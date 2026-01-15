@@ -117,8 +117,15 @@ html, body {
   @apply text-orange-600 dark:text-orange-400 font-bold;
 }
 .upg-node-unsafe-fn {
-  @apply bg-red-100 dark:bg-rose-900/30;
+  @apply bg-red-100 dark:bg-red-500/20;
 }
+
+.upg-node-adt,
+.upg-node-adt-fn-kind {
+  @apply text-gray-500 font-mono whitespace-nowrap bg-transparent;
+}
+.upg-node-adt { @apply font-bold text-xl dark:border-gray-100/50; }
+.upg-node-adt-fn-kind { @apply text-lg border-none; }
 
 .vue-flow__node.selected {
   @apply !border-teal-400 dark:!border-teal-300 !border-3;

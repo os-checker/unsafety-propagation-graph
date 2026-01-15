@@ -1,7 +1,7 @@
 use crate::{
     adt::Adt as RawAdt,
     get_tags,
-    info_adt::{Access as RawAccess, AdtInfo},
+    info_adt::{Access as RawAccess, AdtFnCollector, AdtFnKind, AdtInfo},
     info_fn::FnInfo,
     info_mod::Navigation,
     utils::FxIndexMap,
@@ -23,6 +23,8 @@ use std::{fs, io, path::PathBuf};
 
 #[derive(Debug, Serialize)]
 pub struct Function {
+    #[serde(skip)]
+    pub fn_def: FnDef,
     pub name: String,
     pub safe: bool,
     /// Direct callees. The key is generic FnDef name, the value is Instance info.
@@ -46,6 +48,7 @@ impl Function {
             String::from_utf8(buf).unwrap_or_default()
         };
         Function {
+            fn_def,
             name,
             safe: is_safe(fn_def),
             callees: output_callee(info, tcx),
@@ -65,6 +68,19 @@ impl Function {
             mir,
             doc: doc_string(fn_def.def_id(), tcx),
             tags: Tags::new(&info.v_sp),
+        }
+    }
+
+    pub fn update_adt_fn(&mut self, adt_fn_collecor: &AdtFnCollector) {
+        for (callee, info) in &mut self.callees {
+            if let Some(map) = adt_fn_collecor.caller_callee_map.get(&self.fn_def)
+                && let Some(adt_map) = map.get(callee.as_str())
+            {
+                info.adt = adt_map
+                    .iter()
+                    .map(|(adt, fn_kind)| (adt.name(), *fn_kind))
+                    .collect();
+            }
         }
     }
 
@@ -252,6 +268,7 @@ pub struct CalleeInfo {
     pub safe: bool,
     pub tags: Tags,
     pub doc: String,
+    pub adt: FxIndexMap<String, AdtFnKind>,
 }
 
 pub fn output_callee(finfo: &FnInfo, tcx: TyCtxt) -> FxIndexMap<String, CalleeInfo> {
@@ -268,6 +285,7 @@ pub fn output_callee(finfo: &FnInfo, tcx: TyCtxt) -> FxIndexMap<String, CalleeIn
                 // TODO: optimize this.
                 tags: Tags::new(&get_tags(fn_def)),
                 doc: doc_string(fn_def.def_id(), tcx),
+                adt: Default::default(),
             };
             map.insert(info.non_instance_name.clone(), callee_info);
         }
