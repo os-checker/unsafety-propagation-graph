@@ -135,7 +135,12 @@ fn to_navi(
             current_meta.non_mod_kinds.clone();
 
         for parent_path in current_meta.parent_paths.values() {
-            let parent_meta = map_paths.get(parent_path).unwrap();
+            let Some(parent_meta) = map_paths.get(parent_path) else {
+                // FIXME: we have to determine how to navigate to inaccessible items.
+                // cc https://github.com/os-checker/unsafety-propagation-graph/issues/12
+                // Currently, we ignore them.
+                continue;
+            };
 
             let sub_navi_item = &current_item[parent_path.len()];
             let sub_navi_item = SubNaviItem {
