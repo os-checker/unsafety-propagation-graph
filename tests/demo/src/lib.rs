@@ -8,6 +8,13 @@ struct SecretRegion {
     len: usize,
 }
 
+impl From<Vec<u32>> for SecretRegion {
+    fn from(v: Vec<u32>) -> Self {
+        let (p, l, _c) = v.into_raw_parts();
+        SecretRegion { buffer: p, len: l }
+    }
+}
+
 impl SecretRegion {
     #[rapx::requires(ValidPtr(v), InitializedInLen(l))]
     pub unsafe fn from(v: *mut u32, l: usize) -> Self {
