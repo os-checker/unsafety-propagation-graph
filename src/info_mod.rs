@@ -433,7 +433,8 @@ fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
         if let DefPathData::TypeNs(sym) = data.data {
             v_path.push(DefPath::new(DefPathKind::Mod, sym.as_str()));
         } else {
-            unimplemented!("{data:?} is not a type namespace, check out {did:?}")
+            // cc https://github.com/os-checker/unsafety-propagation-graph/issues/12
+            v_path.push(DefPath::new(DefPathKind::Mod, data.as_sym(true).as_str()));
         }
     }
 
