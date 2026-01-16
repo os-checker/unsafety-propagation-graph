@@ -95,6 +95,10 @@ pub fn set_rustc_wrapper() -> (&'static str, &'static str) {
     ("RUSTC", &ENV.UPG_BIN)
 }
 
+pub fn set_upg_continue() -> (&'static str, &'static str) {
+    ("UPG_CONTINUE", "1")
+}
+
 const UPG_ARGS: &[&str] = &[
     "-Cpanic=abort",
     "-Csymbol-mangling-version=v0",

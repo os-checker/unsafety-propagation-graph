@@ -54,7 +54,11 @@ fn run_cargo() -> std::result::Result<(), eyre::Error> {
     run(
         "cargo",
         &build_std,
-        &[env::set_rustc_wrapper(), env::set_wrapper()],
+        &[
+            env::set_rustc_wrapper(),
+            env::set_wrapper(),
+            env::set_upg_continue(),
+        ],
     )
 }
 
