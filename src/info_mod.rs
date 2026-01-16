@@ -71,11 +71,13 @@ fn to_navi(
 
     // Collect mod paths and move all paths to the map.
     // The idx will be backfilled once v_path is sorted, so 0 is fake here.
-    for free_item in mem::take(v_path) {
-        assert_eq!(
-            &free_item[0], crate_root,
-            "{free_item:?} must start from {crate_root:?}"
-        );
+    for mut free_item in mem::take(v_path) {
+        if free_item[0] != *crate_root {
+            eprintln!("{free_item:?} must start from {crate_root:?}");
+            // This is the escape hatch to not break the root principle.
+            free_item = put_under_phony(free_item, crate_root);
+        }
+        let free_item = free_item;
 
         // [..mod_sep, ...]
         let mod_sep = free_item
@@ -170,7 +172,16 @@ fn to_navi(
     // Construct mapping from def_path_str to DefPath.
     let map_name_to_path_idx: FxIndexMap<_, _> = map_name_to_path
         .into_iter()
-        .map(|(name, path)| (name, map_paths.get(&path).unwrap().item_idx))
+        .map(|(name, path)| {
+            let path = if let Some(path) = map_paths.get(&path) {
+                path
+            } else if let Some(path) = map_paths.get(&put_under_phony(path.clone(), crate_root)) {
+                path
+            } else {
+                unreachable!("{name:} {path:?} is absent in map_paths")
+            };
+            (name, path.item_idx)
+        })
         .collect();
     // Flatten all paths.
     v_path.extend(map_paths.into_keys());
@@ -282,8 +293,7 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                                         // As a workaround, we still have crate name as root, but
                                         // set a phony submodule `__phony` before item path.
                                         impl_path.extend(trait_path);
-                                        impl_path.insert(0, DefPath::phony());
-                                        impl_path.insert(0, crate_root.clone());
+                                        impl_path = put_under_phony(impl_path, &crate_root);
                                     }
                                     impl_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
                                 }
@@ -400,6 +410,15 @@ impl DefPath {
             name: "__primitive".into(),
         }
     }
+}
+
+/// Put the item under `$root::__phony`.
+/// cc https://github.com/os-checker/unsafety-propagation-graph/issues/19
+fn put_under_phony(mut v: ItemPath, crate_root: &DefPath) -> ItemPath {
+    v.reserve_exact(2);
+    v.insert(0, DefPath::phony());
+    v.insert(0, crate_root.clone());
+    v
 }
 
 fn is_local_path(v: &[DefPath], crate_root: &DefPath) -> bool {
