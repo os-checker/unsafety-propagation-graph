@@ -98,8 +98,8 @@ fn push_adt(
     };
 
     match ty {
-        RigidTy::Adt(def, args) => {
-            let adt = new_adt(def, args, cache);
+        RigidTy::Adt(def, _) => {
+            let adt = new_adt(def, cache);
             let local = adts.entry(adt).or_default();
             local.locals.push(idx);
             // FIXME: ProjectionElem::Downcast(VariantIdx) should also be handled.
@@ -114,10 +114,10 @@ fn push_adt(
             };
         }
         RigidTy::Ref(_, ref_ty, mutability) => {
-            let TyKind::RigidTy(RigidTy::Adt(def, args)) = ref_ty.kind() else {
+            let TyKind::RigidTy(RigidTy::Adt(def, _)) = ref_ty.kind() else {
                 return;
             };
-            let adt = new_adt(def, args, cache);
+            let adt = new_adt(def, cache);
             let local = adts.entry(adt).or_default();
             local.locals.push(idx);
             match proj {
@@ -159,7 +159,7 @@ fn flatten_adts(ty: &Ty, v: &mut SmallVec<[Adt; 1]>, cache: &mut CacheAdt) {
 
     match ty {
         RigidTy::Adt(def, args) => {
-            v.push(new_adt(def, args.clone(), cache));
+            v.push(new_adt(def, cache));
             for arg in &args.0 {
                 if let GenericArgKind::Type(ty) = arg {
                     flatten_adts(ty, v, cache)

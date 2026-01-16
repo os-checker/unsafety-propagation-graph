@@ -57,7 +57,7 @@ impl Function {
                 .iter()
                 .map(|(adt, locals)| {
                     (
-                        adt.to_string(tcx),
+                        adt.as_string(),
                         locals.access.iter().map(|acc| format!("{acc:?}")).collect(),
                     )
                 })
@@ -143,7 +143,7 @@ impl Adt {
         }
 
         Adt {
-            name: adt.to_string(tcx),
+            name: adt.as_string(),
             constructors: v_fn_name(&info.constructors),
             access_self_as_arg: Access::new(&info.as_argument),
             access_self_as_locals: Access::new(&info.otherwise),
