@@ -1,11 +1,10 @@
 use crate::adt::{Adt, AdtAccess, CacheAdt, LocalsAccess, VaraintFieldIdx, new_adt};
 use crate::analyze_fn_def::Collector;
 use crate::utils::{FxIndexMap, SmallVec, ThinVec};
-use rustc_public::CrateDef;
-use rustc_public::ty::FnDef;
 use rustc_public::{
-    mir::{Body, Mutability, ProjectionElem, mono::Instance},
-    ty::{GenericArgKind, RigidTy, Ty, TyKind},
+    CrateDef,
+    mir::{Body, Mutability, ProjectionElem},
+    ty::{FnDef, GenericArgKind, RigidTy, Ty, TyKind},
 };
 use safety_parser::safety::PropertiesAndReason;
 
@@ -26,15 +25,13 @@ pub struct FnInfo {
     pub v_sp: ThinVec<PropertiesAndReason>,
     /// Direct callees in the function. The order is decided by MirVisitor,
     /// and called functions is monomorphized.
-    pub callees: FxIndexMap<Instance, CalleeInfo>,
+    pub callees: FxIndexMap<FnDef, CalleeInfo>,
     /// Direct adt places in the function. The adt is monomorphized.
     pub adts: FxIndexMap<Adt, LocalsAccess>,
 }
 
 #[derive(Debug, Clone)]
 pub struct CalleeInfo {
-    pub fn_def: FnDef,
-    pub instance_name: String,
     pub non_instance_name: String,
 }
 
@@ -46,19 +43,18 @@ impl FnInfo {
         cache: &mut CacheAdt,
     ) -> FnInfo {
         let mut callees = FxIndexMap::default();
+        // eprintln!("Find all instance");
         for ty in &collector.v_ty {
-            if let RigidTy::FnDef(fn_def, ref args) = ty.ty
-                && let Ok(instance) = Instance::resolve(fn_def, args)
-            {
+            // eprintln!("  {ty:?}");
+            if let RigidTy::FnDef(fn_def, _) = ty.ty {
                 let callee_info = CalleeInfo {
-                    fn_def,
-                    instance_name: instance.name(),
                     non_instance_name: fn_def.name(),
                 };
-                callees.insert(instance, callee_info);
+                callees.insert(fn_def, callee_info);
             }
         }
 
+        // eprintln!("Find all adts");
         let mut adts = FxIndexMap::default();
         for place in &collector.v_place {
             let local_idx = place.place.local;

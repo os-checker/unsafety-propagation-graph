@@ -174,14 +174,13 @@ impl AdtFnCollector {
 
         for (caller, info) in map_fn {
             let map = caller_callee_map.entry(*caller).or_default();
-            for (callee, _callee_info) in &info.callees {
+            for (callee, callee_info) in &info.callees {
                 // Callee is an Instance, but we strip the mono types, and use FnDef name
                 // as in output Function CalleeInfo.
-                if let Some(rustc_public::ty::RigidTy::FnDef(callee_fn_def, _)) =
-                    callee.ty().kind().rigid()
-                    && let Some(adt_fn_kind) = fn_adt_map.get(callee_fn_def)
-                {
-                    let adt_map = map.entry(callee_fn_def.name()).or_default();
+                if let Some(adt_fn_kind) = fn_adt_map.get(callee) {
+                    let adt_map = map
+                        .entry(callee_info.non_instance_name.clone())
+                        .or_default();
                     for adt in info.adts.keys() {
                         // Ignore mono types.
                         let adt = adt.def;
