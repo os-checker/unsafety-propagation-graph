@@ -103,7 +103,14 @@ impl AdtInfo {
                     if let Some(idx) = idx.as_field_idx()
                         && adt.def.kind().is_struct()
                     {
-                        self.fields[idx].write.extend(v_fn.iter().map(|f| f.fn_def));
+                        if let Some(field) = self.fields.get_mut(idx) {
+                            field.write = v_fn.iter().map(|f| f.fn_def).collect();
+                        } else {
+                            let fields_len = self.fields.len();
+                            eprintln!(
+                                "Out of bounds: fields_len={fields_len} idx={idx} adt={adt:?}"
+                            )
+                        }
                     }
                 }
             }

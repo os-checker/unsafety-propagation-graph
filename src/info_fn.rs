@@ -118,10 +118,12 @@ fn push_adt(
                 return;
             };
             let adt = new_adt(def, cache);
+            let is_struct = adt.def.kind().is_struct();
             let local = adts.entry(adt).or_default();
             local.locals.push(idx);
             match proj {
-                [ProjectionElem::Field(idx, _), ..] => {
+                // TODO: currently only support struct.
+                [ProjectionElem::Field(idx, _), ..] if is_struct => {
                     let field_idx = VaraintFieldIdx::new_field(*idx);
                     let acc = if matches!(mutability, Mutability::Mut) {
                         AdtAccess::MutRefVariantField(field_idx)
