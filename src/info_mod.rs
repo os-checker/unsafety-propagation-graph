@@ -252,7 +252,7 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                 for id in imp.items {
                     let assoc = tcx.hir_impl_item(*id);
                     if let ImplItemKind::Fn(_, body) = assoc.kind {
-                        let mut impl_path = DefPath::from_ty(imp.self_ty, tcx);
+                        let mut impl_path = DefPath::from_ty(imp.self_ty, tcx, &crate_root);
                         let fn_name = assoc.ident.as_str();
                         match assoc.impl_kind {
                             ImplItemImplKind::Inherent { .. } => {
@@ -359,13 +359,22 @@ impl DefPath {
         }
     }
 
-    pub fn from_ty(ty: &Ty, tcx: TyCtxt) -> Vec<Self> {
+    pub fn from_ty(ty: &Ty, tcx: TyCtxt, crate_root: &DefPath) -> Vec<Self> {
         let hir_id = ty.hir_id;
+        // Convert hir Ty to middle Ty.
         let typ = tcx.type_of(hir_id.owner).skip_binder();
+        // let typ = tcx
+        //     .try_normalize_erasing_regions(TypingEnv::fully_monomorphized(), typ)
+        //     .unwrap_or(typ);
         if let TyKind::Adt(def, _) = typ.kind() {
             def_path(def.did(), tcx)
         } else {
-            vec![Self::new(DefPathKind::Ty, typ.to_string())]
+            // cc https://github.com/os-checker/unsafety-propagation-graph/issues/15
+            vec![
+                crate_root.clone(),
+                Self::primitive(),
+                Self::new(DefPathKind::Ty, typ.to_string()),
+            ]
         }
     }
 
@@ -376,9 +385,19 @@ impl DefPath {
 
     /// A fake submodule under root to host non-local items.
     fn phony() -> Self {
+        // Should be `$root::__phony::non_local_items`.
         DefPath {
             kind: DefPathKind::Mod,
             name: "__phony".into(),
+        }
+    }
+
+    /// A fake root submodule to host primitive types.
+    /// cc https://github.com/os-checker/unsafety-propagation-graph/issues/15
+    fn primitive() -> Self {
+        DefPath {
+            kind: DefPathKind::Mod,
+            name: "__primitive".into(),
         }
     }
 }
