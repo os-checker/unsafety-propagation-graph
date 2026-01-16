@@ -3,10 +3,7 @@ use crate::{
     info_fn::FnInfo,
     utils::{FxIndexMap, ThinVec},
 };
-use rustc_public::{
-    CrateDef,
-    ty::{AdtDef, FnDef},
-};
+use rustc_public::ty::{AdtDef, FnDef};
 use serde::Serialize;
 
 pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
@@ -91,7 +88,14 @@ impl AdtInfo {
                     if let Some(idx) = idx.as_field_idx()
                         && adt.def.kind().is_struct()
                     {
-                        self.fields[idx].read = v_fn.iter().map(|f| f.fn_def).collect();
+                        if let Some(field) = self.fields.get_mut(idx) {
+                            field.read = v_fn.iter().map(|f| f.fn_def).collect();
+                        } else {
+                            let fields_len = self.fields.len();
+                            eprintln!(
+                                "Out of bounds: fields_len={fields_len} idx={idx} adt={adt:?}"
+                            )
+                        }
                     }
                 }
                 AdtAccess::MutRefVariantField(idx) | AdtAccess::DerefVariantField(idx) => {
