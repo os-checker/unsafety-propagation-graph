@@ -44,7 +44,7 @@ fn main() -> Result<()> {
 
 fn run_cargo() -> std::result::Result<(), eyre::Error> {
     let build_std: Vec<_> = if ENV.UPG_RUST_STD_LIBRARY.is_some() {
-        ["build", "-Zbuild-std=core,alloc"]
+        ["build", "-Zbuild-std=core,alloc,std"]
             .iter()
             .map(|s| s.to_string())
             .collect()
