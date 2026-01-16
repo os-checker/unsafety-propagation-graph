@@ -43,13 +43,19 @@ fn main() -> Result<()> {
 }
 
 fn run_cargo() -> std::result::Result<(), eyre::Error> {
+    let cargo_build_args = ENV.CARGO_BUILD_ARGS.iter().cloned();
     let build_std: Vec<_> = if ENV.UPG_RUST_STD_LIBRARY.is_some() {
         ["build", "-Zbuild-std=core,alloc,std"]
             .iter()
             .map(|s| s.to_string())
+            .chain(cargo_build_args)
             .collect()
     } else {
-        ["build"].iter().map(|s| s.to_string()).collect()
+        ["build"]
+            .iter()
+            .map(|s| s.to_string())
+            .chain(cargo_build_args)
+            .collect()
     };
     run(
         "cargo",

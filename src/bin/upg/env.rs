@@ -14,6 +14,9 @@ pub struct EnvVar {
     pub UPG_DIR: PathBuf,
     /// RUSTCFLAGS
     pub CARGO_ENCODED_RUSTFLAGS: String,
+    /// The env var `CARGO_BUILD_ARGS` to be passed to `cargo build`.
+    /// Split by white space.
+    pub CARGO_BUILD_ARGS: Vec<String>,
 }
 
 impl EnvVar {
@@ -79,6 +82,9 @@ pub static ENV: LazyLock<EnvVar> = LazyLock::new(|| EnvVar {
         .and_then(|s| PathBuf::from(s).canonicalize().ok()),
     UPG_DIR: UPG_DIR(),
     CARGO_ENCODED_RUSTFLAGS: rustc_flags().join("\u{1f}"),
+    CARGO_BUILD_ARGS: var("CARGO_BUILD_ARGS")
+        .map(|s| s.split(' ').map(|s| s.to_owned()).collect())
+        .unwrap_or_default(),
 });
 
 const WRAPPER: &str = "WRAPPER";
