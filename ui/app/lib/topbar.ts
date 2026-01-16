@@ -20,7 +20,7 @@ export enum DefPathKind {
   Enum = "Enum",
   Union = "Union",
   TraitDecl = "TraitDecl",
-  SelfTy = "SelfTy",
+  Ty = "Ty",
   ImplTrait = "ImplTrait",
 }
 
@@ -35,7 +35,7 @@ export function icon(kind: DefPathKind | string): string {
     case DefPathKind.Enum: return "tabler:letter-e";
     case DefPathKind.Union: return "tabler:letter-u";
     case DefPathKind.TraitDecl: return "tabler:letter-t";
-    case DefPathKind.SelfTy: return "tabler:letter-t-small";
+    case DefPathKind.Ty: return "tabler:letter-t-small";
     case DefPathKind.ImplTrait: return "tabler:letter-t";
     default: return "tabler:alert-circle";
   }
@@ -50,7 +50,7 @@ export function colorClass(kind: DefPathKind | string): string {
     case DefPathKind.Enum: return "def-enum";
     case DefPathKind.Union: return "def-union";
     case DefPathKind.TraitDecl: return "def-trait";
-    case DefPathKind.SelfTy: return "def-ty";
+    case DefPathKind.Ty: return "def-ty";
     case DefPathKind.ImplTrait: return "def-trait";
     default: return "gray";
   }
@@ -65,7 +65,7 @@ export function urlKind(kind: DefPathKind): string {
     case DefPathKind.Enum: return "adt";
     case DefPathKind.Union: return "adt";
     case DefPathKind.TraitDecl: return "adt";
-    case DefPathKind.SelfTy: return "unknown";
+    case DefPathKind.Ty: return "unknown";
     case DefPathKind.ImplTrait: return "adt";
     default: return "unknown";
   }

@@ -1,11 +1,9 @@
 use crate::utils::{FxHashMap, FxIndexSet, ThinVec};
 use derive_more::Debug;
-use rustc_middle::ty::TyCtxt;
 use rustc_public::{
     CrateDef,
     mir::ProjectionElem,
-    rustc_internal::internal,
-    ty::{AdtDef, AdtKind, GenericArgs},
+    ty::{AdtDef, AdtKind},
 };
 use std::sync::Arc;
 
@@ -13,28 +11,20 @@ use std::sync::Arc;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Adt {
     pub def: AdtDef,
-    pub args: GenericArgs,
+    // pub args: GenericArgs,
     pub variant_fields: Arc<Vec<VaraintField>>,
 }
 
 impl Adt {
-    pub fn new(def: AdtDef, args: GenericArgs) -> Adt {
+    pub fn new(def: AdtDef) -> Adt {
         Adt {
             def,
-            args,
             variant_fields: Arc::new(new_variant_fields(def)),
         }
     }
 
-    pub fn to_string(&self, tcx: TyCtxt) -> String {
-        let adt_name = self.def.name();
-        let args = internal(tcx, &self.args);
-        let args = if args.is_empty() {
-            ""
-        } else {
-            &args.print_as_list()
-        };
-        format!("{adt_name}{args}")
+    pub fn as_string(&self) -> String {
+        self.def.name()
     }
 
     /// Returns Some iff the adt is struct or union.
@@ -211,11 +201,6 @@ pub type CacheAdt = FxHashMap<AdtDef, Adt>;
 
 /// Retrieve Adt via def. The function is faster because it skips
 /// construction of VaraintField if found.
-pub fn new_adt(def: AdtDef, args: GenericArgs, cache: &mut CacheAdt) -> Adt {
-    let mut adt = cache
-        .entry(def)
-        .or_insert_with(|| Adt::new(def, args.clone()))
-        .clone();
-    adt.args = args;
-    adt
+pub fn new_adt(def: AdtDef, cache: &mut CacheAdt) -> Adt {
+    cache.entry(def).or_insert_with(|| Adt::new(def)).clone()
 }

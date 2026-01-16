@@ -71,11 +71,13 @@ fn to_navi(
 
     // Collect mod paths and move all paths to the map.
     // The idx will be backfilled once v_path is sorted, so 0 is fake here.
-    for free_item in mem::take(v_path) {
-        assert_eq!(
-            &free_item[0], crate_root,
-            "{free_item:?} must start from {crate_root:?}"
-        );
+    for mut free_item in mem::take(v_path) {
+        if free_item[0] != *crate_root {
+            eprintln!("{free_item:?} must start from {crate_root:?}");
+            // This is the escape hatch to not break the root principle.
+            free_item = put_under_phony(free_item, crate_root);
+        }
+        let free_item = free_item;
 
         // [..mod_sep, ...]
         let mod_sep = free_item
@@ -135,7 +137,12 @@ fn to_navi(
             current_meta.non_mod_kinds.clone();
 
         for parent_path in current_meta.parent_paths.values() {
-            let parent_meta = map_paths.get(parent_path).unwrap();
+            let Some(parent_meta) = map_paths.get(parent_path) else {
+                // FIXME: we have to determine how to navigate to inaccessible items.
+                // cc https://github.com/os-checker/unsafety-propagation-graph/issues/12
+                // Currently, we ignore them.
+                continue;
+            };
 
             let sub_navi_item = &current_item[parent_path.len()];
             let sub_navi_item = SubNaviItem {
@@ -165,7 +172,16 @@ fn to_navi(
     // Construct mapping from def_path_str to DefPath.
     let map_name_to_path_idx: FxIndexMap<_, _> = map_name_to_path
         .into_iter()
-        .map(|(name, path)| (name, map_paths.get(&path).unwrap().item_idx))
+        .map(|(name, path)| {
+            let path = if let Some(path) = map_paths.get(&path) {
+                path
+            } else if let Some(path) = map_paths.get(&put_under_phony(path.clone(), crate_root)) {
+                path
+            } else {
+                unreachable!("{name:} {path:?} is absent in map_paths")
+            };
+            (name, path.item_idx)
+        })
         .collect();
     // Flatten all paths.
     v_path.extend(map_paths.into_keys());
@@ -247,29 +263,46 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                 for id in imp.items {
                     let assoc = tcx.hir_impl_item(*id);
                     if let ImplItemKind::Fn(_, body) = assoc.kind {
-                        let mut implementor_path = DefPath::from_ty(imp.self_ty, tcx);
+                        let mut impl_path = DefPath::from_ty(imp.self_ty, tcx, &crate_root);
                         let fn_name = assoc.ident.as_str();
                         match assoc.impl_kind {
                             ImplItemImplKind::Inherent { .. } => {
-                                implementor_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
+                                impl_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
                             }
                             ImplItemImplKind::Trait {
                                 trait_item_def_id, ..
                             } => {
                                 if let Ok(did) = trait_item_def_id {
-                                    let mut trait_name = def_path(did, tcx);
-                                    // Put SelfTy under trait path.
-                                    trait_name.extend(mem::take(&mut implementor_path));
-                                    implementor_path = trait_name;
-                                    implementor_path
-                                        .push(DefPath::new(DefPathKind::AssocFn, fn_name));
+                                    let trait_did =
+                                        tcx.opt_associated_item(did).unwrap().container_id(tcx);
+                                    let mut trait_path = def_path(trait_did, tcx);
+                                    if is_local_path(&impl_path, &crate_root) {
+                                        // The Self type is local, and put trait fn under Self.
+                                        // Repr: [local type path, trait path, assoc fn]
+                                        impl_path.extend(trait_path);
+                                    } else if is_local_path(&trait_path, &crate_root) {
+                                        // The trait is local, but Self is not, so put fn under trait.
+                                        // Repr [local trait path, external type path, assoc fn]
+                                        trait_path.extend(mem::take(&mut impl_path));
+                                        impl_path = trait_path;
+                                    } else {
+                                        // Neither Self or trait is not local. This is possible
+                                        // when Self is a fundamental type (see
+                                        // https://doc.rust-lang.org/reference/items/implementations.html#r-items.impl.trait.orphan-rule
+                                        // ), or coherence rules are relaxed to the whole project.
+                                        // As a workaround, we still have crate name as root, but
+                                        // set a phony submodule `__phony` before item path.
+                                        impl_path.extend(trait_path);
+                                        impl_path = put_under_phony(impl_path, &crate_root);
+                                    }
+                                    impl_path.push(DefPath::new(DefPathKind::AssocFn, fn_name));
                                 }
                             }
                         }
-                        v_path.push(implementor_path.clone());
+                        v_path.push(impl_path.clone());
                         let def_path_str = tcx.def_path_str(body.hir_id.owner);
                         let def_path_str = format!("{}::{def_path_str}", crate_root.name);
-                        map_name_to_path.insert(def_path_str, implementor_path);
+                        map_name_to_path.insert(def_path_str, impl_path);
                     }
                 }
             }
@@ -336,19 +369,63 @@ impl DefPath {
         }
     }
 
-    pub fn from_ty(ty: &Ty, tcx: TyCtxt) -> Vec<Self> {
+    pub fn from_ty(ty: &Ty, tcx: TyCtxt, crate_root: &DefPath) -> Vec<Self> {
         let hir_id = ty.hir_id;
+        // Convert hir Ty to middle Ty.
         let typ = tcx.type_of(hir_id.owner).skip_binder();
+        // let typ = tcx
+        //     .try_normalize_erasing_regions(TypingEnv::fully_monomorphized(), typ)
+        //     .unwrap_or(typ);
         if let TyKind::Adt(def, _) = typ.kind() {
             def_path(def.did(), tcx)
         } else {
-            vec![Self::new(DefPathKind::SelfTy, typ.to_string())]
+            // cc https://github.com/os-checker/unsafety-propagation-graph/issues/15
+            vec![
+                crate_root.clone(),
+                Self::primitive(),
+                Self::new(DefPathKind::Ty, typ.to_string()),
+            ]
         }
     }
 
     fn crate_root(tcx: TyCtxt) -> Self {
         let crate_name = tcx.crate_name(rustc_span::def_id::CrateNum::ZERO);
         DefPath::new(DefPathKind::Mod, crate_name.as_str())
+    }
+
+    /// A fake submodule under root to host non-local items.
+    fn phony() -> Self {
+        // Should be `$root::__phony::non_local_items`.
+        DefPath {
+            kind: DefPathKind::Mod,
+            name: "__phony".into(),
+        }
+    }
+
+    /// A fake root submodule to host primitive types.
+    /// cc https://github.com/os-checker/unsafety-propagation-graph/issues/15
+    fn primitive() -> Self {
+        DefPath {
+            kind: DefPathKind::Mod,
+            name: "__primitive".into(),
+        }
+    }
+}
+
+/// Put the item under `$root::__phony`.
+/// cc https://github.com/os-checker/unsafety-propagation-graph/issues/19
+fn put_under_phony(mut v: ItemPath, crate_root: &DefPath) -> ItemPath {
+    v.reserve_exact(2);
+    v.insert(0, DefPath::phony());
+    v.insert(0, crate_root.clone());
+    v
+}
+
+fn is_local_path(v: &[DefPath], crate_root: &DefPath) -> bool {
+    if v.is_empty() {
+        unimplemented!()
+    } else {
+        v[0] == *crate_root
     }
 }
 
@@ -372,14 +449,14 @@ pub enum DefPathKind {
     Enum,
     Union,
     TraitDecl,
-    SelfTy,
+    Ty,
     ImplTrait,
 }
 
 fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
     use rustc_hir::{def::DefKind, definitions::DefPathData};
 
-    let default = || vec![DefPath::new(DefPathKind::SelfTy, tcx.def_path_str(did))];
+    let default = || vec![DefPath::new(DefPathKind::Ty, tcx.def_path_str(did))];
 
     let def_kind = tcx.def_kind(did);
     let def_path_kind = match def_kind {
@@ -399,7 +476,8 @@ fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
         if let DefPathData::TypeNs(sym) = data.data {
             v_path.push(DefPath::new(DefPathKind::Mod, sym.as_str()));
         } else {
-            unimplemented!("{data:?} is not a type namespace, check out {did:?}")
+            // cc https://github.com/os-checker/unsafety-propagation-graph/issues/12
+            v_path.push(DefPath::new(DefPathKind::Mod, data.as_sym(true).as_str()));
         }
     }
 

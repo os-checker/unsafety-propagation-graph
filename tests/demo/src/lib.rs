@@ -2,10 +2,20 @@
 // #![feature(register_tool)]
 // #![register_tool(rapx)]
 
+/// Test rustc_public Instance query.
+mod num;
+
 /// Record secret buffer with its size.
 struct SecretRegion {
     buffer: *mut u32,
     len: usize,
+}
+
+impl From<Vec<u32>> for SecretRegion {
+    fn from(v: Vec<u32>) -> Self {
+        let (p, l, _c) = v.into_raw_parts();
+        SecretRegion { buffer: p, len: l }
+    }
 }
 
 impl SecretRegion {

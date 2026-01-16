@@ -1,5 +1,6 @@
 use crate::Result;
 use std::{env::var, path::PathBuf, sync::LazyLock};
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[allow(non_snake_case)]
 pub struct EnvVar {
@@ -13,6 +14,9 @@ pub struct EnvVar {
     pub UPG_DIR: PathBuf,
     /// RUSTCFLAGS
     pub CARGO_ENCODED_RUSTFLAGS: String,
+    /// The env var `CARGO_BUILD_ARGS` to be passed to `cargo build`.
+    /// Split by white space.
+    pub CARGO_BUILD_ARGS: Vec<String>,
 }
 
 impl EnvVar {
@@ -57,8 +61,10 @@ fn UPG_DIR() -> PathBuf {
         .create(true)
         .open(dir.join("upg.log"))
         .unwrap();
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_writer(log_file)
+
+    tracing_subscriber::registry()
+        .with(fmt::layer().with_writer(log_file))
+        .with(EnvFilter::from_default_env())
         .init();
 
     dir
@@ -76,6 +82,9 @@ pub static ENV: LazyLock<EnvVar> = LazyLock::new(|| EnvVar {
         .and_then(|s| PathBuf::from(s).canonicalize().ok()),
     UPG_DIR: UPG_DIR(),
     CARGO_ENCODED_RUSTFLAGS: rustc_flags().join("\u{1f}"),
+    CARGO_BUILD_ARGS: var("CARGO_BUILD_ARGS")
+        .map(|s| s.split(' ').map(|s| s.to_owned()).collect())
+        .unwrap_or_default(),
 });
 
 const WRAPPER: &str = "WRAPPER";
@@ -90,6 +99,10 @@ pub fn set_wrapper() -> (&'static str, &'static str) {
 
 pub fn set_rustc_wrapper() -> (&'static str, &'static str) {
     ("RUSTC", &ENV.UPG_BIN)
+}
+
+pub fn set_upg_continue() -> (&'static str, &'static str) {
+    ("UPG_CONTINUE", "1")
 }
 
 const UPG_ARGS: &[&str] = &[

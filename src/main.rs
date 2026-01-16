@@ -73,7 +73,12 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     }
     writer.dump_json("navi", "navi", &navi);
 
-    ControlFlow::Break(())
+    if std::env::var("UPG_CONTINUE").ok().is_some_and(|s| s != "0") {
+        // Emit artifacts: this is necessary for crates that has dependencies.
+        ControlFlow::Continue(())
+    } else {
+        ControlFlow::Break(())
+    }
 }
 
 fn get_tags(fn_def: rustc_public::ty::FnDef) -> Vec<safety_parser::safety::PropertiesAndReason> {

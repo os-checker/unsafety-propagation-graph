@@ -43,18 +43,28 @@ fn main() -> Result<()> {
 }
 
 fn run_cargo() -> std::result::Result<(), eyre::Error> {
+    let cargo_build_args = ENV.CARGO_BUILD_ARGS.iter().cloned();
     let build_std: Vec<_> = if ENV.UPG_RUST_STD_LIBRARY.is_some() {
-        ["build", "-Zbuild-std=core,alloc"]
+        ["build", "-Zbuild-std=core,alloc,std"]
             .iter()
             .map(|s| s.to_string())
+            .chain(cargo_build_args)
             .collect()
     } else {
-        ["build"].iter().map(|s| s.to_string()).collect()
+        ["build"]
+            .iter()
+            .map(|s| s.to_string())
+            .chain(cargo_build_args)
+            .collect()
     };
     run(
         "cargo",
         &build_std,
-        &[env::set_rustc_wrapper(), env::set_wrapper()],
+        &[
+            env::set_rustc_wrapper(),
+            env::set_wrapper(),
+            env::set_upg_continue(),
+        ],
     )
 }
 
@@ -62,13 +72,14 @@ fn run(cmd: &str, args: &[String], vars: &[(&str, &str)]) -> Result<()> {
     let mut command = Command::new(cmd);
     let rustflags = &*ENV.CARGO_ENCODED_RUSTFLAGS;
 
-    if let Some(library) = ENV.UPG_RUST_STD_LIBRARY.as_deref() {
+    debug!(cmd, ?args, ?vars,);
+    let _span = if let Some(library) = ENV.UPG_RUST_STD_LIBRARY.as_deref() {
         // Build std if the library path is set.
         command.env("__CARGO_TESTS_ONLY_SRC_ROOT", library);
-        let _span = debug_span!("run", cmd, ?library, ?args, ?vars,).entered();
+        debug_span!("run", cmd, ?library, ?args, ?vars,).entered()
     } else {
-        let _span = debug_span!("run", cmd, ?args, ?vars,).entered();
-    }
+        debug_span!("run", cmd, ?args, ?vars,).entered()
+    };
 
     let status = command
         .args(args)

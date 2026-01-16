@@ -57,7 +57,7 @@ impl Function {
                 .iter()
                 .map(|(adt, locals)| {
                     (
-                        adt.to_string(tcx),
+                        adt.as_string(),
                         locals.access.iter().map(|acc| format!("{acc:?}")).collect(),
                     )
                 })
@@ -143,7 +143,7 @@ impl Adt {
         }
 
         Adt {
-            name: adt.to_string(tcx),
+            name: adt.as_string(),
             constructors: v_fn_name(&info.constructors),
             access_self_as_arg: Access::new(&info.as_argument),
             access_self_as_locals: Access::new(&info.otherwise),
@@ -264,7 +264,6 @@ fn doc_string_internel_did(did: IDefId, tcx: TyCtxt) -> String {
 
 #[derive(Debug, Serialize)]
 pub struct CalleeInfo {
-    pub instance_name: Vec<String>,
     pub safe: bool,
     pub tags: Tags,
     pub doc: String,
@@ -273,22 +272,16 @@ pub struct CalleeInfo {
 
 pub fn output_callee(finfo: &FnInfo, tcx: TyCtxt) -> FxIndexMap<String, CalleeInfo> {
     let mut map = FxIndexMap::<String, CalleeInfo>::default();
-    for info in finfo.callees.values() {
-        let instance_name = info.instance_name.clone();
-        if let Some(cinfo) = map.get_mut(&info.non_instance_name) {
-            cinfo.instance_name.push(instance_name);
-        } else {
-            let fn_def = info.fn_def;
-            let callee_info = CalleeInfo {
-                instance_name: vec![instance_name],
-                safe: is_safe(fn_def),
-                // TODO: optimize this.
-                tags: Tags::new(&get_tags(fn_def)),
-                doc: doc_string(fn_def.def_id(), tcx),
-                adt: Default::default(),
-            };
-            map.insert(info.non_instance_name.clone(), callee_info);
-        }
+    for (fn_def, info) in &finfo.callees {
+        let fn_def = *fn_def;
+        let callee_info = CalleeInfo {
+            safe: is_safe(fn_def),
+            // TODO: optimize this.
+            tags: Tags::new(&get_tags(fn_def)),
+            doc: doc_string(fn_def.def_id(), tcx),
+            adt: Default::default(),
+        };
+        map.insert(info.non_instance_name.clone(), callee_info);
     }
     map
 }
@@ -330,8 +323,10 @@ impl Writer {
                 let mut file_path = parent.join(fname_stem);
                 file_path.set_extension("json");
 
-                let file = fs::File::create(&file_path).unwrap();
-                serde_json::to_writer_pretty(file, data).unwrap();
+                match fs::File::create(&file_path) {
+                    Ok(file) => serde_json::to_writer_pretty(file, data).unwrap(),
+                    Err(err) => eprintln!("{file_path:?} {err:?}"),
+                }
             }
             Writer::Stdout => {
                 use io::Write;

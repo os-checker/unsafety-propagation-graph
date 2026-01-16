@@ -3,10 +3,7 @@ use crate::{
     info_fn::FnInfo,
     utils::{FxIndexMap, ThinVec},
 };
-use rustc_public::{
-    CrateDef,
-    ty::{AdtDef, FnDef},
-};
+use rustc_public::ty::{AdtDef, FnDef};
 use serde::Serialize;
 
 pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
@@ -87,13 +84,33 @@ impl AdtInfo {
                     push(&mut self.as_argument.other, &mut self.otherwise.other)
                 }
                 AdtAccess::RefVariantField(idx) => {
-                    if let Some(idx) = idx.as_field_idx() {
-                        self.fields[idx].read = v_fn.iter().map(|f| f.fn_def).collect();
+                    // TODO: only structs are supported for now.
+                    if let Some(idx) = idx.as_field_idx()
+                        && adt.def.kind().is_struct()
+                    {
+                        if let Some(field) = self.fields.get_mut(idx) {
+                            field.read = v_fn.iter().map(|f| f.fn_def).collect();
+                        } else {
+                            let fields_len = self.fields.len();
+                            eprintln!(
+                                "Out of bounds: fields_len={fields_len} idx={idx} adt={adt:?}"
+                            )
+                        }
                     }
                 }
                 AdtAccess::MutRefVariantField(idx) | AdtAccess::DerefVariantField(idx) => {
-                    if let Some(idx) = idx.as_field_idx() {
-                        self.fields[idx].write.extend(v_fn.iter().map(|f| f.fn_def));
+                    // TODO: only structs are supported for now.
+                    if let Some(idx) = idx.as_field_idx()
+                        && adt.def.kind().is_struct()
+                    {
+                        if let Some(field) = self.fields.get_mut(idx) {
+                            field.write = v_fn.iter().map(|f| f.fn_def).collect();
+                        } else {
+                            let fields_len = self.fields.len();
+                            eprintln!(
+                                "Out of bounds: fields_len={fields_len} idx={idx} adt={adt:?}"
+                            )
+                        }
                     }
                 }
             }
@@ -168,14 +185,13 @@ impl AdtFnCollector {
 
         for (caller, info) in map_fn {
             let map = caller_callee_map.entry(*caller).or_default();
-            for (callee, _callee_info) in &info.callees {
+            for (callee, callee_info) in &info.callees {
                 // Callee is an Instance, but we strip the mono types, and use FnDef name
                 // as in output Function CalleeInfo.
-                if let Some(rustc_public::ty::RigidTy::FnDef(callee_fn_def, _)) =
-                    callee.ty().kind().rigid()
-                    && let Some(adt_fn_kind) = fn_adt_map.get(callee_fn_def)
-                {
-                    let adt_map = map.entry(callee_fn_def.name()).or_default();
+                if let Some(adt_fn_kind) = fn_adt_map.get(callee) {
+                    let adt_map = map
+                        .entry(callee_info.non_instance_name.clone())
+                        .or_default();
                     for adt in info.adts.keys() {
                         // Ignore mono types.
                         let adt = adt.def;
