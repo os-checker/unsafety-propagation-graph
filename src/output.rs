@@ -325,7 +325,7 @@ impl Writer {
 
                 match fs::File::create(&file_path) {
                     Ok(file) => serde_json::to_writer_pretty(file, data).unwrap(),
-                    Err(err) => panic!("{file_path:?} {err:?}"),
+                    Err(err) => eprintln!("{file_path:?} {err:?}"),
                 }
             }
             Writer::Stdout => {
