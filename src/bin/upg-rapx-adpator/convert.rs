@@ -1,6 +1,7 @@
 use crate::FunctionName;
 use indexmap::IndexMap;
-use serde::Deserialize;
+use safety_parser::configuration;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     env, fs,
@@ -39,7 +40,7 @@ pub fn run() {
     dbg!(mapping.len());
 
     // The key is upg fn name, value is vec of tag names.
-    let mut output = IndexMap::<String, Vec<String>>::with_capacity(std_json.len());
+    let mut v_fn = IndexMap::<String, Vec<String>>::with_capacity(std_json.len());
     for (raw_fn_name, data) in &std_json {
         // Check all fn names are present.
         let Some(v_fn_name) = mapping.get(raw_fn_name) else {
@@ -47,25 +48,20 @@ pub fn run() {
         };
         if !data.tags.is_empty() {
             for fn_name in v_fn_name {
-                output.insert(fn_name.def_path.clone(), data.tags.clone());
+                v_fn.insert(fn_name.def_path.clone(), data.tags.clone());
             }
         }
     }
-    output.sort_unstable_keys();
-    dbg!(output.len());
+    v_fn.sort_unstable_keys();
+    dbg!(v_fn.len());
 
-    // Write converted std.json
-    let out_file = env::var("RAPX_STD_OUT").unwrap();
-    let out_file = fs::File::create(out_file).unwrap();
-    serde_json::to_writer_pretty(out_file, &output).unwrap();
-
-    let spec = &safety_parser::configuration::CACHE.map;
+    let spec = &configuration::CACHE.map;
     dbg!(spec.len());
     assert!(!spec.is_empty());
 
     // Check tag that is not specified.
     let mut missing = HashSet::<&str>::with_capacity(spec.len());
-    for tags in output.values() {
+    for tags in v_fn.values() {
         for tag_name in tags {
             let tag_name = tag_name.as_str();
             if tag_name.starts_with("any") {
@@ -83,6 +79,14 @@ pub fn run() {
     if !missing.is_empty() {
         panic!("{} tags have no spec: {missing:#?}", missing.len());
     }
+
+    // Write converted std.json
+    let out_file = env::var("RAPX_STD_OUT").unwrap();
+    let out_file = fs::File::create(out_file).unwrap();
+    // Clean src because it's unnecessary for WebUI and reduces space.
+    let mut spec = spec.clone();
+    spec.values_mut().for_each(|v| v.src = Box::default());
+    serde_json::to_writer_pretty(out_file, &Ouput { v_fn, spec }).unwrap();
 }
 
 // "core::alloc::global::GlobalAlloc::alloc": { "0": [ "ValidNum", "Init" ] },
@@ -90,4 +94,10 @@ pub fn run() {
 struct InputData {
     #[serde(rename = "0")]
     tags: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct Ouput {
+    v_fn: IndexMap<String, Vec<String>>,
+    spec: IndexMap<Box<str>, configuration::Key>,
 }
