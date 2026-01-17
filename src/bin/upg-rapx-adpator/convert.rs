@@ -63,17 +63,25 @@ pub fn run() {
     dbg!(spec.len());
     assert!(!spec.is_empty());
 
+    // Check tag that is not specified.
     let mut missing = HashSet::<&str>::with_capacity(spec.len());
     for tags in output.values() {
         for tag_name in tags {
             let tag_name = tag_name.as_str();
-            if !spec.contains_key(tag_name) {
+            if tag_name.starts_with("any") {
+                // parse any(Tag1, Tag2, ...)
+                for tag in tag_name.trim_prefix("any(").trim_suffix(')').split(", ") {
+                    if !spec.contains_key(tag) {
+                        missing.insert(tag);
+                    }
+                }
+            } else if !spec.contains_key(tag_name) {
                 missing.insert(tag_name);
             }
         }
     }
     if !missing.is_empty() {
-        eprintln!("{} tags have no spec: {missing:#?}", missing.len());
+        panic!("{} tags have no spec: {missing:#?}", missing.len());
     }
 }
 

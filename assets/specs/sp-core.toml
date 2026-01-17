@@ -171,3 +171,4 @@ desc = "!Size"
 [tag.ValidTraitObj]
 [tag.CopyTrait]
 [tag.DoubleAligned]
+[tag.Null]

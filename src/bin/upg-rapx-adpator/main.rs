@@ -1,5 +1,6 @@
 //! This CLI converts RAPx function name to upg function names for std.json.
 
+#![feature(trim_prefix_suffix)]
 #![feature(rustc_private)]
 
 extern crate indexmap;

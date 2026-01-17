@@ -30,9 +30,7 @@
     },
     "core::alloc::layout::for_value_raw": {
         "0": [
-          "Size |",
-          "ValidSlice |",
-          "ValidTraitObj"
+          "any(Size, ValidSlice, ValidTraitObj)"
         ]
       },
     "core::alloc::Allocator::grow": {
@@ -442,14 +440,12 @@
     },
     "core::ptr::non_null::as_uninit_ref": {
         "0": [
-            "NonNull | ",
-            "ValidPtr2Ref"
+            "any(NonNull, ValidPtr2Ref)"
         ]
     },
     "core::ptr::non_null::as_uninit_mut": {
         "0": [
-            "NonNull | ",
-            "ValidPtr2Ref"
+            "any(NonNull, ValidPtr2Ref)"
         ]
     },
     "core::ptr::non_null::new_unchecked": {
@@ -658,8 +654,7 @@
 
     "core::ptr::const_ptr::as_ref": {
         "0": [
-            "Null | ",
-            "ValidPtr2Ref"
+            "any(Null, ValidPtr2Ref)"
         ]
     },
     "core::ptr::const_ptr::as_ref_unchecked": {
@@ -669,8 +664,7 @@
     },
     "core::ptr::const_ptr::as_uninit_ref": {
         "0": [
-            "Null | ",
-            "ValidPtr2Ref"
+            "any(Null, ValidPtr2Ref)"
         ]
     },
     "core::ptr::const_ptr::offset": {
@@ -772,8 +766,7 @@
     },
     "core::ptr::const_ptr::as_uninit_slice": {
         "0": [
-            "Null | ",
-            "ValidPtr",
+            "any(Null, ValidPtr)",
             "Alive",
             "Alias",
             "ValidNum",
@@ -791,8 +784,7 @@
 
     "core::ptr::mut_ptr::as_ref": {
         "0": [
-            "Null | ",
-            "ValidPtr2Ref"
+            "any(Null, ValidPtr2Ref)"
         ]
     },
     "core::ptr::mut_ptr::as_ref_unchecked": {
@@ -802,8 +794,7 @@
     },
     "core::ptr::mut_ptr::as_uninit_ref": {
         "0": [
-            "NonNull | ",
-            "ValidPtr2Ref"
+            "any(NonNull, ValidPtr2Ref)"
         ]
     },
     "core::ptr::mut_ptr::offset": {
@@ -824,8 +815,7 @@
     },
     "core::ptr::mut_ptr::as_uninit_mut": {
         "0": [
-            "NonNull | ",
-            "ValidPtr2Ref"
+            "any(NonNull, ValidPtr2Ref)"
         ]
     },
     "core::ptr::mut_ptr::add": {
