@@ -12,6 +12,7 @@ export RUST_LOG=debug
 export UPG_RUST_STD_LIBRARY=$(rustc --print=sysroot)/lib/rustlib/src/rust/library
 
 export RAPX_STD_JSON=$PWD/assets/std.json
+export RAPX_STD_MAPPING_DIR=$PWD/assets/fn_name_mapping
 
 pushd tests/demo
 cargo clean

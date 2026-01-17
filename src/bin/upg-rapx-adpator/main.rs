@@ -13,7 +13,7 @@ mod convert;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{CrateDef, rustc_internal};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{env, fs, ops::ControlFlow, path::PathBuf};
 
 fn main() {
@@ -64,7 +64,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct FunctionName {
     rapx: String,
     def_id: String,
