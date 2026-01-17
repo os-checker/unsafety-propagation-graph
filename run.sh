@@ -11,11 +11,15 @@ mkdir "$UPG_DIR"
 export RUST_LOG=debug
 export UPG_RUST_STD_LIBRARY=$(rustc --print=sysroot)/lib/rustlib/src/rust/library
 
+export RAPX_STD_JSON=$PWD/assets/std.json
+
 pushd tests/demo
 cargo clean
 
-export UPG_DRIVER=upx-rapx-adpator
-upg
-cp "$UPG_DIR"/_rapx/core.json assets/fn_name_mapping/
-cp "$UPG_DIR"/_rapx/std.json assets/fn_name_mapping/
-cp "$UPG_DIR"/_rapx/alloc.json assets/fn_name_mapping/
+# UPG_DRIVER=upg-rapx-adpator upg
+# cp "$UPG_DIR"/_rapx/core.json assets/fn_name_mapping/
+# cp "$UPG_DIR"/_rapx/std.json assets/fn_name_mapping/
+# cp "$UPG_DIR"/_rapx/alloc.json assets/fn_name_mapping/
+
+export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
+UPG_RAPX_CONVERT=1 upg-rapx-adpator

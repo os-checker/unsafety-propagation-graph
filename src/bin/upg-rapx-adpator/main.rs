@@ -8,6 +8,8 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_public;
 
+mod convert;
+
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{CrateDef, rustc_internal};
@@ -15,8 +17,13 @@ use serde::Serialize;
 use std::{env, fs, ops::ControlFlow, path::PathBuf};
 
 fn main() {
-    let rustc_args: Vec<_> = env::args().collect();
-    _ = rustc_public::run_with_tcx!(&rustc_args, run);
+    if env::var("UPG_RAPX_CONVERT").is_ok_and(|s| s != "0") {
+        convert::run();
+    } else {
+        // As a rustc driver.
+        let rustc_args: Vec<_> = env::args().collect();
+        _ = rustc_public::run_with_tcx!(&rustc_args, run);
+    }
 }
 
 fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
