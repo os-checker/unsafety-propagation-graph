@@ -1,7 +1,10 @@
 use crate::FunctionName;
 use indexmap::IndexMap;
 use serde::Deserialize;
-use std::{collections::HashMap, env, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    env, fs,
+};
 
 pub fn run() {
     // Read std.json
@@ -55,6 +58,23 @@ pub fn run() {
     let out_file = env::var("RAPX_STD_OUT").unwrap();
     let out_file = fs::File::create(out_file).unwrap();
     serde_json::to_writer_pretty(out_file, &output).unwrap();
+
+    let spec = &safety_parser::configuration::CACHE.map;
+    dbg!(spec.len());
+    assert!(!spec.is_empty());
+
+    let mut missing = HashSet::<&str>::with_capacity(spec.len());
+    for tags in output.values() {
+        for tag_name in tags {
+            let tag_name = tag_name.as_str();
+            if !spec.contains_key(tag_name) {
+                missing.insert(tag_name);
+            }
+        }
+    }
+    if !missing.is_empty() {
+        eprintln!("{} tags have no spec: {missing:#?}", missing.len());
+    }
 }
 
 // "core::alloc::global::GlobalAlloc::alloc": { "0": [ "ValidNum", "Init" ] },
