@@ -174,7 +174,7 @@
         "0": [
             "ValidCStr",
             "ValidPtr",
-            "!Null",
+            "NonNull",
             "Alias",
             "ValidNum"
         ]
@@ -188,7 +188,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Null",
+            "NonNull",
             "Allocated"
         ]
     },
@@ -214,7 +214,7 @@
     },
     "core::mem::manually_drop::take": {
         "0": [
-            "Ownning"
+            "Owning"
         ]
     },
     "core::mem::manually_drop::drop": {
@@ -398,7 +398,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ]
@@ -408,7 +408,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ],
@@ -416,7 +416,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ]
@@ -430,9 +430,9 @@
     },
     "core::intrinsics::ptr_offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::alignment::new_unchecked": {
@@ -442,19 +442,19 @@
     },
     "core::ptr::non_null::as_uninit_ref": {
         "0": [
-            "!Null | ",
+            "NonNull | ",
             "ValidPtr2Ref"
         ]
     },
     "core::ptr::non_null::as_uninit_mut": {
         "0": [
-            "!Null | ",
+            "NonNull | ",
             "ValidPtr2Ref"
         ]
     },
     "core::ptr::non_null::new_unchecked": {
         "0": [
-            "!Null"
+            "NonNull"
         ]
     },
     "core::ptr::non_null::as_ref": {
@@ -469,57 +469,57 @@
     },
     "core::ptr::non_null::offset": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::non_null::add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::non_null::byte_offset": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::ptr::non_null::byte_add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::non_null::byte_sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::non_null::offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::non_null::byte_offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::non_null::offset_from_unsigned": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::non_null::sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
@@ -550,7 +550,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ]
@@ -560,7 +560,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -569,7 +569,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -579,7 +579,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -629,7 +629,7 @@
     },
     "core::ptr::non_null::as_uninit_slice": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -640,7 +640,7 @@
     },
     "core::ptr::non_null::as_uninit_slice_mut": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -675,56 +675,56 @@
     },
     "core::ptr::const_ptr::offset": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::ptr::const_ptr::add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::const_ptr::sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::const_ptr::byte_offset": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::ptr::const_ptr::offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::const_ptr::byte_offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::const_ptr::offset_from_unsigned": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::const_ptr::byte_add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::const_ptr::byte_sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
@@ -755,7 +755,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ]
@@ -765,7 +765,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -802,13 +802,13 @@
     },
     "core::ptr::mut_ptr::as_uninit_ref": {
         "0": [
-            "!Null | ",
+            "NonNull | ",
             "ValidPtr2Ref"
         ]
     },
     "core::ptr::mut_ptr::offset": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
@@ -824,57 +824,57 @@
     },
     "core::ptr::mut_ptr::as_uninit_mut": {
         "0": [
-            "!Null | ",
+            "NonNull | ",
             "ValidPtr2Ref"
         ]
     },
     "core::ptr::mut_ptr::add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::mut_ptr::sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::mut_ptr::byte_offset": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::ptr::mut_ptr::offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::mut_ptr::byte_offset_from": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::mut_ptr::offset_from_unsigned": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum",
-            "!Size"
+            "NotSized"
         ]
     },
     "core::ptr::mut_ptr::byte_add": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
     "core::ptr::mut_ptr::byte_sub": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
@@ -905,7 +905,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "Alias",
             "CopyTrait"
         ]
@@ -915,7 +915,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -924,7 +924,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -934,7 +934,7 @@
             "ValidPtr",
             "Aligned",
             "NonOverlap",
-            "!Volatile",
+            "NonVolatile",
             "CopyTrait",
             "Alias"
         ]
@@ -943,7 +943,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Null"
+            "NonNull"
         ]
     },
     "core::ptr::mut_ptr::write": {
@@ -997,7 +997,7 @@
     },
     "core::ptr::mut_ptr::as_uninit_slice": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1009,7 +1009,7 @@
     "core::ptr::mut_ptr::as_uninit_slice_mut": {
         "0": [
 
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1029,7 +1029,7 @@
         "0": [
             "ValidPtr",
             "Aligned",
-            "!Null"
+            "NonNull"
         ]
     },
     "core::ptr::replace": {
@@ -1117,29 +1117,29 @@
 
     "core::slice::get_unchecked": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::index::SliceIndex::get_unchecked": {
         "0": [
-            "InBounded",
+            "InBound",
             "Allocated"
         ]
     },
     "core::slice::index::SliceIndex::get_unchecked_mut": {
         "0": [
-            "InBounded",
+            "InBound",
             "Allocated"
         ]
     },
     "core::slice::get_unchecked_mut": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::swap_unchecked": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::as_chunks_unchecked": {
@@ -1154,12 +1154,12 @@
     },
     "core::slice::split_at_unchecked": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::split_at_mut_unchecked": {
         "0": [
-            "InBounded"
+            "InBound"
         ]
     },
 
@@ -1182,7 +1182,7 @@
     },
     "core::slice::raw::from_raw_parts": {
         "0":[
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1193,7 +1193,7 @@
     },
     "core::slice::raw::from_raw_parts_mut": {
         "0":[
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1205,31 +1205,31 @@
     "core::slice::index::get_unchecked": {
         "0": [
             "Allocated",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::index::get_unchecked_mut": {
         "0": [
             "Allocated",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::slice::raw::from_ptr_range": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
             "Alias",
             "ValidNum",
             "Aligned",
-            "InBounded",
-            "!Size"
+            "InBound",
+            "NotSized"
         ]
     },
     "core::slice::raw::from_mut_ptr_range": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1241,25 +1241,25 @@
     "core::str::get_unchecked": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::str::get_unchecked_mut": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::str::slice_unchecked": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::str::slice_mut_unchecked": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::str::as_bytes_mut": {
@@ -1279,7 +1279,7 @@
     },
     "core::str::converts::from_raw_parts": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1290,7 +1290,7 @@
     },
     "core::str::converts::from_raw_parts_mut": {
         "0": [
-            "!Null",
+            "NonNull",
             "ValidPtr",
             "Init",
             "Alive",
@@ -1302,13 +1302,13 @@
     "core::str::traits::get_unchecked": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::str::traits::get_unchecked_mut": {
         "0": [
             "ValidString",
-            "InBounded"
+            "InBound"
         ]
     },
     "core::io::borrowed_buf::advance": {
@@ -1331,7 +1331,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "InBounded",
+            "InBound",
             "ValidNum",
             "Layout"
         ]
@@ -1340,7 +1340,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "InBounded",
+            "InBound",
             "ValidNum",
             "Layout"
         ]
@@ -1349,7 +1349,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "InBounded",
+            "InBound",
             "ValidNum",
             "Layout"
         ]
@@ -1358,14 +1358,14 @@
         "0": [
             "Allocated",
             "Aligned",
-            "InBounded",
+            "InBound",
             "ValidNum",
             "Layout"
         ]
     },
     "alloc::vec::set_len": {
         "0": [
-            "InBounded",
+            "InBound",
             "ValidNum"
         ]
     },
@@ -1427,28 +1427,28 @@
     "alloc::boxed::from_raw": {
         "0": [
             "Allocated",
-            "Ownning",
+            "Owning",
             "Alias"
         ]
     },
     "alloc::boxed::from_non_null": {
         "0": [
             "Allocated",
-            "Ownning",
+            "Owning",
             "Alias"
         ]
     },
     "alloc::boxed::from_raw_in": {
         "0": [
             "Allocated",
-            "Ownning",
+            "Owning",
             "Alias"
         ]
     },
     "alloc::boxed::from_non_null_in": {
         "0": [
             "Allocated",
-            "Ownning",
+            "Owning",
             "Alias"
         ]
     },
@@ -1485,7 +1485,7 @@
     "alloc::ffi::c_str::from_raw": {
         "0": [
             "Allocated",
-            "Ownning",
+            "Owning",
             "Alias"
         ]
     },
@@ -1503,7 +1503,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "Ownning",
+            "Owning",
             "Typed"
         ]
     },
@@ -1525,7 +1525,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "Ownning",
+            "Owning",
             "Typed"
         ]
     },
@@ -1597,7 +1597,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "Ownning",
+            "Owning",
             "Typed"
         ]
     },
@@ -1619,7 +1619,7 @@
         "0": [
             "Allocated",
             "Aligned",
-            "Ownning",
+            "Owning",
             "Typed"
         ]
     },
@@ -1644,7 +1644,7 @@
     },
     "std::thread::thread::from_raw": {
         "0": [
-            "Ownning",
+            "Owning",
             "Allocated"
         ]
     },
@@ -1842,14 +1842,9 @@
     },
     "core::ffi::va_list::arg": {
         "0": [
-            "InBounded",
+            "InBound",
             "Init",
             "Typed"
-        ]
-    },
-    "core::ffi::va_list::with_copy": {
-        "0": [
-            ""
         ]
     },
     "core::task::wake::new": {

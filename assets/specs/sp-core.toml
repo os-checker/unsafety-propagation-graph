@@ -7,7 +7,7 @@ expr = "p1 = p2"
 types = [ "hazard" ]
 url = "https://github.com/Artisan-Lab/tag-std/blob/main/primitive-sp.md#342-alias"
 
-[tag.Align]
+[tag.Aligned]
 args = [ "p", "T" ]
 desc = "pointer `{p}` must be properly aligned for type `{T}`"
 expr = "p % alignment(T) = 0"
@@ -161,3 +161,13 @@ expr = "mem(arange) ∈ utf-8"
 types = [ "precond", "hazard" ]
 url = "https://github.com/Artisan-Lab/tag-std/blob/main/primitive-sp.md#332-string"
 
+[tag.NotSized]
+desc = "!Size"
+
+[tag.ValidSlice]
+[tag.ValidPtr2Ref]
+[tag.System_sp]
+[tag.Function_sp]
+[tag.ValidTraitObj]
+[tag.CopyTrait]
+[tag.DoubleAligned]
