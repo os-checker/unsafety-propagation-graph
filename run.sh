@@ -7,6 +7,8 @@ cargo install --path . --locked --debug
 export UPG_DIR=$PWD/target/upg
 rm "$UPG_DIR" -rf
 mkdir "$UPG_DIR"
+mkdir "$UPG_DIR"/demo
+mkdir "$UPG_DIR"/asterinas
 
 export RUST_LOG=debug
 export UPG_RUST_STD_LIBRARY=$(rustc --print=sysroot)/lib/rustlib/src/rust/library
@@ -18,9 +20,8 @@ export RAPX_STD_OUT=$PWD/data/tags/std.json
 
 pushd tests/demo
 cargo clean
-
 # Generate $UPG_DIR/$crate
-# upg
+UPG_DIR=$UPG_DIR/demo upg
 
 # Generate
 # UPG_DRIVER=upg-rapx-adpator upg
@@ -31,3 +32,18 @@ cargo clean
 # Generate std.json to $RAPX_STD_OUT
 # export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
 # UPG_RAPX_CONVERT=1 SP_FILE="$RAPX_STD_SPEC" upg-rapx-adpator
+popd
+
+pushd ./tag-asterinas/ostd/
+cargo clean
+UPG_DIR=$UPG_DIR/asterinas CARGO_BUILD_ARGS="--target x86_64-unknown-none" upg
+popd
+
+# Prune logs.
+rm target/upg/**/upg.log
+rm target/upg/**/rustflags.json
+
+# cp target/upg/asterinas/alloc data -r
+# cp target/upg/asterinas/core data -r
+# cp target/upg/asterinas/ostd data -r
+# cp target/upg/demo/std data -r
