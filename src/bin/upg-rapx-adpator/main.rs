@@ -13,8 +13,6 @@ extern crate rustc_public;
 /// Convert old std.json to new one.
 /// See https://github.com/os-checker/unsafety-propagation-graph/pull/25
 mod convert;
-/// Extract tags annotated with safety-tool.
-mod extract;
 
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty::TyCtxt;
@@ -25,9 +23,6 @@ use std::{env, fs, ops::ControlFlow, path::PathBuf};
 fn main() {
     if env::var("UPG_RAPX_CONVERT").is_ok_and(|s| s != "0") {
         convert::run();
-    } else if env::var("UPG_RAPX_EXTRACT").is_ok_and(|s| s != "0") {
-        let rustc_args: Vec<_> = env::args().collect();
-        _ = rustc_public::run_with_tcx!(&rustc_args, extract::run);
     } else {
         // As a rustc driver.
         let rustc_args: Vec<_> = env::args().collect();

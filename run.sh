@@ -31,8 +31,3 @@ cargo clean
 # Generate std.json to $RAPX_STD_OUT
 # export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
 # UPG_RAPX_CONVERT=1 SP_FILE="$RAPX_STD_SPEC" upg-rapx-adpator
-
-# Extract all annotated tags to $UPG_DIR/_tags/$crate.json
-unset UPG_RUST_STD_LIBRARY
-UPG_RAPX_EXTRACT=1 UPG_DRIVER=upg-rapx-adpator upg
-cp "$UPG_DIR"/_tags/demo.json tags.json
