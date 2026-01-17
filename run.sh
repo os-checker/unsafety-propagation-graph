@@ -19,10 +19,20 @@ export RAPX_STD_OUT=$PWD/data/tags/std.json
 pushd tests/demo
 cargo clean
 
+# Generate $UPG_DIR/$crate
+# upg
+
+# Generate
 # UPG_DRIVER=upg-rapx-adpator upg
 # cp "$UPG_DIR"/_rapx/core.json assets/fn_name_mapping/
 # cp "$UPG_DIR"/_rapx/std.json assets/fn_name_mapping/
 # cp "$UPG_DIR"/_rapx/alloc.json assets/fn_name_mapping/
 
-export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
-UPG_RAPX_CONVERT=1 SP_FILE="$RAPX_STD_SPEC" upg-rapx-adpator
+# Generate std.json to $RAPX_STD_OUT
+# export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
+# UPG_RAPX_CONVERT=1 SP_FILE="$RAPX_STD_SPEC" upg-rapx-adpator
+
+# Extract all annotated tags to $UPG_DIR/_tags/$crate.json
+unset UPG_RUST_STD_LIBRARY
+UPG_RAPX_EXTRACT=1 UPG_DRIVER=upg-rapx-adpator upg
+cp "$UPG_DIR"/_tags/demo.json tags.json
