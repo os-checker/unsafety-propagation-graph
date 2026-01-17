@@ -16,3 +16,6 @@ cargo clean
 
 export UPG_DRIVER=upx-rapx-adpator
 upg
+cp "$UPG_DIR"/_rapx/core.json assets/fn_name_mapping/
+cp "$UPG_DIR"/_rapx/std.json assets/fn_name_mapping/
+cp "$UPG_DIR"/_rapx/alloc.json assets/fn_name_mapping/
