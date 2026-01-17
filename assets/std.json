@@ -89,12 +89,12 @@
             "ValidNum"
         ]
     },
-    "core::any::downcast_ref_unchecked": {
+    "core::any::downcast_unchecked_ref": {
         "0": [
             "Init"
         ]
     },
-    "core::any::downcast_mut_unchecked": {
+    "core::any::downcast_unchecked_mut": {
         "0": [
             "Init"
         ]
@@ -254,16 +254,6 @@
             "Init"
         ]
     },
-    "core::mem::maybe_uninit::slice_assume_init_ref": {
-        "0": [
-            "Init"
-        ]
-    },
-    "core::mem::maybe_uninit::slice_assume_init_mut": {
-        "0": [
-            "Init"
-        ]
-    },
     "core::mem::size_of_val_raw": {
         "0": [
             "Size",
@@ -406,22 +396,6 @@
     },
     "core::intrinsics::copy": {
         "0": [
-            "ValidPtr",
-            "Aligned",
-            "!Volatile",
-            "Alias",
-            "CopyTrait"
-        ]
-    },
-    "core::intrinsics::copy::copy": {
-        "0": [
-            "ValidPtr",
-            "Aligned",
-            "!Volatile",
-            "Alias",
-            "CopyTrait"
-        ],
-        "1": [
             "ValidPtr",
             "Aligned",
             "!Volatile",
@@ -729,13 +703,6 @@
         ]
     },
     "core::ptr::const_ptr::byte_offset_from": {
-        "0": [
-            "InBounded",
-            "ValidNum",
-            "!Size"
-        ]
-    },
-    "core::ptr::const_ptr::non_null::offsefrom": {
         "0": [
             "InBounded",
             "ValidNum",
@@ -1125,12 +1092,6 @@
             "Aligned"
         ]
     },
-    "core::ptr::offset": {
-        "0": [
-            "InBounded",
-            "ValidNum"
-        ]
-    },
     "core::clone::clone_to_uninit": {
         "0": [
             "ValidPtr",
@@ -1350,12 +1311,7 @@
             "InBounded"
         ]
     },
-    "core::io::borrowed_buf::set_init": {
-        "0": [
-            "Init"
-        ]
-    },
-    "core::io::borrowed_buf::advance_unchecked": {
+    "core::io::borrowed_buf::advance": {
         "0": [
             "Init"
         ]
@@ -1496,7 +1452,7 @@
             "Alias"
         ]
     },
-    "alloc::boxed::downcast_unchecked": {
+    "alloc::boxed::convert::downcast_unchecked": {
         "0": [
             "Typed"
         ]
@@ -1686,13 +1642,13 @@
             "Typed"
         ]
     },
-    "std::thread::from_raw": {
+    "std::thread::thread::from_raw": {
         "0": [
             "Ownning",
             "Allocated"
         ]
     },
-    "std::collections::hash::map::get_many_unchecked_mut": {
+    "std::collections::hash::map::get_disjoint_mut": {
         "0": [
             "NonOverlap"
         ]
@@ -1785,12 +1741,7 @@
             "Aligned"
         ]
     },
-    "std::sys::pal::unix::fd::from_raw_fd": {
-        "0": [
-            "Opened"
-        ]
-    },
-    "std::sys::pal::unix::fs::from_raw_fd": {
+    "std::sys::fs::unix::from_raw_fd": {
         "0": [
             "Opened"
         ]
@@ -1800,24 +1751,14 @@
             "Opened"
         ]
     },
-    "std::sys::pal::unix::net::from_raw_fd": {
-        "0": [
-            "Opened"
-        ]
-    },
     "std::sys::pal::unix::pipe::from_raw_fd": {
         "0": [
             "Opened"
         ]
     },
-    "std::sys::pal::unix::process::process_common::pre_exec": {
+    "std::sys::process::unix::common::pre_exec": {
         "0": [
             "System_sp"
-        ]
-    },
-    "std::sys::anonymous_pipe::unix::from_raw_fd": {
-        "0": [
-            "Opened"
         ]
     },
     "std::sys::os_str::bytes::clone_to_uninit": {
@@ -1853,18 +1794,7 @@
             "ValidNum"
         ]
     },
-    "std::raw_attribute": {
-        "0": [
-            "Alive",
-            "ValidNum"
-        ]
-    },
-    "std::from_raw_handle": {
-        "0": [
-            "System_sp"
-        ]
-    },
-    "std::thread::spawn_unchecked": {
+    "std::thread::builder::spawn_unchecked": {
         "0": [
             "Alive",
             "Init",
@@ -1879,13 +1809,6 @@
     "core::intrinsics::assume": {
         "0": [
             "ValidNum"
-        ]
-    },
-    "core::intrinsics::drop_in_place": {
-        "0": [
-            "ValidPtr",
-            "Aligned",
-            "!Null"
         ]
     },
     "core::intrinsics::const_deallocate": {
@@ -1903,11 +1826,6 @@
             "ValidPtr"
         ]
     },
-    "core::intrinsics::pref_align_of": {
-        "0": [
-            ""
-        ]
-    },
     "core::intrinsics::size_of_val": {
         "0": [
             "Size",
@@ -1915,7 +1833,7 @@
             "ValidTraitObj"
         ]
     },
-    "core::intrinsics::min_align_of_val": {
+    "core::intrinsics::align_of_val": {
         "0": [
             "Size",
             "ValidSlice",
