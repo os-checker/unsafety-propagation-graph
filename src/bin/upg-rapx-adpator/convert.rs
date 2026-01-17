@@ -1,4 +1,5 @@
 use crate::FunctionName;
+use indexmap::IndexMap;
 use serde::Deserialize;
 use std::{collections::HashMap, env, fs};
 
@@ -34,11 +35,26 @@ pub fn run() {
     }
     dbg!(mapping.len());
 
-    for (raw_fn_name, tags) in &std_json {
-        if !mapping.contains_key(raw_fn_name) {
-            eprintln!("{raw_fn_name} is not in mapping");
+    // The key is upg fn name, value is vec of tag names.
+    let mut output = IndexMap::<String, Vec<String>>::with_capacity(std_json.len());
+    for (raw_fn_name, data) in &std_json {
+        // Check all fn names are present.
+        let Some(v_fn_name) = mapping.get(raw_fn_name) else {
+            panic!("{raw_fn_name} is not in mapping")
+        };
+        if !data.tags.is_empty() {
+            for fn_name in v_fn_name {
+                output.insert(fn_name.def_path.clone(), data.tags.clone());
+            }
         }
     }
+    output.sort_unstable_keys();
+    dbg!(output.len());
+
+    // Write converted std.json
+    let out_file = env::var("RAPX_STD_OUT").unwrap();
+    let out_file = fs::File::create(out_file).unwrap();
+    serde_json::to_writer_pretty(out_file, &output).unwrap();
 }
 
 // "core::alloc::global::GlobalAlloc::alloc": { "0": [ "ValidNum", "Init" ] },
