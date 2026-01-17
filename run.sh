@@ -13,4 +13,6 @@ export UPG_RUST_STD_LIBRARY=$(rustc --print=sysroot)/lib/rustlib/src/rust/librar
 
 pushd tests/demo
 cargo clean
+
+export UPG_DRIVER=upx-rapx-adpator
 upg
