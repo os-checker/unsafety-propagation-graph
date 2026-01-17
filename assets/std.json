@@ -536,7 +536,7 @@
             "!Size"
         ]
     },
-    "core::ptr::non_null::sub_ptr": {
+    "core::ptr::non_null::offset_from_unsigned": {
         "0": [
             "InBounded",
             "ValidNum",
@@ -735,14 +735,14 @@
             "!Size"
         ]
     },
-    "core::ptr::const_ptr::non_null::sub_ptr": {
+    "core::ptr::const_ptr::non_null::offsefrom": {
         "0": [
             "InBounded",
             "ValidNum",
             "!Size"
         ]
     },
-    "core::ptr::const_ptr::sub_ptr": {
+    "core::ptr::const_ptr::offset_from_unsigned": {
         "0": [
             "InBounded",
             "ValidNum",
@@ -892,7 +892,7 @@
             "!Size"
         ]
     },
-    "core::ptr::mut_ptr::sub_ptr": {
+    "core::ptr::mut_ptr::offset_from_unsigned": {
         "0": [
             "InBounded",
             "ValidNum",
