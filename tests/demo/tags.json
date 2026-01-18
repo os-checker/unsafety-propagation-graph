@@ -1,0 +1,69 @@
+{
+  "SecretRegion::from": [
+    {
+      "tags": [
+        {
+          "tag": {
+            "typ": null,
+            "name": "ValidPtr"
+          },
+          "args": [
+            "v"
+          ]
+        },
+        {
+          "tag": {
+            "typ": null,
+            "name": "InitializedInLen"
+          },
+          "args": [
+            "l"
+          ]
+        }
+      ],
+      "desc": null
+    }
+  ],
+  "SecretRegion::set_len": [
+    {
+      "tags": [
+        {
+          "tag": {
+            "typ": null,
+            "name": "InitializedInLen"
+          },
+          "args": [
+            "l"
+          ]
+        }
+      ],
+      "desc": null
+    }
+  ],
+  "SecretRegion::xor_secret_region": [
+    {
+      "tags": [
+        {
+          "tag": {
+            "typ": null,
+            "name": "ValidPtr"
+          },
+          "args": [
+            "ptr"
+          ]
+        },
+        {
+          "tag": {
+            "typ": null,
+            "name": "ValidPtr"
+          },
+          "args": [
+            "self . buffer",
+            "offset"
+          ]
+        }
+      ],
+      "desc": null
+    }
+  ]
+}

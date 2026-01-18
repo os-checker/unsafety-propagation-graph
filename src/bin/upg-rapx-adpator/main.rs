@@ -10,6 +10,8 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_public;
 
+/// Convert old std.json to new one.
+/// See https://github.com/os-checker/unsafety-propagation-graph/pull/25
 mod convert;
 
 use rustc_hir::def_id::DefId;
@@ -59,6 +61,10 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let file = fs::File::create(file_name).unwrap();
     serde_json::to_writer_pretty(file, &v_fn_name).unwrap();
 
+    continue_or_break()
+}
+
+fn continue_or_break() -> ControlFlow<()> {
     if env::var("UPG_CONTINUE").is_ok_and(|s| s != "0") {
         ControlFlow::Continue(())
     } else {
