@@ -1,6 +1,6 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:itemName="itemName" v-model:flowOpts="flowOpts" />
+    <WidgetTopBar v-model:itemName="itemName" v-model:flowOpts="flowOpts" v-model:crate="crate" />
     <Flow :fn="raw" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
   </div>
   <div class="upg-right">
@@ -17,12 +17,14 @@
 import type { Function } from "~/lib/output"
 import { EMPTY_FUNCTION } from "~/lib/output"
 import { Panel, PANEL_CONTENT, type PanelContent } from "~/lib/panel"
-import { FLOW_OPTS, DefPathKind, urlKind, } from "~/lib/topbar";
-import type { FlowOpts } from "~/lib/topbar"
+import { Crate, FLOW_OPTS, DefPathKind, urlKind, defaultCrateItemQuery } from "~/lib/topbar";
+import type { FlowOpts, CrateItemQuery } from "~/lib/topbar"
 
 const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 const panelContent = ref<PanelContent>(PANEL_CONTENT);
-const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "std::time::Instant::now", kind: DefPathKind.Fn });
+
+const crate = ref<Crate>(Crate.std);
+const itemName = computed<CrateItemQuery>(() => defaultCrateItemQuery(crate.value));
 
 // const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
 function getFunctionUrl(name: string, kind: DefPathKind): string | undefined {
