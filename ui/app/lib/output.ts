@@ -63,7 +63,7 @@ export enum TagType {
 
 export type DataTags = {
   v_fn: { [key: string]: TagUsage[] },
-  spec: TagSpec[]
+  spec: { [key: string]: { tag: TagSpec } }
 }
 
 export type TagUsage = {

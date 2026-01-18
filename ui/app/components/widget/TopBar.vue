@@ -24,12 +24,12 @@
       <UTooltip text="Select A Crate">
         <USelect v-model="crate" placeholder="Crate" :items="CRATES" class="w-28" icon="tabler:box" />
       </UTooltip>
-      <UModal>
+      <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
         <UTooltip text="View Tags">
           <UButton icon="tabler:tag" color="neutral" variant="ghost" />
         </UTooltip>
         <template #content>
-          <div class="h-48 m-4">{{ tags }}</div>
+          <WidgetTag :tags="tags" />
         </template>
       </UModal>
       <UTooltip v-if="false" text="Layout Algorithm">
@@ -61,7 +61,7 @@ const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 
 const crate = defineModel<Crate>('crate', { required: true });
-const tags = ref<DataTags>({ v_fn: {}, spec: [] });
+const tags = ref<DataTags>({ v_fn: {}, spec: {} });
 const navi = ref<Navigation>(EMPTY_NAVI);
 watch(crate, val => {
   // Update navigation data.
