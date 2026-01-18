@@ -22,7 +22,7 @@ import type { FlowOpts } from "~/lib/topbar"
 
 const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 const panelContent = ref<PanelContent>(PANEL_CONTENT);
-const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "poc::f", kind: DefPathKind.Fn });
+const itemName = ref<{ name: string, kind: DefPathKind }>({ name: "std::time::Instant::now", kind: DefPathKind.Fn });
 
 // const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
 function getFunctionUrl(name: string, kind: DefPathKind): string | undefined {
@@ -34,7 +34,7 @@ function getFunctionUrl(name: string, kind: DefPathKind): string | undefined {
   const fn = matched[2];
   const k = urlKind(kind);
   return (crate && fn) ?
-    `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/${crate}/${k}/${fn}.json` :
+    `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/${crate}/${k}/${fn}.json` :
     undefined;
 }
 
