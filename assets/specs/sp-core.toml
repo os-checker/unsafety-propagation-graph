@@ -158,7 +158,7 @@ url = "https://doc.rust-lang.org/std/ptr/index.html#safety"
 args = [ "arange" ]
 desc = "the memory range `{arange}` must contain valid UTF-8 bytes"
 expr = "mem(arange) ∈ utf-8"
-types = [ "precond", "hazard" ]
+# types = [ "precond", "hazard" ]
 url = "https://github.com/Artisan-Lab/tag-std/blob/main/primitive-sp.md#332-string"
 
 [tag.NotSized]
