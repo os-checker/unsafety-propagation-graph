@@ -22,19 +22,17 @@
 
     <div class="top-menu mr-2 gap-1">
       <UTooltip v-if="false" text="Layout Algorithm">
-        <USelectMenu v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false"
-          class="w-31" icon="tabler:layout-board-split-filled" />
+        <USelect v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" class="w-31"
+          icon="tabler:layout-board-split-filled" />
       </UTooltip>
       <UTooltip text="Edge Type">
-        <USelectMenu v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" :search-input="false"
-          class="w-30" icon="tabler:line" />
+        <USelect v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" class="w-30" icon="tabler:line" />
       </UTooltip>
       <UTooltip text="Fit To Screen">
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
       <UTooltip text="Graph View">
-        <USelectMenu v-model="flowOpts.view" multiple :items="VIEW_TYPES" :search-input="false" class="w-45"
-          icon="tabler:braces" />
+        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-45" icon="tabler:braces" />
       </UTooltip>
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
