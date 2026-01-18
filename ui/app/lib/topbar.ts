@@ -92,9 +92,6 @@ export type Navigation = {
   path_to_name: { [key: number]: string },
 }
 
-export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
-export const NAVI_URL = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/navi/navi.json";
-
 // flow options
 
 export enum ELKAlgorithm {
@@ -128,3 +125,28 @@ export const FLOW_OPTS = {
   fit: false,
   view: [ViewType.Callees, ViewType.Tags]
 };
+
+export enum Crate {
+  std = "std",
+  core = "core",
+  alloc = "alloc",
+  ostd = "ostd",
+}
+
+export const CRATES: Crate[] = [Crate.std, Crate.core, Crate.alloc, Crate.ostd];
+
+export type CrateItemQuery = { name: string, kind: DefPathKind };
+export function defaultCrateItemQuery(crate: Crate): CrateItemQuery {
+  switch (crate) {
+    case Crate.std: return { name: "std::time::Instant::now", kind: DefPathKind.Fn };
+    case Crate.core: return { name: "core::str::<impl str>::len", kind: DefPathKind.Fn };
+    case Crate.alloc: return { name: "alloc::vec::Vec::<T, A>::push", kind: DefPathKind.Fn };
+    case Crate.ostd: return { name: "ostd::boot::call_ostd_main", kind: DefPathKind.Fn };
+    default: return { name: "", kind: DefPathKind.Fn };
+  }
+}
+
+export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
+export function navi_url(crate: Crate) {
+  return `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/${crate}/navi/navi.json`;
+}

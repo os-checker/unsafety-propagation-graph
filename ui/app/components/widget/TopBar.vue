@@ -21,20 +21,21 @@
     </UNavigationMenu>
 
     <div class="top-menu mr-2 gap-1">
+      <UTooltip text="Select A Crate">
+        <USelect v-model="crate" placeholder="Crate" :items="CRATES" class="w-28" icon="tabler:box" />
+      </UTooltip>
       <UTooltip v-if="false" text="Layout Algorithm">
-        <USelectMenu v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" :search-input="false"
-          class="w-31" icon="tabler:layout-board-split-filled" />
+        <USelect v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" class="w-31"
+          icon="tabler:layout-board-split-filled" />
       </UTooltip>
       <UTooltip text="Edge Type">
-        <USelectMenu v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" :search-input="false"
-          class="w-30" icon="tabler:line" />
+        <USelect v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" class="w-30" icon="tabler:line" />
       </UTooltip>
       <UTooltip text="Fit To Screen">
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
       <UTooltip text="Graph View">
-        <USelectMenu v-model="flowOpts.view" multiple :items="VIEW_TYPES" :search-input="false" class="w-45"
-          icon="tabler:braces" />
+        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-45" icon="tabler:braces" />
       </UTooltip>
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
@@ -44,16 +45,18 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { VIEW_TYPES, EMPTY_NAVI, NAVI_URL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, } from '~/lib/topbar';
-import type { Navigation, NaviItem, FlowOpts } from '~/lib/topbar';
+import { VIEW_TYPES, EMPTY_NAVI, navi_url, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
+import type { Navigation, NaviItem, FlowOpts, Crate } from '~/lib/topbar';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 
+const crate = defineModel<Crate>('crate', { required: true });
 const navi = ref<Navigation>(EMPTY_NAVI);
-$fetch(NAVI_URL)
+watch(crate, val => $fetch(navi_url(val))
   .then(text => navi.value = JSON.parse(text as string))
-  .catch(err => console.log(err));
+  .catch(err => console.log(err))
+  , { immediate: true });
 
 // Expanded navi items. The value is data idx in Navigation.
 const navi_stack = ref<number[]>([]);

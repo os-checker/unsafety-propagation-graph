@@ -26,6 +26,7 @@ export default defineNuxtConfig({
         'tabler:layout-board-split-filled', // layout
         'tabler:braces', // graph view kind
         'tabler:line', // edge type
+        'tabler:box', // crate
       ],
     }
   },
