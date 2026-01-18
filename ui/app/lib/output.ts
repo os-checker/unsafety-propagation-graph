@@ -61,6 +61,21 @@ export enum TagType {
   Option = "option",
 }
 
+export type DataTags = {
+  v_fn: { [key: string]: TagUsage[] },
+  spec: TagSpec[]
+}
+
+export type TagUsage = {
+  tags: TagUsageItem[],
+  desc: null | string
+}
+
+export type TagUsageItem = {
+  tag: { typ: null | TagType, name: string },
+  args: string[]
+}
+
 export const EMPTY_FUNCTION: Function = {
   name: "", safe: true, callees: {}, adts: {}, path: "", span: "",
   src: "", mir: "", doc: "", tags: { tags: [], spec: {}, docs: [] },

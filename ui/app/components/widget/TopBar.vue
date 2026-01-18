@@ -24,6 +24,14 @@
       <UTooltip text="Select A Crate">
         <USelect v-model="crate" placeholder="Crate" :items="CRATES" class="w-28" icon="tabler:box" />
       </UTooltip>
+      <UModal>
+        <UTooltip text="View Tags">
+          <UButton icon="tabler:tag" color="neutral" variant="ghost" />
+        </UTooltip>
+        <template #content>
+          <div class="h-48 m-4">{{ tags }}</div>
+        </template>
+      </UModal>
       <UTooltip v-if="false" text="Layout Algorithm">
         <USelect v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" class="w-31"
           icon="tabler:layout-board-split-filled" />
@@ -45,18 +53,26 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { VIEW_TYPES, EMPTY_NAVI, navi_url, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
+import type { DataTags } from '~/lib/output';
+import { VIEW_TYPES, EMPTY_NAVI, naviURL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, CRATES, tagURL, } from '~/lib/topbar';
 import type { Navigation, NaviItem, FlowOpts, Crate } from '~/lib/topbar';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 
 const crate = defineModel<Crate>('crate', { required: true });
+const tags = ref<DataTags>({ v_fn: {}, spec: [] });
 const navi = ref<Navigation>(EMPTY_NAVI);
-watch(crate, val => $fetch(navi_url(val))
-  .then(text => navi.value = JSON.parse(text as string))
-  .catch(err => console.log(err))
-  , { immediate: true });
+watch(crate, val => {
+  // Update navigation data.
+  $fetch(naviURL(val))
+    .then(text => navi.value = JSON.parse(text as string))
+    .catch(err => console.log(err));
+  // Update tag data.
+  $fetch(tagURL(val))
+    .then(text => tags.value = JSON.parse(text as string))
+    .catch(err => console.log(err));
+}, { immediate: true });
 
 // Expanded navi items. The value is data idx in Navigation.
 const navi_stack = ref<number[]>([]);
