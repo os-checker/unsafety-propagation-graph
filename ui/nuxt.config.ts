@@ -27,6 +27,7 @@ export default defineNuxtConfig({
         'tabler:braces', // graph view kind
         'tabler:line', // edge type
         'tabler:box', // crate
+        'tabler:tag', // safety tag
       ],
     }
   },
