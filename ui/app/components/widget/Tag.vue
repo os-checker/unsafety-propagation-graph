@@ -27,7 +27,7 @@
           </div>
           <div v-if="item.occurence">
             <UBadge color="neutral" variant="outline">Occurence</UBadge> {{ item.occurence }}
-            <div class="mt-2">
+            <div class="mt-2" v-if="showFunction">
               <ul>
                 <li v-for="fn_name, idx in spec.stat.occurence[item.tag]" :key="idx" class="flex items-start gap-2">
                   <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-gray-600 dark:bg-gray-400" />
@@ -36,9 +36,13 @@
               </ul>
             </div>
           </div>
-        </UPageCard>
 
+        </UPageCard>
       </UScrollArea>
+
+      <div class="p-2 flex justify-start items-center">
+        <UCheckbox label="Toggle Function" color="secondary" v-model="showFunction" />
+      </div>
     </template>
 
     <template #usage>
@@ -65,6 +69,8 @@ const crates = computed<string[]>(() => {
   arr.sort()
   return arr
 })
+
+const showFunction = ref<boolean>(true);
 
 // The key is tag name, the value is fn names.
 type Stat = { occurence: { [key: string]: string[] } };
