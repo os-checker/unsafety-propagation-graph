@@ -84,7 +84,8 @@ const showFunction = ref<boolean>(true);
 
 // The key is tag name, the value is fn names.
 type Stat = { occurence: { [key: string]: string[] }, total_occurence: number, tag_cardinality: number, tagged_fn: number };
-type SpecTag = { tag: string, spec: TagSpec, occurence: number };
+// Occurence usually equals to tagged_fn, but if a fn has the same tag multiple times, they will differ.
+type SpecTag = { tag: string, spec: TagSpec, occurence: number, tagged_fn: number };
 type SpecData = { tags: SpecTag[], stat: Stat };
 const spec = computed<SpecData>(() => {
   const stat: Stat = { occurence: {}, total_occurence: 0, tag_cardinality: 0, tagged_fn: 0 }
@@ -102,6 +103,10 @@ const spec = computed<SpecData>(() => {
 
   stat.tag_cardinality = Object.keys(stat.occurence).length;
 
+  const tags = Object.entries(props.tags.spec).map(([tag, info]) => {
+    return { tag, spec: info.tag, occurence: stat.occurence[tag]?.length ?? 0, tagged_fn: 0 }
+  });
+
   // Dedulipcate functions.
   const total_fn = new Set<string>();
   const set_fn = new Set<string>();
@@ -112,12 +117,13 @@ const spec = computed<SpecData>(() => {
   }
   stat.tagged_fn = total_fn.size;
 
-  return {
-    tags: Object.entries(props.tags.spec).map(([tag, info]) => {
-      return { tag, spec: info.tag, occurence: stat.occurence[tag]?.length ?? 0 }
-    }),
-    stat
+  // Update tagged_fn.
+  for (const tag of tags) {
+    // occurence now is unique functions.
+    tag.tagged_fn = stat.occurence[tag.tag]?.length ?? 0;
   }
+
+  return { tags, stat }
 })
 
 const tagNames = computed<string[]>(() => Object.keys(props.tags.spec));
