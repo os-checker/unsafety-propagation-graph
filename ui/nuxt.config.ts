@@ -28,6 +28,7 @@ export default defineNuxtConfig({
         'tabler:line', // edge type
         'tabler:box', // crate
         'tabler:tag', // safety tag
+        'tabler:search', // search
       ],
     }
   },

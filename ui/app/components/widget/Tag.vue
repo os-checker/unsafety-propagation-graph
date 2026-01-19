@@ -2,7 +2,7 @@
   <UTabs :items="tabs" color="neutral">
 
     <template #spec>
-      <UScrollArea v-slot="{ item, index }" :items="spec.tags" class="h-[80vh]">
+      <UScrollArea v-slot="{ item, index }" :items="filterSpecTags" class="h-[80vh]">
         <UPageCard v-bind="{ id: index }" :variant="index % 2 === 0 ? 'soft' : 'outline'" class="rounded-none">
 
           <template #title>
@@ -29,7 +29,7 @@
             <UBadge color="neutral" variant="outline">Occurence</UBadge> {{ item.occurence }}
             <div class="mt-2" v-if="showFunction">
               <ul>
-                <li v-for="fn_name, idx in spec.stat.occurence[item.tag]" :key="idx" class="flex items-start gap-2">
+                <li v-for="fn_name in spec.stat.occurence[item.tag]" class="flex items-start gap-2">
                   <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-gray-600 dark:bg-gray-400" />
                   <span class="font-mono">{{ fn_name }}</span>
                 </li>
@@ -40,7 +40,9 @@
         </UPageCard>
       </UScrollArea>
 
-      <div class="p-2 flex justify-start items-center">
+      <div class="p-2 flex justify-start items-center gap-4">
+        <USelectMenu v-model="filterTagNames" multiple clear :items="tagNames" placeholder="Filter Tags" variant="ghost"
+          icon="tabler:search" />
         <UCheckbox label="Toggle Function" color="secondary" v-model="showFunction" />
       </div>
     </template>
@@ -95,6 +97,16 @@ const spec = computed<SpecData>(() => {
     }),
     stat
   }
+})
+
+const tagNames = computed<string[]>(() => Object.keys(props.tags.spec));
+const filterTagNames = ref<string[] | undefined>();
+const filterSpecTags = computed<SpecTag[]>(() => {
+  const names = filterTagNames.value;
+  const tags = spec.value.tags;
+  if (names === undefined || names.length === 0) return tags;
+  const set = new Set(names);
+  return tags.filter(tag => set.has(tag.tag))
 })
 
 const tabs: TabsItem[] = [
