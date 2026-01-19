@@ -59,6 +59,10 @@
       <UScrollArea class="h-[80vh]">
         <WidgetTagPlot :data="occurencePlotData" />
       </UScrollArea>
+
+      <div class="p-2 flex justify-end items-center">
+        <URadioGroup orientation="horizontal" variant="list" v-model="selectedPlotKind" :items="plotKind" />
+      </div>
     </template>
 
   </UTabs>
@@ -71,15 +75,15 @@ import type { BarPlotData } from '~/lib/topbar';
 
 const props = defineProps<{ tags: DataTags }>()
 
-const crates = computed<string[]>(() => {
-  const name = new Set<string>()
-  for (const fn_name of Object.keys(props.tags.v_fn)) {
-    name.add(fn_name)
-  }
-  const arr = [...name]
-  arr.sort()
-  return arr
-})
+// const crates = computed<string[]>(() => {
+//   const name = new Set<string>()
+//   for (const fn_name of Object.keys(props.tags.v_fn)) {
+//     name.add(fn_name)
+//   }
+//   const arr = [...name]
+//   arr.sort()
+//   return arr
+// })
 
 const showFunction = ref<boolean>(true);
 
@@ -127,8 +131,13 @@ const spec = computed<SpecData>(() => {
   return { tags, stat }
 })
 
+const plotKind = ["Tag Occurence", "Tagged Function"]
+const selectedPlotKind = ref<string>("Tag Occurence")
 const occurencePlotData = computed<BarPlotData[]>(() => {
-  const data: BarPlotData[] = spec.value.tags.map(tag => ({ label: tag.tag, value: tag.occurence }));
+  const data: BarPlotData[] = spec.value.tags.map(tag => ({
+    label: tag.tag,
+    value: (selectedPlotKind.value === "Tagged Cardinality") ? tag.tagged_fn : tag.occurence,
+  }));
   return data.sort((a, b) => b.value - a.value)
 })
 
