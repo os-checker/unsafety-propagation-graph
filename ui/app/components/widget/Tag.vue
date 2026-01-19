@@ -40,11 +40,19 @@
         </UPageCard>
       </UScrollArea>
 
-      <div class="p-2 flex justify-start items-center gap-4">
-        <USelectMenu v-model="filterTagNames" multiple clear :items="tagNames" placeholder="Filter Tags" variant="ghost"
-          icon="tabler:search" />
-        <UCheckbox label="Toggle Function" color="secondary" v-model="showFunction" />
+      <div class="p-2 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <USelectMenu v-model="filterTagNames" multiple clear :items="tagNames" placeholder="Filter Tags"
+            variant="ghost" icon="tabler:search" />
+          <UCheckbox label="Toggle Function" color="secondary" v-model="showFunction" />
+        </div>
+        <div class="text-sm">
+          Tag Cardinality: {{ spec.stat.tag_cardinality }},
+          Tagged Function: {{ spec.stat.tagged_fn }},
+          Tag Occurence: {{ spec.stat.total_occurence }}
+        </div>
       </div>
+
     </template>
 
     <template #usage>
@@ -75,11 +83,11 @@ const crates = computed<string[]>(() => {
 const showFunction = ref<boolean>(true);
 
 // The key is tag name, the value is fn names.
-type Stat = { occurence: { [key: string]: string[] } };
+type Stat = { occurence: { [key: string]: string[] }, total_occurence: number, tag_cardinality: number, tagged_fn: number };
 type SpecTag = { tag: string, spec: TagSpec, occurence: number };
 type SpecData = { tags: SpecTag[], stat: Stat };
 const spec = computed<SpecData>(() => {
-  const stat: Stat = { occurence: {} }
+  const stat: Stat = { occurence: {}, total_occurence: 0, tag_cardinality: 0, tagged_fn: 0 }
 
   for (const [fn_name, tag_usage] of Object.entries(props.tags.v_fn)) {
     for (const sp of tag_usage) {
@@ -87,9 +95,22 @@ const spec = computed<SpecData>(() => {
         const name = tag.tag.name;
         stat.occurence[name] ??= [];
         stat.occurence[name].push(fn_name);
+        stat.total_occurence += 1;
       }
     }
   }
+
+  stat.tag_cardinality = Object.keys(stat.occurence).length;
+
+  // Dedulipcate functions.
+  const total_fn = new Set<string>();
+  const set_fn = new Set<string>();
+  for (let v of Object.values(stat.occurence)) {
+    v.forEach(f => { set_fn.add(f); total_fn.add(f); });
+    v = [...set_fn];
+    set_fn.clear();
+  }
+  stat.tagged_fn = total_fn.size;
 
   return {
     tags: Object.entries(props.tags.spec).map(([tag, info]) => {
