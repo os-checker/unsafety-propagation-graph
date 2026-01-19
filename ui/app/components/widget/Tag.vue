@@ -57,7 +57,7 @@
 
     <template #usage>
       <UScrollArea class="h-[80vh]">
-        {{ crates }}
+        <WidgetTagPlot :data="occurencePlotData" />
       </UScrollArea>
     </template>
 
@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui';
 import type { DataTags, TagSpec } from '~/lib/output';
+import type { BarPlotData } from '~/lib/topbar';
 
 const props = defineProps<{ tags: DataTags }>()
 
@@ -124,6 +125,11 @@ const spec = computed<SpecData>(() => {
   }
 
   return { tags, stat }
+})
+
+const occurencePlotData = computed<BarPlotData[]>(() => {
+  const data: BarPlotData[] = spec.value.tags.map(tag => ({ label: tag.tag, value: tag.occurence }));
+  return data.sort((a, b) => b.value - a.value)
 })
 
 const tagNames = computed<string[]>(() => Object.keys(props.tags.spec));

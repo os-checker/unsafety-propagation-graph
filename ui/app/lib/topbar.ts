@@ -162,3 +162,7 @@ export function tagURL(crate: Crate) {
   }
 }
 
+export type BarPlotData = {
+  label: string,
+  value: number,
+}

@@ -10,9 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.8",
     "@nuxt/ui": "^4.3.0",
     "@vue-flow/core": "^1.48.1",
-    "@dagrejs/dagre": "^1.1.8",
+    "d3": "^7.9.0",
     "elkjs": "^0.11.0",
     "nuxt": "^4.2.2",
     "vue": "^3.5.26",
@@ -22,6 +23,7 @@
     "@iconify-json/tabler": "^1.2.26",
     "@shikijs/markdown-it": "^3.20.0",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/d3": "^7.4.3",
     "shiki": "^3.20.0",
     "typescript": "^5.9.3"
   }
