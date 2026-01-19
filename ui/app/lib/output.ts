@@ -47,6 +47,17 @@ export function tagName(tag: Property): string {
   }
 }
 
+// Usually the tag name is itself, but for `any(...)`  tag, we should 
+// parse it to get real used tags.
+// export function toRealTag(s: string): string[] {
+//   const match = s.match(/^any\((.*)\)$/);
+//   if (match) {
+//     const tagStr = match[1];
+//     return tagStr?.split(",").map(t => t.trim()) ?? [s]
+//   }
+//   return [s]
+// }
+
 export type TagSpec = {
   args: string[],
   desc: string | null,
