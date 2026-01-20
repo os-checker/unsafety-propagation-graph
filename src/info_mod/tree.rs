@@ -3,7 +3,6 @@ use crate::info_mod::{
     push_plain_item_path, put_under_phony,
 };
 use crate::utils::FxIndexMap;
-use itertools::Itertools;
 use rustc_hir::{ImplItemImplKind, ImplItemKind, ItemKind};
 use rustc_middle::ty::TyCtxt;
 use serde::Serialize;
@@ -24,7 +23,11 @@ pub struct Tree {
 impl Tree {
     fn new(def_path: DefPath) -> Self {
         Tree {
-            node: Node { inner: def_path },
+            // id will be filled once the whole tree is sored.
+            node: Node {
+                inner: def_path,
+                id: 0,
+            },
             sub: Vec::new(),
         }
     }
@@ -62,7 +65,15 @@ impl Tree {
         }
     }
 
-    fn find_idx(&self, v_path: &ItemPath, buf: &mut Vec<usize>) {
+    fn fill_id(&mut self, id: &mut usize) {
+        self.node.id = *id;
+        *id += 1;
+        for subtree in &mut self.sub {
+            subtree.fill_id(id);
+        }
+    }
+
+    fn find_idx(&self, v_path: &ItemPath, buf: &mut Vec<usize>, id: &mut usize) {
         let mut tree = self;
         for def_path in v_path {
             if *def_path != tree.node.inner {
@@ -74,6 +85,7 @@ impl Tree {
                 }
             }
         }
+        *id = tree.node.id;
     }
 }
 
@@ -81,46 +93,58 @@ impl Tree {
 pub struct Node {
     #[serde(flatten)]
     pub inner: DefPath,
+    pub id: usize,
 }
 
 #[derive(Serialize)]
 pub struct Navigation {
     pub tree: Tree,
-    pub name_to_node: FxIndexMap<String, String>,
-    pub node_to_name: FxIndexMap<String, String>,
+    pub name_to_id: FxIndexMap<String, usize>,
+    // pub name_to_node: FxIndexMap<String, String>,
+    // pub node_to_name: FxIndexMap<String, String>,
 }
 
 impl Navigation {
     fn new(mut tree: Tree, free: &FreeItems) -> Self {
         // Sort the subtrees to have stable idx.
         tree.sort();
+        // Depth first id.
+        tree.fill_id(&mut 0);
 
         let n = free.name_to_path.len();
-        let mut name_to_node =
-            FxIndexMap::<String, String>::with_capacity_and_hasher(n, Default::default());
+        let mut name_to_id =
+            FxIndexMap::<String, usize>::with_capacity_and_hasher(n, Default::default());
 
         let mut buf = Vec::<usize>::new();
+        let mut id = 0;
         for (fn_name, v_path) in &free.name_to_path {
-            tree.find_idx(v_path, &mut buf);
-            // For simplicity, indices is a string like `1,1,...` to all subtrees.
-            let v_idx_str = format!("{:?}", buf.iter().format(","));
-            name_to_node.insert(fn_name.clone(), v_idx_str);
-            // node_to_name.insert(v_idx_str, fn_name.clone());
+            tree.find_idx(v_path, &mut buf, &mut id);
+            name_to_id.insert(fn_name.clone(), id);
+
+            id = 0;
             buf.clear();
         }
-        name_to_node.sort_unstable_keys();
 
-        let mut node_to_name: FxIndexMap<_, _> = name_to_node
-            .iter()
-            .map(|(k, v)| (v.clone(), k.clone()))
-            .collect();
-        node_to_name.sort_unstable_keys();
+        // let mut name_to_node =
+        //     FxIndexMap::<String, String>::with_capacity_and_hasher(n, Default::default());
+        // let mut buf = Vec::<usize>::new();
+        // for (fn_name, v_path) in &free.name_to_path {
+        //     tree.find_idx(v_path, &mut buf);
+        //     // For simplicity, indices is a string like `1,1,...` to all subtrees.
+        //     let v_idx_str = format!("{:?}", buf.iter().format(","));
+        //     name_to_node.insert(fn_name.clone(), v_idx_str);
+        //     // node_to_name.insert(v_idx_str, fn_name.clone());
+        //     buf.clear();
+        // }
+        // name_to_node.sort_unstable_keys();
+        //
+        // let mut node_to_name: FxIndexMap<_, _> = name_to_node
+        //     .iter()
+        //     .map(|(k, v)| (v.clone(), k.clone()))
+        //     .collect();
+        // node_to_name.sort_unstable_keys();
 
-        Navigation {
-            tree,
-            name_to_node,
-            node_to_name,
-        }
+        Navigation { tree, name_to_id }
     }
 }
 
@@ -135,6 +159,7 @@ pub fn make_tree(v_path: &FlattenFreeItems, tcx: TyCtxt) -> Tree {
     let mut tree = Tree {
         node: Node {
             inner: crate_root.clone(),
+            id: 0,
         },
         sub: Vec::new(),
     };
