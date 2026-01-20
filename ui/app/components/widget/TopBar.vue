@@ -9,7 +9,7 @@
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
-          <WidgetNaviTree virtualize :navi="navi2" />
+          <WidgetNaviTree :navi="navi" v-model:node-id="nodeId" />
         </template>
       </USlideover>
 
@@ -59,7 +59,7 @@ function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 
 const crate = defineModel<Crate>('crate', { required: true });
 const tags = ref<DataTags>({ v_fn: {}, spec: {} });
-const navi2 = ref<Navi>(NAVI)
+const navi = ref<Navi>(NAVI)
 watch(crate, val => {
   // Update tag data.
   $fetch(tagURL(val))
@@ -67,8 +67,28 @@ watch(crate, val => {
     .catch(err => console.log(err));
   // Update navi tree.
   $fetch(naviTreeURL(val))
-    .then(text => navi2.value = JSON.parse(text as string))
+    .then(text => navi.value = JSON.parse(text as string))
     .catch(err => console.log(err));
 }, { immediate: true });
 
+const nodeId = ref<number | undefined>();
+const nodeItem = defineModel<string | undefined>({ required: true })
+watch(
+  () => ({ targetId: nodeId.value, nav: navi.value }),
+  ({ targetId, nav }) => {
+    if (targetId === undefined) {
+      nodeItem.value = undefined;
+      return;
+    }
+
+    for (const [fn_name, id] of Object.entries(nav.name_to_id)) {
+      if (id === targetId) {
+        nodeItem.value = fn_name;
+        return
+      }
+    }
+    nodeItem.value = undefined;
+  })
+
+watch(nodeItem, console.log)
 </script>
