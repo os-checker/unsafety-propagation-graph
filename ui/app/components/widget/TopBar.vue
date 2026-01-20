@@ -27,7 +27,7 @@
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
-          <WidgetNaviTree :navi="navi2" />
+          <WidgetNaviTree virtualize :navi="navi2" />
         </template>
       </USlideover>
 
