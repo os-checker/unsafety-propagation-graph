@@ -27,7 +27,7 @@
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
-          <WidgetNaviTree :navi="tree" />
+          <WidgetNaviTree :navi="navi2" />
         </template>
       </USlideover>
 
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui';
+import type { NavigationMenuItem, } from '@nuxt/ui';
 import type { DataTags } from '~/lib/output';
 import { VIEW_TYPES, EMPTY_NAVI, NAVI, naviTreeURL, naviURL, icon, colorClass, DefPathKind, ELK_LAYOUTS, EDGE_TYPES, CRATES, tagURL, } from '~/lib/topbar';
 import type { Navigation, Navi, NaviItem, FlowOpts, Crate } from '~/lib/topbar';
@@ -79,7 +79,7 @@ function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 const crate = defineModel<Crate>('crate', { required: true });
 const tags = ref<DataTags>({ v_fn: {}, spec: {} });
 const navi = ref<Navigation>(EMPTY_NAVI);
-const tree = ref<Navi>(NAVI)
+const navi2 = ref<Navi>(NAVI)
 watch(crate, val => {
   // Update navigation data.
   $fetch(naviURL(val))
@@ -91,7 +91,7 @@ watch(crate, val => {
     .catch(err => console.log(err));
   // Update navi tree.
   $fetch(naviTreeURL(val))
-    .then(text => tree.value = JSON.parse(text as string))
+    .then(text => navi2.value = JSON.parse(text as string))
     .catch(err => console.log(err));
 }, { immediate: true });
 
