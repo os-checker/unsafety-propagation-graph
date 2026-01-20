@@ -29,6 +29,7 @@ export default defineNuxtConfig({
         'tabler:box', // crate
         'tabler:tag', // safety tag
         'tabler:search', // search
+        'tabler:sitemap', // sidebar
       ],
     }
   },

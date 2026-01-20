@@ -92,6 +92,19 @@ export type Navigation = {
   path_to_name: { [key: number]: string },
 }
 
+export type Navi = {
+  tree: NaviTree,
+  name_to_node: { [key: string]: number },
+  node_to_name: { [key: string]: number },
+}
+
+export type NaviTree = {
+  node: DefPath,
+  sub: NaviTree[],
+}
+export const NAVI_TREE: NaviTree = { node: { kind: DefPathKind.Mod, name: "" }, sub: [] }
+export const NAVI: Navi = { tree: NAVI_TREE, name_to_node: {}, node_to_name: {} }
+
 // flow options
 
 export enum ELKAlgorithm {
@@ -151,6 +164,10 @@ const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagat
 export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
 export function naviURL(crate: Crate) {
   return `${BASE_URL}/${crate}/navi/navi.json`;
+}
+
+export function naviTreeURL(crate: Crate) {
+  return `${BASE_URL}/${crate}/navi/tree.json`;
 }
 
 export function tagURL(crate: Crate) {
