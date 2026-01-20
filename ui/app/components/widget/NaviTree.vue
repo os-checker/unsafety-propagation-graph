@@ -7,9 +7,9 @@ import type { TreeItem } from '@nuxt/ui';
 import type { Navi, NaviTree } from '~/lib/topbar';
 import { colorClass, icon } from '~/lib/topbar';
 
-const expanded = ref<string[]>();
 const props = defineProps<{ navi: Navi }>()
 const nodeId = defineModel<number | undefined>("nodeId", { required: true })
+const expanded = defineModel<string[]>("expandedNodes");
 
 const items = computed<TreeItem[]>(() => {
   let root = makeTreeItem(props.navi.tree)
@@ -29,16 +29,6 @@ function makeTreeItem(tree: NaviTree): TreeItem {
       const data: NaviTree = val.data
       nodeId.value = data.node.id
     }
-    // onToggle: (e) => console.log("toggle", e.type, e.detail.value?.label),
-    // onSelect: (e) => {
-    //   const val = e.detail.value
-    //   if (!val || !val.data) return;
-    //   const label = val.label;
-    //   // const data: NaviTree = val.data
-    //   // if (data.node.kind !== DefPathKind.Mod)
-    //   //   val.children?.map(c => c.console.log = true)
-    //   console.log(label)
-    // }
   }
 }
 

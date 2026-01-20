@@ -1,15 +1,15 @@
 <template>
   <div class="top-menu">
-    <div></div>
+    <div class="m-2"> {{ nodeItem }} </div>
 
-    <div class="top-menu mr-2 gap-1">
+    <div class="top-menu m-2 gap-1">
 
       <USlideover side="left" title="Navigation">
         <UTooltip text="Navigation">
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
-          <WidgetNaviTree :navi="navi" v-model:node-id="nodeId" />
+          <WidgetNaviTree :navi="navi" v-model:node-id="nodeId" v-model:expanded-nodes="expandedNodess" />
         </template>
       </USlideover>
 
@@ -90,5 +90,6 @@ watch(
     nodeItem.value = undefined;
   })
 
-watch(nodeItem, console.log)
+const expandedNodess = ref<string[]>()
+watch(expandedNodess, console.log)
 </script>
