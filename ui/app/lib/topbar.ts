@@ -75,22 +75,6 @@ export type DefPath = {
   kind: DefPathKind,
   name: string,
 }
-export type ItemPath = DefPath[];
-export type SubNaviItem = {
-  idx: number, name: string, kind: DefPathKind,
-}
-export type NaviItem = {
-  non_mod_kinds: DefPathKind[],
-  subitems: SubNaviItem[],
-  /** The key is DefPathKind, and each number in the value points to the element in subitems. */
-  groups: { [key: string]: number[] },
-}
-export type Navigation = {
-  data: ItemPath[],
-  navi: { [key: number]: NaviItem },
-  name_to_path: { [key: string]: number },
-  path_to_name: { [key: number]: string },
-}
 
 export type Navi = {
   tree: NaviTree,
@@ -160,11 +144,6 @@ export function defaultCrateItemQuery(crate: Crate): CrateItemQuery {
 }
 
 const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
-
-export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
-export function naviURL(crate: Crate) {
-  return `${BASE_URL}/${crate}/navi/navi.json`;
-}
 
 export function naviTreeURL(crate: Crate) {
   return `${BASE_URL}/${crate}/navi/tree.json`;
