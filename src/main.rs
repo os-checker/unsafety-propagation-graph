@@ -72,6 +72,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
         out_adt.dump(&writer);
     }
     writer.dump_json("navi", "navi", &navi);
+    writer.dump_json("navi", "tree", &info_mod::tree::run(tcx));
 
     if std::env::var("UPG_CONTINUE").ok().is_some_and(|s| s != "0") {
         // Emit artifacts: this is necessary for crates that has dependencies.

@@ -6,6 +6,8 @@ use rustc_span::Ident;
 use serde::Serialize;
 use std::mem;
 
+pub mod tree;
+
 #[derive(Debug, Default, Serialize)]
 pub struct Navigation {
     pub data: FlattenFreeItems,
