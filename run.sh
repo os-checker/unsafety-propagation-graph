@@ -21,6 +21,7 @@ export RAPX_STD_OUT=$PWD/data/tags/std.json
 gen_std() {
   pushd tests/demo
   cargo clean
+  # unset UPG_RUST_STD_LIBRARY
   # Generate $UPG_DIR/$crate
   UPG_DIR=$UPG_DIR/demo upg
   popd
@@ -43,6 +44,8 @@ gen_std_json() {
 }
 
 gen_data() {
+  gen_std
+
   pushd ./tag-asterinas/ostd/
   cargo clean
   UPG_DIR=$UPG_DIR/asterinas CARGO_BUILD_ARGS="--target x86_64-unknown-none" upg
@@ -52,10 +55,10 @@ gen_data() {
   rm target/upg/**/upg.log
   rm target/upg/**/rustflags.json
 
-  # cp target/upg/asterinas/alloc data -r
-  # cp target/upg/asterinas/core data -r
-  # cp target/upg/asterinas/ostd data -r
-  # cp target/upg/demo/std data -r
+  cp target/upg/asterinas/alloc data -r
+  cp target/upg/asterinas/core data -r
+  cp target/upg/asterinas/ostd data -r
+  cp target/upg/demo/std data -r
 }
 
-gen_std_json
+gen_data
