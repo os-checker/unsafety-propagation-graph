@@ -26,7 +26,7 @@
       </UTooltip>
       <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
         <UTooltip text="View Tags">
-          <UButton icon="tabler:tag" color="neutral" variant="ghost" />
+          <UButton icon="tabler:tag" variant="ghost" :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400' }" />
         </UTooltip>
         <template #content>
           <WidgetTag :tags="tags" />
