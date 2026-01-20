@@ -79,6 +79,7 @@ impl Tree {
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Serialize)]
 pub struct Node {
+    #[serde(flatten)]
     pub inner: DefPath,
 }
 
