@@ -43,7 +43,7 @@ export function icon(kind: DefPathKind | string): string {
 
 export function colorClass(kind: DefPathKind | string): string {
   switch (kind) {
-    case DefPathKind.Mod: return "def-mod";
+    case DefPathKind.Mod: return ""; // "def-mod";
     case DefPathKind.Fn: return "def-fn";
     case DefPathKind.AssocFn: return "def-fn";
     case DefPathKind.Struct: return "def-struct";
@@ -52,7 +52,7 @@ export function colorClass(kind: DefPathKind | string): string {
     case DefPathKind.TraitDecl: return "def-trait";
     case DefPathKind.Ty: return "def-ty";
     case DefPathKind.ImplTrait: return "def-trait";
-    default: return "gray";
+    default: return "";
   }
 }
 

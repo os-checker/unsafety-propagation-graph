@@ -76,12 +76,13 @@ html, body {
 }
 
 /* def color */
-.def-mod {
-  @apply text-sky-600 dark:text-sky-400
-}
+/* .def-mod { */
+/*   @apply text-sky-600 dark:text-sky-400 */
+/* } */
 
 .def-fn {
-  @apply text-teal-600 dark:text-teal-400
+  /* @apply text-teal-600 dark:text-teal-400 */
+  @apply text-sky-600 dark:text-sky-400
 }
 
 .def-struct {
