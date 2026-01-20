@@ -11,16 +11,17 @@ const expanded = ref<string[]>();
 const props = defineProps<{ navi: Navi }>()
 
 const items = computed<TreeItem[]>(() => {
-  let root = makeTreeItem(props.navi.tree, { id: 0 })
+  let root = makeTreeItem(props.navi.tree)
   root.defaultExpanded = true
   return [root]
 })
 
-function makeTreeItem(tree: NaviTree, state: { id: number }): TreeItem {
+function makeTreeItem(tree: NaviTree): TreeItem {
+  const node = tree.node
   return {
-    label: tree.node.name, icon: icon(tree.node.kind), id: state.id++,
-    class: colorClass(tree.node.kind), data: tree,
-    children: tree.sub.map(t => makeTreeItem(t, state)),
+    label: node.name, icon: icon(node.kind), id: node.id,
+    class: colorClass(node.kind), data: tree,
+    children: tree.sub.map(makeTreeItem),
     // onToggle: (e) => console.log("toggle", e.type, e.detail.value?.label),
     // onSelect: (e) => {
     //   const val = e.detail.value

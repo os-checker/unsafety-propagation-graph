@@ -78,16 +78,16 @@ export type DefPath = {
 
 export type Navi = {
   tree: NaviTree,
-  name_to_node: { [key: string]: number },
-  node_to_name: { [key: string]: number },
+  name_to_id: { [key: string]: number }
 }
 
 export type NaviTree = {
-  node: DefPath,
+  node: DefPath & { id: number },
   sub: NaviTree[],
 }
-export const NAVI_TREE: NaviTree = { node: { kind: DefPathKind.Mod, name: "" }, sub: [] }
-export const NAVI: Navi = { tree: NAVI_TREE, name_to_node: {}, node_to_name: {} }
+
+export const NAVI_TREE: NaviTree = { node: { kind: DefPathKind.Mod, name: "", id: 0 }, sub: [] }
+export const NAVI: Navi = { tree: NAVI_TREE, name_to_id: {} }
 
 // flow options
 
