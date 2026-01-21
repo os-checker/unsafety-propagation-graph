@@ -29,7 +29,7 @@ pub fn dump(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt, writer: &Writer) {
         if utils::did(fn_def, tcx).is_local()
             && let Some(body) = fn_def.body()
         {
-            let mir = Mir::new(fn_def, &body);
+            let mir = Mir::new(fn_def, &body, tcx);
             writer.dump_json(name, "mir", &mir);
         }
     }
@@ -45,7 +45,7 @@ pub struct Source {
 impl Source {
     pub fn new(fn_def: FnDef, tcx: TyCtxt) -> Self {
         Self {
-            meta: Meta::new(fn_def),
+            meta: Meta::new(fn_def, tcx),
             src: utils::src(fn_def, tcx),
         }
     }
@@ -59,8 +59,8 @@ pub struct Mir {
 }
 
 impl Mir {
-    pub fn new(fn_def: FnDef, body: &Body) -> Self {
-        let meta = Meta::new(fn_def);
+    pub fn new(fn_def: FnDef, body: &Body, tcx: TyCtxt) -> Self {
+        let meta = Meta::new(fn_def, tcx);
         let mut buf = Vec::with_capacity(1024);
         _ = body.dump(&mut buf, &meta.name);
         let mir = String::from_utf8(buf).unwrap_or_default();
@@ -78,7 +78,7 @@ pub struct Documentation {
 impl Documentation {
     pub fn new(fn_def: FnDef, tcx: TyCtxt) -> Self {
         Self {
-            meta: Meta::new(fn_def),
+            meta: Meta::new(fn_def, tcx),
             doc: utils::doc(fn_def, tcx),
         }
     }

@@ -10,16 +10,19 @@ pub struct Meta {
 }
 
 impl Meta {
-    pub fn new<T: CrateDef>(item: T) -> Self {
+    pub fn new<T: CrateDef>(item: T, tcx: TyCtxt) -> Self {
         Meta {
             name: item.name(),
-            span: span(item),
+            span: span(item, tcx),
         }
     }
 }
 
-pub fn span<T: CrateDef>(item: T) -> String {
-    item.span().diagnostic()
+pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
+    let span = internal(tcx, item.span());
+    let src_map = tcx.sess.source_map();
+    // --remap-path-prefix
+    src_map.span_to_string(span, rustc_span::FileNameDisplayPreference::Remapped)
 }
 
 pub fn src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {

@@ -32,7 +32,7 @@ impl Caller {
     pub fn new(fn_def: FnDef, info: &FnInfo, tcx: TyCtxt, navi: &Navigation) -> Self {
         Caller {
             fn_def,
-            meta: utils::Meta::new(fn_def),
+            meta: utils::Meta::new(fn_def, tcx),
             safe: is_safe(fn_def),
             callees: output_callee(info),
             adts: info

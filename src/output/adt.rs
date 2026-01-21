@@ -65,7 +65,7 @@ impl Adt {
             access_self_as_arg: Access::new(&info.as_argument),
             access_self_as_locals: Access::new(&info.otherwise),
             access_field: info.fields.iter().map(Access::new).collect(),
-            span: utils::span(adt.def),
+            span: utils::span(adt.def, tcx),
             src: utils::src(adt.def, tcx),
             kind,
             doc_adt: utils::doc(adt.def, tcx),
