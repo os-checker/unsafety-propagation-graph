@@ -40,7 +40,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let writer = output::Writer::new(&local_crate.name);
     let mut map_fn = FxIndexMap::with_capacity_and_hasher(fn_defs.len(), Default::default());
 
-    let mut out_funcs = Vec::with_capacity(fn_defs.len());
+    let mut out_callers = Vec::with_capacity(fn_defs.len());
     let mut out_adts = Vec::with_capacity(fn_defs.len());
 
     for fn_def in fn_defs {
@@ -52,10 +52,13 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
 
             let finfo = &*map_fn.entry(fn_def).or_insert(finfo);
 
-            let out_func = output::caller::Caller::new(fn_def, finfo, tcx, &navi);
-            out_funcs.push(out_func);
+            let out_caller = output::caller::Caller::new(fn_def, finfo, tcx, &navi);
+            out_callers.push(out_caller);
         }
     }
+
+    // Write src, mir, doc to disk.
+    output::fn_::dump(&map_fn, tcx, &writer);
 
     let map_adt = info_adt::adt_info(&map_fn);
     for (adt, adt_info) in &map_adt {
@@ -64,7 +67,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     }
     let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn);
 
-    for out_func in &mut out_funcs {
+    for out_func in &mut out_callers {
         out_func.update_adt_fn(&adt_fn_collecor);
         out_func.dump(&writer);
     }
