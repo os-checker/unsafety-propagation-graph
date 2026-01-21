@@ -9,7 +9,8 @@
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
-          <WidgetNaviTree :navi="navi" v-model:node-id="nodeId" v-model:expanded-nodes="expandedNodess" />
+          <WidgetNaviTree :navi="navi" v-model:node-id="nodeId" v-model:expanded-nodes="expandedNodess"
+            v-model:tree-value="treeValue" />
         </template>
       </USlideover>
 
@@ -50,6 +51,7 @@
 </template>
 
 <script setup lang="ts">
+import type { TreeItem } from '@nuxt/ui';
 import type { DataTags } from '~/lib/output';
 import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, tagURL } from '~/lib/topbar';
 import type { Navi, FlowOpts, Crate } from '~/lib/topbar';
@@ -90,6 +92,8 @@ watch(
     nodeItem.value = undefined;
   })
 
+// Keep these nodes expanded when the slideover is reopened.
 const expandedNodess = ref<string[]>()
-watch(expandedNodess, console.log)
+// Keep the last clicked item Selected when slideover is reopened.
+const treeValue = ref<TreeItem>()
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <UTree virtualize :items="items" :getKey="i => i.id" v-model:expanded="expanded" />
+  <UTree virtualize :items="items" :getKey="i => i.id" v-model:expanded="expanded" v-model:modelValue="treeValue" />
 </template>
 
 <script setup lang="ts">
@@ -10,6 +10,7 @@ import { colorClass, icon } from '~/lib/topbar';
 const props = defineProps<{ navi: Navi }>()
 const nodeId = defineModel<number | undefined>("nodeId", { required: true })
 const expanded = defineModel<string[]>("expandedNodes");
+const treeValue = defineModel<TreeItem>("treeValue");
 
 const items = computed<TreeItem[]>(() => {
   let root = makeTreeItem(props.navi.tree)
