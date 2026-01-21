@@ -1,6 +1,8 @@
 use crate::adt::{Adt, AdtAccess, CacheAdt, LocalsAccess, VaraintFieldIdx, new_adt};
 use crate::analyze_fn_def::Collector;
+use crate::output::utils::name;
 use crate::utils::{FxIndexMap, SmallVec, ThinVec};
+use rustc_middle::ty::TyCtxt;
 use rustc_public::{
     CrateDef,
     mir::{Body, Mutability, ProjectionElem},
@@ -41,6 +43,7 @@ impl FnInfo {
         body: &Body,
         v_sp: ThinVec<PropertiesAndReason>,
         cache: &mut CacheAdt,
+        tcx: TyCtxt,
     ) -> FnInfo {
         let mut callees = FxIndexMap::default();
         // eprintln!("Find all instance");
@@ -48,7 +51,8 @@ impl FnInfo {
             // eprintln!("  {ty:?}");
             if let RigidTy::FnDef(fn_def, _) = ty.ty {
                 let callee_info = CalleeInfo {
-                    non_instance_name: fn_def.name(),
+                    // always encode the crate name
+                    non_instance_name: name(fn_def, tcx),
                 };
                 callees.insert(fn_def, callee_info);
             }

@@ -13,18 +13,22 @@ pub struct Meta {
 
 impl Meta {
     pub fn new<T: CrateDef + Copy>(item: T, tcx: TyCtxt) -> Self {
-        let mut name = item.name();
-        if did(item, tcx).is_local() {
-            // FIXME: in future toolchain versions, we don't need adding
-            // crate name anymore, because rustc_public's .name() handles it.
-            // https://github.com/rust-lang/project-stable-mir/issues/109
-            name = format!("{}::{name}", crate_name(tcx).as_str());
-        }
         Meta {
-            name,
+            name: name(item, tcx),
             span: span(item, tcx),
         }
     }
+}
+
+pub fn name<T: CrateDef + Copy>(item: T, tcx: TyCtxt) -> String {
+    let mut name = item.name();
+    if did(item, tcx).is_local() {
+        // FIXME: in future toolchain versions, we don't need adding
+        // crate name anymore, because rustc_public's .name() handles it.
+        // https://github.com/rust-lang/project-stable-mir/issues/109
+        name = format!("{}::{name}", crate_name(tcx).as_str());
+    }
+    name
 }
 
 pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {

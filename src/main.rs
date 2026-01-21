@@ -48,7 +48,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
             let v_sp = get_tags(fn_def);
 
             let collector = analyze_fn_def::collect(&body);
-            let finfo = info_fn::FnInfo::new(collector, &body, v_sp.into(), &mut cache_adt);
+            let finfo = info_fn::FnInfo::new(collector, &body, v_sp.into(), &mut cache_adt, tcx);
 
             let finfo = &*map_fn.entry(fn_def).or_insert(finfo);
 
