@@ -3,6 +3,8 @@ use rustc_middle::ty::TyCtxt;
 use rustc_public::{CrateDef, rustc_internal::internal};
 use serde::Serialize;
 
+use crate::info_mod::crate_name;
+
 #[derive(Debug, Serialize)]
 pub struct Meta {
     pub name: String,
@@ -10,9 +12,16 @@ pub struct Meta {
 }
 
 impl Meta {
-    pub fn new<T: CrateDef>(item: T, tcx: TyCtxt) -> Self {
+    pub fn new<T: CrateDef + Copy>(item: T, tcx: TyCtxt) -> Self {
+        let mut name = item.name();
+        if did(item, tcx).is_local() {
+            // FIXME: in future toolchain versions, we don't need adding
+            // crate name anymore, because rustc_public's .name() handles it.
+            // https://github.com/rust-lang/project-stable-mir/issues/109
+            name = format!("{}::{name}", crate_name(tcx).as_str());
+        }
         Meta {
-            name: item.name(),
+            name,
             span: span(item, tcx),
         }
     }
