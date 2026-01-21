@@ -1,6 +1,6 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:itemName="itemName" v-model:flowOpts="flowOpts" v-model:crate="crate" />
+    <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" />
     <Flow :fn="raw" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
   </div>
   <div class="upg-right">
@@ -24,7 +24,12 @@ const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 const panelContent = ref<PanelContent>(PANEL_CONTENT);
 
 const crate = ref<Crate>(Crate.std);
-const itemName = computed<CrateItemQuery>(() => defaultCrateItemQuery(crate.value));
+const itemName = ref<CrateItemQuery>(defaultCrateItemQuery(crate.value));
+
+const nodeItem = ref<string>();
+watch(nodeItem, name => {
+  if (name) itemName.value = { name, kind: DefPathKind.Fn }
+})
 
 // const url = "https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main/test/poc/function/f.json"
 function getFunctionUrl(name: string, kind: DefPathKind): string | undefined {

@@ -215,9 +215,9 @@ fn v_fn_name(v: &[FnDef]) -> Vec<String> {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "type", content = "path")]
 pub enum OutputPath {
-    Local(usize),
+    Local(Box<str>),
     External(Box<str>),
 }
 
@@ -225,8 +225,8 @@ fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
     let did = internal(tcx, def_id);
     let def_path_str = tcx.def_path_str(did);
     let def_path_str_maybe_local = format!("{}::{def_path_str}", navi.crate_root());
-    match navi.name_to_path_idx(&def_path_str_maybe_local) {
-        Some(idx) => OutputPath::Local(idx),
+    match navi.name_to_id(&def_path_str_maybe_local) {
+        Some(_) => OutputPath::Local(def_path_str_maybe_local.into()),
         None => OutputPath::External(def_path_str.into()),
     }
 }

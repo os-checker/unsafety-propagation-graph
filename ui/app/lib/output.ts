@@ -4,12 +4,17 @@ export type Function = {
   safe: boolean,
   callees: Callees,
   adts: { [key: string]: string[] },
-  path: number | string,
+  path: { type: PathType, path: string },
   span: string,
   src: string,
   mir: string,
   doc: string,
   tags: Tags
+}
+
+export enum PathType {
+  Local = "Local",
+  External = "External",
 }
 
 export type Callees = { [key: string]: CalleeInfo };
@@ -88,7 +93,7 @@ export type TagUsageItem = {
 }
 
 export const EMPTY_FUNCTION: Function = {
-  name: "", safe: true, callees: {}, adts: {}, path: "", span: "",
+  name: "", safe: true, callees: {}, adts: {}, path: { type: PathType.Local, path: "" }, span: "",
   src: "", mir: "", doc: "", tags: { tags: [], spec: {}, docs: [] },
 };
 

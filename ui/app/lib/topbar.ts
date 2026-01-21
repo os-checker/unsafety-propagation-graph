@@ -43,7 +43,7 @@ export function icon(kind: DefPathKind | string): string {
 
 export function colorClass(kind: DefPathKind | string): string {
   switch (kind) {
-    case DefPathKind.Mod: return "def-mod";
+    case DefPathKind.Mod: return ""; // "def-mod";
     case DefPathKind.Fn: return "def-fn";
     case DefPathKind.AssocFn: return "def-fn";
     case DefPathKind.Struct: return "def-struct";
@@ -52,7 +52,7 @@ export function colorClass(kind: DefPathKind | string): string {
     case DefPathKind.TraitDecl: return "def-trait";
     case DefPathKind.Ty: return "def-ty";
     case DefPathKind.ImplTrait: return "def-trait";
-    default: return "gray";
+    default: return "";
   }
 }
 
@@ -75,22 +75,19 @@ export type DefPath = {
   kind: DefPathKind,
   name: string,
 }
-export type ItemPath = DefPath[];
-export type SubNaviItem = {
-  idx: number, name: string, kind: DefPathKind,
+
+export type Navi = {
+  tree: NaviTree,
+  name_to_id: { [key: string]: number }
 }
-export type NaviItem = {
-  non_mod_kinds: DefPathKind[],
-  subitems: SubNaviItem[],
-  /** The key is DefPathKind, and each number in the value points to the element in subitems. */
-  groups: { [key: string]: number[] },
+
+export type NaviTree = {
+  node: DefPath & { id: number },
+  sub: NaviTree[],
 }
-export type Navigation = {
-  data: ItemPath[],
-  navi: { [key: number]: NaviItem },
-  name_to_path: { [key: string]: number },
-  path_to_name: { [key: number]: string },
-}
+
+export const NAVI_TREE: NaviTree = { node: { kind: DefPathKind.Mod, name: "", id: 0 }, sub: [] }
+export const NAVI: Navi = { tree: NAVI_TREE, name_to_id: {} }
 
 // flow options
 
@@ -148,9 +145,8 @@ export function defaultCrateItemQuery(crate: Crate): CrateItemQuery {
 
 const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
 
-export const EMPTY_NAVI: Navigation = { data: [], navi: {}, name_to_path: {}, path_to_name: {} };
-export function naviURL(crate: Crate) {
-  return `${BASE_URL}/${crate}/navi/navi.json`;
+export function naviTreeURL(crate: Crate) {
+  return `${BASE_URL}/${crate}/navi/tree.json`;
 }
 
 export function tagURL(crate: Crate) {
