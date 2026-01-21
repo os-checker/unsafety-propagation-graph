@@ -34,7 +34,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let local_crate = rustc_public::local_crate();
     let fn_defs = local_crate.fn_defs();
 
-    let navi = info_mod::mod_tree(tcx);
+    let navi = info_mod::navi(tcx);
 
     let mut cache_adt = Default::default();
     let writer = output::Writer::new(&local_crate.name);
@@ -71,8 +71,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     for out_adt in &mut out_adts {
         out_adt.dump(&writer);
     }
-    writer.dump_json("navi", "navi", &navi);
-    writer.dump_json("navi", "tree", &info_mod::tree::run(tcx));
+    writer.dump_json("navi", "tree", &navi);
 
     if std::env::var("UPG_CONTINUE").ok().is_some_and(|s| s != "0") {
         // Emit artifacts: this is necessary for crates that has dependencies.

@@ -1,205 +1,191 @@
 use crate::FxIndexMap;
-use itertools::Itertools;
 use rustc_hir::{ImplItemImplKind, ImplItemKind, ItemId, ItemKind, OwnerNode, Ty, def_id::DefId};
 use rustc_middle::ty::{TyCtxt, TyKind};
 use rustc_span::Ident;
 use serde::Serialize;
 use std::mem;
 
-pub mod tree;
+pub type ItemPath = Vec<DefPath>;
+pub type FlattenFreeItems = Vec<ItemPath>;
 
-#[derive(Debug, Default, Serialize)]
+pub fn navi(tcx: TyCtxt) -> Navigation {
+    let free = free_items(tcx);
+    let tree = make_tree(&free.v_path, tcx);
+    Navigation::new(tree, &free)
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Serialize)]
+pub struct Tree {
+    pub node: Node,
+    pub sub: Vec<Tree>,
+}
+
+impl Tree {
+    fn new(def_path: DefPath) -> Self {
+        Tree {
+            // id will be filled once the whole tree is sored.
+            node: Node {
+                inner: def_path,
+                id: 0,
+            },
+            sub: Vec::new(),
+        }
+    }
+
+    fn push_direct_sub(&mut self, def_path: DefPath) -> &mut Self {
+        if let Some(pos) = self
+            .sub
+            .iter_mut()
+            .position(|sub| sub.node.inner == def_path)
+        {
+            // Move the node to last.
+            let last_idx = self.sub.len() - 1;
+            self.sub.swap(pos, last_idx);
+        } else {
+            self.sub.push(Tree::new(def_path));
+        }
+        // The last element must has the same node as def_path given.
+        self.sub.last_mut().unwrap()
+    }
+
+    fn push(&mut self, v_path: &ItemPath) {
+        let mut tree = self;
+        for def_path in v_path {
+            if *def_path != tree.node.inner {
+                tree = tree.push_direct_sub(def_path.clone());
+            }
+        }
+    }
+
+    fn sort(&mut self) {
+        self.sub.sort_unstable();
+        // Recuirsively sort.
+        for subtree in &mut self.sub {
+            subtree.sort();
+        }
+    }
+
+    fn fill_id(&mut self, id: &mut usize) {
+        self.node.id = *id;
+        *id += 1;
+        for subtree in &mut self.sub {
+            subtree.fill_id(id);
+        }
+    }
+
+    fn find_idx(&self, v_path: &ItemPath, buf: &mut Vec<usize>, id: &mut usize) {
+        let mut tree = self;
+        for def_path in v_path {
+            if *def_path != tree.node.inner {
+                if let Some(pos) = tree.sub.iter().position(|t| *def_path == t.node.inner) {
+                    buf.push(pos);
+                    tree = &tree.sub[pos];
+                } else {
+                    panic!("{def_path:?} nost found in {tree:?}");
+                }
+            }
+        }
+        *id = tree.node.id;
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Serialize)]
+pub struct Node {
+    #[serde(flatten)]
+    pub inner: DefPath,
+    pub id: usize,
+}
+
+#[derive(Serialize)]
 pub struct Navigation {
-    pub data: FlattenFreeItems,
-    pub navi: Navi,
-    /// local `tcx.def_path_str` => local `Vec<DefPath>`
-    pub name_to_path: FxIndexMap<String, usize>,
-    ///  local `Vec<DefPath>` => local `tcx.def_path_str`
-    pub path_to_name: FxIndexMap<usize, String>,
+    pub tree: Tree,
+    pub name_to_id: FxIndexMap<String, usize>,
+    // pub name_to_node: FxIndexMap<String, String>,
+    // pub node_to_name: FxIndexMap<String, String>,
 }
 
 impl Navigation {
-    pub fn name_to_path_idx(&self, def_path_str: &str) -> Option<usize> {
-        self.name_to_path.get(def_path_str).copied()
+    fn new(mut tree: Tree, free: &FreeItems) -> Self {
+        // Sort the subtrees to have stable idx.
+        tree.sort();
+        // Depth first id.
+        tree.fill_id(&mut 0);
+
+        let n = free.name_to_path.len();
+        let mut name_to_id =
+            FxIndexMap::<String, usize>::with_capacity_and_hasher(n, Default::default());
+
+        let mut buf = Vec::<usize>::new();
+        let mut id = 0;
+        for (fn_name, v_path) in &free.name_to_path {
+            tree.find_idx(v_path, &mut buf, &mut id);
+            name_to_id.insert(fn_name.clone(), id);
+
+            id = 0;
+            buf.clear();
+        }
+
+        // let mut name_to_node =
+        //     FxIndexMap::<String, String>::with_capacity_and_hasher(n, Default::default());
+        // let mut buf = Vec::<usize>::new();
+        // for (fn_name, v_path) in &free.name_to_path {
+        //     tree.find_idx(v_path, &mut buf);
+        //     // For simplicity, indices is a string like `1,1,...` to all subtrees.
+        //     let v_idx_str = format!("{:?}", buf.iter().format(","));
+        //     name_to_node.insert(fn_name.clone(), v_idx_str);
+        //     // node_to_name.insert(v_idx_str, fn_name.clone());
+        //     buf.clear();
+        // }
+        // name_to_node.sort_unstable_keys();
+        //
+        // let mut node_to_name: FxIndexMap<_, _> = name_to_node
+        //     .iter()
+        //     .map(|(k, v)| (v.clone(), k.clone()))
+        //     .collect();
+        // node_to_name.sort_unstable_keys();
+
+        Navigation { tree, name_to_id }
+    }
+
+    pub fn name_to_id(&self, name: &str) -> Option<usize> {
+        self.name_to_id.get(name).copied()
     }
 
     pub fn crate_root(&self) -> &str {
-        &self.data[0][0].name
+        &self.tree.node.inner.name
     }
 }
 
-pub type ItemPath = Vec<DefPath>;
-pub type FlattenFreeItems = Vec<ItemPath>;
-pub type Navi = FxIndexMap<usize, NaviItem>;
-
-#[derive(Debug, Default, Serialize)]
-pub struct NaviItem {
-    /// Non Mod kinds in the path.
-    non_mod_kinds: Vec<DefPathKind>,
-    subitems: Vec<SubNaviItem>,
-    /// The usize idx refers to subitems.
-    groups: FxIndexMap<DefPathKind, Vec<usize>>,
+#[derive(Default)]
+pub struct FreeItems {
+    v_path: FlattenFreeItems,
+    name_to_path: FxIndexMap<String, ItemPath>,
 }
 
-#[derive(Debug, Serialize)]
-pub struct SubNaviItem {
-    /// Data idx.
-    idx: usize,
-    /// Item name without parent path.
-    name: Box<str>,
-    kind: DefPathKind,
-}
-
-fn to_navi(
-    v_path: &mut FlattenFreeItems,
-    crate_root: &DefPath,
-    map_name_to_path: FxIndexMap<String, ItemPath>,
-) -> (Navi, FxIndexMap<String, usize>) {
-    #[derive(Debug, Default)]
-    struct Meta {
-        parent_paths: FxIndexMap<DefPathKind, ItemPath>,
-        /// The real value will be recomputed once all items are sorted.
-        item_idx: usize,
-        /// As a hint for identifying the core item kind.
-        non_mod_kinds: Vec<DefPathKind>,
-    }
-
-    let mut map_paths = FxIndexMap::<ItemPath, Meta>::with_capacity_and_hasher(
-        v_path.len() * 3 / 2,
-        Default::default(),
-    );
-    // Add root module path.
-    map_paths.insert(vec![crate_root.clone()], Default::default());
-
-    // Collect mod paths and move all paths to the map.
-    // The idx will be backfilled once v_path is sorted, so 0 is fake here.
-    for mut free_item in mem::take(v_path) {
-        if free_item[0] != *crate_root {
-            eprintln!("{free_item:?} must start from {crate_root:?}");
-            // This is the escape hatch to not break the root principle.
-            free_item = put_under_phony(free_item, crate_root);
-        }
-        let free_item = free_item;
-
-        // [..mod_sep, ...]
-        let mod_sep = free_item
-            .iter()
-            .take_while(|p| p.kind == DefPathKind::Mod)
-            .count();
-        let len = free_item.len();
-        assert_ne!(
-            len, mod_sep,
-            "free item {free_item:?} mustn't be a module item"
-        );
-
-        // Insert free item path with parent item path.
-        let mod_path = &free_item[..mod_sep];
-        let meta = map_paths.entry(free_item.clone()).or_default();
-        let item_parent_path = &mut meta.parent_paths;
-
-        meta.non_mod_kinds = free_item[mod_sep..]
-            .iter()
-            .filter_map(|x| (x.kind != DefPathKind::Mod).then_some(x.kind))
-            .collect();
-        let sep_kind = free_item[mod_sep].kind;
-        match sep_kind {
-            DefPathKind::AssocFn | DefPathKind::Mod => (),
-            // Put the assoc item under an ADT or trait path.
-            kind if mod_sep + 1 != len => {
-                let parent_item_path = &free_item[..mod_sep + 1];
-                item_parent_path.insert(kind, parent_item_path.to_owned());
-            }
-            // Put the ADT or trait under mod path.
-            _ => _ = item_parent_path.insert(DefPathKind::Mod, mod_path.to_owned()),
-        }
-
-        // Insert current and parent module paths.
-        let mut pos = mod_sep;
-        while pos > 1 && !map_paths.contains_key(&mod_path[..pos]) {
-            let current_mod = mod_path[..pos].to_owned();
-            let mod_value = map_paths.entry(current_mod).or_default();
-            let parent = mod_path[..pos - 1].to_owned();
-            mod_value.parent_paths.insert(DefPathKind::Mod, parent);
-            pos -= 1;
-        }
-    }
-
-    // Sort all paths.
-    map_paths.sort_unstable_keys();
-    // Set idx by the order.
-    for (idx, value) in map_paths.values_mut().enumerate() {
-        value.item_idx = idx;
-    }
-
-    let mut navi = Navi::default();
-    for (current_item, current_meta) in &map_paths {
-        // sep_kind will be updated for non-Mod kind, and since all parent modules are inserted
-        // with default empty Vec, we only need to set it up for free_item.
-        navi.entry(current_meta.item_idx).or_default().non_mod_kinds =
-            current_meta.non_mod_kinds.clone();
-
-        for parent_path in current_meta.parent_paths.values() {
-            let Some(parent_meta) = map_paths.get(parent_path) else {
-                // FIXME: we have to determine how to navigate to inaccessible items.
-                // cc https://github.com/os-checker/unsafety-propagation-graph/issues/12
-                // Currently, we ignore them.
-                continue;
-            };
-
-            let sub_navi_item = &current_item[parent_path.len()];
-            let sub_navi_item = SubNaviItem {
-                idx: current_meta.item_idx,
-                name: sub_navi_item.name.clone(),
-                kind: sub_navi_item.kind,
-            };
-
-            navi.entry(parent_meta.item_idx)
-                .or_default()
-                .subitems
-                .push(sub_navi_item);
-        }
-    }
-
-    // Group sub navi items.
-    for navi_item in navi.values_mut() {
-        let subitems = navi_item.subitems.iter().enumerate();
-        for (kind, iter) in subitems.group_by(|(_, item)| item.kind).into_iter() {
-            // NOTE: sub item idx are inserted.
-            navi_item
-                .groups
-                .insert(kind, iter.map(|(sub_idx, _)| sub_idx).collect());
-        }
-    }
-
-    // Construct mapping from def_path_str to DefPath.
-    let map_name_to_path_idx: FxIndexMap<_, _> = map_name_to_path
-        .into_iter()
-        .map(|(name, path)| {
-            let path = if let Some(path) = map_paths.get(&path) {
-                path
-            } else if let Some(path) = map_paths.get(&put_under_phony(path.clone(), crate_root)) {
-                path
-            } else {
-                unreachable!("{name:} {path:?} is absent in map_paths")
-            };
-            (name, path.item_idx)
-        })
-        .collect();
-    // Flatten all paths.
-    v_path.extend(map_paths.into_keys());
-
-    assert_eq!(
-        v_path[0][0].name, crate_root.name,
-        "{:?} must be crate root",
-        v_path[0]
-    );
-    (navi, map_name_to_path_idx)
-}
-
-pub fn mod_tree(tcx: TyCtxt) -> Navigation {
-    let mut v_path = FlattenFreeItems::new();
+pub fn make_tree(v_path: &FlattenFreeItems, tcx: TyCtxt) -> Tree {
     let crate_root = DefPath::crate_root(tcx);
-    let mut map_name_to_path = FxIndexMap::<String, ItemPath>::default();
+    let mut tree = Tree {
+        node: Node {
+            inner: crate_root.clone(),
+            id: 0,
+        },
+        sub: Vec::new(),
+    };
+
+    for free_item in v_path {
+        tree.push(free_item);
+    }
+
+    tree
+}
+
+fn free_items(tcx: TyCtxt) -> FreeItems {
+    let mut this = FreeItems::default();
+    let FreeItems {
+        v_path,
+        name_to_path,
+    } = &mut this;
+    let crate_root = DefPath::crate_root(tcx);
 
     // Free items: those items may be inaccesible from user's perspective,
     // and item paths are as per source code definitions.
@@ -212,9 +198,9 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                     ident,
                     &item_id,
                     tcx,
-                    &mut v_path,
+                    v_path,
                     &crate_root,
-                    &mut map_name_to_path,
+                    name_to_path,
                 );
             }
             ItemKind::Struct(ident, ..) => {
@@ -223,9 +209,9 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                     ident,
                     &item_id,
                     tcx,
-                    &mut v_path,
+                    v_path,
                     &crate_root,
-                    &mut map_name_to_path,
+                    name_to_path,
                 );
             }
             ItemKind::Enum(ident, ..) => {
@@ -234,9 +220,9 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                     ident,
                     &item_id,
                     tcx,
-                    &mut v_path,
+                    v_path,
                     &crate_root,
-                    &mut map_name_to_path,
+                    name_to_path,
                 );
             }
             ItemKind::Union(ident, ..) => {
@@ -245,9 +231,9 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                     ident,
                     &item_id,
                     tcx,
-                    &mut v_path,
+                    v_path,
                     &crate_root,
-                    &mut map_name_to_path,
+                    name_to_path,
                 );
             }
             ItemKind::Trait(_, _, _, ident, ..) => {
@@ -256,9 +242,9 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                     ident,
                     &item_id,
                     tcx,
-                    &mut v_path,
+                    v_path,
                     &crate_root,
-                    &mut map_name_to_path,
+                    name_to_path,
                 );
             }
             ItemKind::Impl(imp) => {
@@ -304,7 +290,7 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
                         v_path.push(impl_path.clone());
                         let def_path_str = tcx.def_path_str(body.hir_id.owner);
                         let def_path_str = format!("{}::{def_path_str}", crate_root.name);
-                        map_name_to_path.insert(def_path_str, impl_path);
+                        name_to_path.insert(def_path_str, impl_path);
                     }
                 }
             }
@@ -312,16 +298,19 @@ pub fn mod_tree(tcx: TyCtxt) -> Navigation {
         }
     }
 
-    let (navi, name_to_path) = to_navi(&mut v_path, &crate_root, map_name_to_path);
-    let path_to_name = name_to_path
-        .iter()
-        .map(|(name, path_idx)| (*path_idx, name.clone()))
-        .collect();
-    Navigation {
-        data: v_path,
-        navi,
-        name_to_path,
-        path_to_name,
+    // Put fully external root under __phony
+    let f = |v| normalize_root(v, &crate_root);
+    v_path.iter_mut().for_each(f);
+    name_to_path.values_mut().for_each(f);
+
+    this
+}
+
+fn normalize_root(item_path: &mut ItemPath, crate_root: &DefPath) {
+    if item_path[0] != *crate_root {
+        eprintln!("{item_path:?} must start from {crate_root:?}");
+        // This is the escape hatch to not break the root principle.
+        *item_path = put_under_phony(item_path.clone(), crate_root)
     }
 }
 
