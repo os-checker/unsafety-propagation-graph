@@ -64,7 +64,7 @@ impl Caller {
     }
 
     pub fn dump(&self, writer: &Writer) {
-        writer.dump_json("caller", &self.meta.name, self);
+        writer.dump_json(&self.meta.name, "caller", self);
     }
 }
 

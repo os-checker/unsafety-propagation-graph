@@ -33,7 +33,7 @@ impl Writer {
                 match fs::create_dir(&parent) {
                     Ok(()) => (),
                     Err(err) if err.kind() == io::ErrorKind::AlreadyExists => (),
-                    Err(err) => panic!("The directory {dir:?} is not created: {err}"),
+                    Err(err) => eprintln!("The directory {parent:?} is not created: {err}"),
                 }
 
                 let mut file_path = parent.join(fname_stem);
