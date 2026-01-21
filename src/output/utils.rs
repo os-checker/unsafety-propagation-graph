@@ -1,6 +1,6 @@
 use rustc_hir::def_id::DefId as IDefId;
 use rustc_middle::ty::TyCtxt;
-use rustc_public::{CrateDef, rustc_internal::internal};
+use rustc_public::{CrateDef, rustc_internal::internal, ty::Span};
 use serde::Serialize;
 
 use crate::info_mod::crate_name;
@@ -39,7 +39,11 @@ pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
 }
 
 pub fn src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
-    let span = internal(tcx, item.span());
+    src_from_span(item.span(), tcx)
+}
+
+pub fn src_from_span(span: Span, tcx: TyCtxt) -> String {
+    let span = internal(tcx, span);
     let src_map = tcx.sess.source_map();
     src_map.span_to_snippet(span).unwrap_or_default()
 }

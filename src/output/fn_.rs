@@ -19,11 +19,9 @@ pub fn dump(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt, writer: &Writer) {
     }
 
     for fn_def in all_fns {
-        let src = Source::new(fn_def, tcx);
         let doc = Documentation::new(fn_def, tcx);
 
-        let name = &src.meta.name;
-        writer.dump_json(name, "src", &src);
+        let name = &doc.meta.name;
         writer.dump_json(name, "doc", &doc);
 
         if utils::did(fn_def, tcx).is_local()
@@ -31,6 +29,12 @@ pub fn dump(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt, writer: &Writer) {
         {
             let mir = Mir::new(fn_def, &body, tcx);
             writer.dump_json(name, "mir", &mir);
+
+            let src = Source::new_with_body(fn_def, &body, tcx);
+            writer.dump_json(name, "src", &src);
+        } else {
+            let src = Source::new(fn_def, tcx);
+            writer.dump_json(name, "src", &src);
         }
     }
 }
@@ -43,6 +47,13 @@ pub struct Source {
 }
 
 impl Source {
+    pub fn new_with_body(fn_def: FnDef, body: &Body, tcx: TyCtxt) -> Self {
+        Self {
+            meta: Meta::new(fn_def, tcx),
+            src: utils::src_from_span(body.span, tcx),
+        }
+    }
+
     pub fn new(fn_def: FnDef, tcx: TyCtxt) -> Self {
         Self {
             meta: Meta::new(fn_def, tcx),
