@@ -52,14 +52,14 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
 
             let finfo = &*map_fn.entry(fn_def).or_insert(finfo);
 
-            let out_func = output::Function::new(fn_def, finfo, &body, tcx, &navi);
+            let out_func = output::caller::Caller::new(fn_def, finfo, tcx, &navi);
             out_funcs.push(out_func);
         }
     }
 
     let map_adt = info_adt::adt_info(&map_fn);
     for (adt, adt_info) in &map_adt {
-        let out_adt = output::Adt::new(adt, adt_info, tcx);
+        let out_adt = output::adt::Adt::new(adt, adt_info, tcx);
         out_adts.push(out_adt);
     }
     let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn);

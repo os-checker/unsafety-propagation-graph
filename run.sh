@@ -55,6 +55,10 @@ gen_data() {
   rm target/upg/**/upg.log
   rm target/upg/**/rustflags.json
 
+  rm data/alloc -rf
+  rm data/core -rf
+  rm data/ostd -rf
+  rm data/std -rf
   cp target/upg/asterinas/alloc data -r
   cp target/upg/asterinas/core data -r
   cp target/upg/asterinas/ostd data -r
