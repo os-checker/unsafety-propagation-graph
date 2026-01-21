@@ -22,9 +22,10 @@ const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 
 const crate = ref<Crate>(Crate.std);
 const nodeItem = ref<string>(defaultCrateItemQuery(crate.value));
-watch(nodeItem, name => { if (name) nodeItem.value = name })
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
+watch(nodeItem, name => { if (name) panelContent.value.nodeItem = name })
+
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Doc);
 </script>

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import type { Doc, Mir, Src } from "~/lib/output";
-import { EMPTY_DOC, EMPTY_MIR, EMPTY_SRC, mirURL, srcURL } from "~/lib/output";
+import { docURL, EMPTY_DOC, EMPTY_MIR, EMPTY_SRC, mirURL, srcURL } from "~/lib/output";
 import { Panel, PANELS, type PanelContent } from "~/lib/panel"
 
 const selected = defineModel<Panel>();
@@ -56,7 +56,7 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
         return
       }
       case Panel.Doc: {
-        const url = mirURL(name)
+        const url = docURL(name)
         if (!url) content.value = EMPTY_CONTENT
         else $fetch(url)
           .then(text => {
@@ -69,7 +69,8 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
       }
       default: content.value = EMPTY_CONTENT
     }
-  })
+  },
+  { immediate: true })
 
 const isWrapped = ref(true);
 </script>

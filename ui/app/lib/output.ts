@@ -77,8 +77,8 @@ export function functionURL(name: string, info: string): string | undefined {
   const matched = name.match(pat);
   if (!matched) return undefined;
   const crate = matched[1];
-  const fn = matched[2];
-  return (crate && fn) ? `${BASE_URL}/${crate}/${fn}/${info}.json` : undefined;
+  // const fn = matched[2];
+  return (crate) ? `${BASE_URL}/${crate}/${name}/${info}.json` : undefined;
 }
 
 export const callerURL = (name: string) => functionURL(name, "caller")

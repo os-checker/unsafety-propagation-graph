@@ -1,6 +1,6 @@
 <template>
   <div class="top-menu">
-    <div class="m-2"> {{ nodeItem }} </div>
+    <div class="m-2"> </div>
 
     <div class="top-menu m-2 gap-1">
 
