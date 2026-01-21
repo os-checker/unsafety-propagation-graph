@@ -32,24 +32,26 @@ impl EnvVar {
     }
 }
 
-// #[allow(non_snake_case)]
-// fn UPG_RUST_STD_LIBRARY() -> PathBuf {
-//     if let Ok(s) = var("UPG_RUST_STD_LIBRARY") {
-//         PathBuf::from(s)
-//     } else {
-//         let output = Command::new("rustc")
-//             .arg("--print=sysroot")
-//             .output()
-//             .unwrap()
-//             .stdout;
-//         let sysroot = std::str::from_utf8(&output).unwrap().trim();
-//         let mut path = PathBuf::from(sysroot);
-//         path.extend(["lib", "rustlib", "src", "rust", "library"]);
-//         path
-//     }
-//     .canonicalize()
-//     .unwrap()
-// }
+const UPG_RUST_STD_LIBRARY: &str = "UPG_RUST_STD_LIBRARY";
+
+/// Mainly used to remap the path.
+fn std_library_path() -> PathBuf {
+    if let Ok(s) = var(UPG_RUST_STD_LIBRARY) {
+        PathBuf::from(s)
+    } else {
+        let output = std::process::Command::new("rustc")
+            .arg("--print=sysroot")
+            .output()
+            .unwrap()
+            .stdout;
+        let sysroot = std::str::from_utf8(&output).unwrap().trim();
+        let mut path = PathBuf::from(sysroot);
+        path.extend(["lib", "rustlib", "src", "rust", "library"]);
+        path
+    }
+    .canonicalize()
+    .unwrap()
+}
 
 #[allow(non_snake_case)]
 fn UPG_DIR() -> PathBuf {
@@ -77,7 +79,8 @@ fn var_or_string(env: &str, default: &str) -> String {
 pub static ENV: LazyLock<EnvVar> = LazyLock::new(|| EnvVar {
     UPG_DRIVER: var_or_string("UPG_DRIVER", "unsafety-propagation-graph"),
     UPG_BIN: var_or_string("UPG_BIN", "upg"),
-    UPG_RUST_STD_LIBRARY: var("UPG_RUST_STD_LIBRARY")
+    // If the env var is not given, we won't build std.
+    UPG_RUST_STD_LIBRARY: var(UPG_RUST_STD_LIBRARY)
         .ok()
         .and_then(|s| PathBuf::from(s).canonicalize().ok()),
     UPG_DIR: UPG_DIR(),
@@ -115,8 +118,15 @@ const UPG_ARGS: &[&str] = &[
     "-Zcrate-attr=feature(register_tool)",
     "-Zcrate-attr=register_tool(rapx)",
     "-Zmir-enable-passes=-RemoveStorageMarkers",
+    "--remap-path-prefix=/home/gh-zjp-CN/.rustup/toolchains/nightly-2025-12-06-aarch64-unknown-linux-gnu/=",
 ];
 
 fn rustc_flags() -> Vec<String> {
-    UPG_ARGS.iter().map(|arg| arg.to_string()).collect()
+    let library = std_library_path();
+    let remap = format!("--remap-path-prefix={}=$library", library.display());
+    UPG_ARGS
+        .iter()
+        .map(|arg| arg.to_string())
+        .chain([remap])
+        .collect()
 }

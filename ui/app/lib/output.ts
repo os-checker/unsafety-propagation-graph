@@ -1,14 +1,12 @@
+import { BASE_URL } from "./topbar";
 
-export type Function = {
+export type Caller = {
   name: string,
+  span: string,
   safe: boolean,
   callees: Callees,
   adts: { [key: string]: string[] },
   path: { type: PathType, path: string },
-  span: string,
-  src: string,
-  mir: string,
-  doc: string,
   tags: Tags
 }
 
@@ -26,6 +24,7 @@ export type CalleeInfo = {
   doc: string,
   adt: { [key: string]: AdtFnKind },
 }
+
 export enum AdtFnKind {
   Constructor = "Constructor",
   MutableAsArgument = "MutableAsArgument",
@@ -43,6 +42,7 @@ export type Property = {
   tag: { name: string, typ: TagType | null },
   args: string[],
 }
+
 export function tagName(tag: Property): string {
   const { typ, name } = tag.tag;
   switch (typ) {
@@ -62,6 +62,29 @@ export function tagName(tag: Property): string {
 //   }
 //   return [s]
 // }
+
+export type Src = { name: string, span: string, src: string, }
+export type Doc = { name: string, span: string, doc: string, }
+export type Mir = { name: string, span: string, mir: string, }
+
+export const EMPTY_SRC: Src = { name: "", span: "", src: "" }
+export const EMPTY_DOC: Doc = { name: "", span: "", doc: "" }
+export const EMPTY_MIR: Mir = { name: "", span: "", mir: "" }
+
+export function functionURL(name: string, info: string): string | undefined {
+  // name must be `{crate_name}::{func_name}`
+  const pat = /(\w+)::(.*)/;
+  const matched = name.match(pat);
+  if (!matched) return undefined;
+  const crate = matched[1];
+  // const fn = matched[2];
+  return (crate) ? `${BASE_URL}/${crate}/${name}/${info}.json` : undefined;
+}
+
+export const callerURL = (name: string) => functionURL(name, "caller")
+export const srcURL = (name: string) => functionURL(name, "src")
+export const docURL = (name: string) => functionURL(name, "doc")
+export const mirURL = (name: string) => functionURL(name, "mir")
 
 export type TagSpec = {
   args: string[],
@@ -92,9 +115,9 @@ export type TagUsageItem = {
   args: string[]
 }
 
-export const EMPTY_FUNCTION: Function = {
-  name: "", safe: true, callees: {}, adts: {}, path: { type: PathType.Local, path: "" }, span: "",
-  src: "", mir: "", doc: "", tags: { tags: [], spec: {}, docs: [] },
+export const EMPTY_CALLER: Caller = {
+  name: "", span: "", safe: true, callees: {}, adts: {}, path: { type: PathType.Local, path: "" },
+  tags: { tags: [], spec: {}, docs: [] },
 };
 
 export function idTag(name: string) {

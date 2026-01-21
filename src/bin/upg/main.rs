@@ -27,15 +27,15 @@ fn main() -> Result<()> {
         //     args[0] = "src/main.rs".to_owned();
         // }
 
-        if args.iter().any(|arg| is_normal_built(arg)) {
-            // build non-core crates
-            run("rustc", &args, &[])
-        } else {
+        if args.iter().any(|arg| is_target_crate(arg)) {
             let json = serde_json::json!({
                 "rustc": format!("rustc {}", args.join(" "))
             });
             ENV.write_rustflags_json(&json)?;
             build_core(args)
+        } else {
+            // build non-core crates
+            run("rustc", &args, &[])
         }
     } else {
         run_cargo()
@@ -103,18 +103,6 @@ fn build_core(args: Vec<String>) -> Result<()> {
 
 /// Normally build crates such as proc-macros, build scripts, and some common used crates we don't
 /// care from verify-rust-std. This can be possible false positive, but it works currently.
-fn is_normal_built(arg: &str) -> bool {
-    matches!(
-        arg,
-        "proc-macro"
-            | "build_script_build"
-            | "syn"
-            | "quote"
-            | "proc_macro2"
-            | "unicode_ident"
-            | "version_check"
-            | "proc_macro_error"
-            | "proc_macro_error_attr"
-            | "compiler_builtins"
-    )
+fn is_target_crate(arg: &str) -> bool {
+    matches!(arg, "core" | "std" | "alloc" | "demo" | "ostd")
 }

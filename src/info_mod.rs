@@ -1,7 +1,7 @@
 use crate::FxIndexMap;
 use rustc_hir::{ImplItemImplKind, ImplItemKind, ItemId, ItemKind, OwnerNode, Ty, def_id::DefId};
 use rustc_middle::ty::{TyCtxt, TyKind};
-use rustc_span::Ident;
+use rustc_span::{Ident, symbol::Symbol};
 use serde::Serialize;
 use std::mem;
 
@@ -380,8 +380,7 @@ impl DefPath {
     }
 
     fn crate_root(tcx: TyCtxt) -> Self {
-        let crate_name = tcx.crate_name(rustc_span::def_id::CrateNum::ZERO);
-        DefPath::new(DefPathKind::Mod, crate_name.as_str())
+        DefPath::new(DefPathKind::Mod, crate_name(tcx).as_str())
     }
 
     /// A fake submodule under root to host non-local items.
@@ -475,4 +474,8 @@ fn def_path(did: DefId, tcx: TyCtxt) -> Vec<DefPath> {
     let last_path_seg = v_path.last_mut().unwrap();
     last_path_seg.kind = def_path_kind;
     v_path
+}
+
+pub fn crate_name(tcx: TyCtxt) -> Symbol {
+    tcx.crate_name(rustc_span::def_id::CrateNum::ZERO)
 }

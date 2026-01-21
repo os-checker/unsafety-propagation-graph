@@ -132,18 +132,17 @@ export enum Crate {
 
 export const CRATES: Crate[] = [Crate.std, Crate.core, Crate.alloc, Crate.ostd];
 
-export type CrateItemQuery = { name: string, kind: DefPathKind };
-export function defaultCrateItemQuery(crate: Crate): CrateItemQuery {
+export function defaultCrateItemQuery(crate: Crate): string {
   switch (crate) {
-    case Crate.std: return { name: "std::time::Instant::now", kind: DefPathKind.Fn };
-    case Crate.core: return { name: "core::str::<impl str>::len", kind: DefPathKind.Fn };
-    case Crate.alloc: return { name: "alloc::vec::Vec::<T, A>::push", kind: DefPathKind.Fn };
-    case Crate.ostd: return { name: "ostd::boot::call_ostd_main", kind: DefPathKind.Fn };
-    default: return { name: "", kind: DefPathKind.Fn };
+    case Crate.std: return "std::time::Instant::now";
+    case Crate.core: return "core::str::<impl str>::len";
+    case Crate.alloc: return "alloc::vec::Vec::<T, A>::push";
+    case Crate.ostd: return "ostd::boot::call_ostd_main";
+    default: return "";
   }
 }
 
-const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
+export const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
 
 export function naviTreeURL(crate: Crate) {
   return `${BASE_URL}/${crate}/navi/tree.json`;

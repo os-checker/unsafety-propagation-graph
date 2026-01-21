@@ -48,6 +48,7 @@ gen_data() {
 
   pushd ./tag-asterinas/ostd/
   cargo clean
+  unset UPG_RUST_STD_LIBRARY # disable build-std
   UPG_DIR=$UPG_DIR/asterinas CARGO_BUILD_ARGS="--target x86_64-unknown-none" upg
   popd
 
@@ -55,9 +56,13 @@ gen_data() {
   rm target/upg/**/upg.log
   rm target/upg/**/rustflags.json
 
-  cp target/upg/asterinas/alloc data -r
-  cp target/upg/asterinas/core data -r
+  rm data/alloc -rf
+  rm data/core -rf
+  rm data/ostd -rf
+  rm data/std -rf
   cp target/upg/asterinas/ostd data -r
+  cp target/upg/demo/alloc data -r
+  cp target/upg/demo/core data -r
   cp target/upg/demo/std data -r
 }
 

@@ -40,7 +40,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let writer = output::Writer::new(&local_crate.name);
     let mut map_fn = FxIndexMap::with_capacity_and_hasher(fn_defs.len(), Default::default());
 
-    let mut out_funcs = Vec::with_capacity(fn_defs.len());
+    let mut out_callers = Vec::with_capacity(fn_defs.len());
     let mut out_adts = Vec::with_capacity(fn_defs.len());
 
     for fn_def in fn_defs {
@@ -48,23 +48,26 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
             let v_sp = get_tags(fn_def);
 
             let collector = analyze_fn_def::collect(&body);
-            let finfo = info_fn::FnInfo::new(collector, &body, v_sp.into(), &mut cache_adt);
+            let finfo = info_fn::FnInfo::new(collector, &body, v_sp.into(), &mut cache_adt, tcx);
 
             let finfo = &*map_fn.entry(fn_def).or_insert(finfo);
 
-            let out_func = output::Function::new(fn_def, finfo, &body, tcx, &navi);
-            out_funcs.push(out_func);
+            let out_caller = output::caller::Caller::new(fn_def, finfo, tcx, &navi);
+            out_callers.push(out_caller);
         }
     }
 
+    // Write src, mir, doc to disk.
+    output::fn_::dump(&map_fn, tcx, &writer);
+
     let map_adt = info_adt::adt_info(&map_fn);
     for (adt, adt_info) in &map_adt {
-        let out_adt = output::Adt::new(adt, adt_info, tcx);
+        let out_adt = output::adt::Adt::new(adt, adt_info, tcx);
         out_adts.push(out_adt);
     }
     let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn);
 
-    for out_func in &mut out_funcs {
+    for out_func in &mut out_callers {
         out_func.update_adt_fn(&adt_fn_collecor);
         out_func.dump(&writer);
     }
