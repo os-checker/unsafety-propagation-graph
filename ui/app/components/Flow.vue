@@ -10,10 +10,10 @@
 <script setup lang="ts">
 import type { Node, Edge } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { type Function, } from "~/lib/output"
+import { type Caller, callerURL, EMPTY_CALLER } from "~/lib/output"
 import { type FlowOpts } from '~/lib/topbar';
-import ELK from 'elkjs/lib/elk.bundled.js'
 import type { PanelContent } from '~/lib/panel';
+import ELK from 'elkjs/lib/elk.bundled.js'
 import { Plot, PlotConfig, type IdToItem } from '~/utils/graph';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
@@ -21,7 +21,16 @@ const panelContent = defineModel<PanelContent>('panelContent', { required: true 
 
 const elk = new ELK()
 
-const props = defineProps<{ fn: Function }>();
+const props = defineProps<{ nodeItem: string }>();
+
+const item = ref<Caller>(EMPTY_CALLER)
+watch(() => props.nodeItem, name => {
+  const url = callerURL(name)
+  if (!url) return;
+  $fetch(url)
+    .then(text => item.value = JSON.parse(text as string))
+    .catch(err => console.log(err));
+}, { immediate: true });
 
 const chPx = ref(9.375);
 onMounted(() => {
@@ -38,22 +47,21 @@ const EMPTY_DATA = { nodes: [], edges: [], id_to_item: {} };
 
 const data = ref<Data>(EMPTY_DATA);
 
-// Render current fn item doc as defualt.
-watch(() => props.fn, fn => panelContent.value.doc = fn.doc);
 // Respond to node click.
 onNodeClick(event => {
-  panelContent.value.doc = data.value.id_to_item[event.node.id]?.doc ?? props.fn.doc;
+  panelContent.value.nodeItem = data.value.id_to_item[event.node.id]?.name ?? "";
 })
 
 watchEffect(async () => {
-  const fn = props.fn;
-  if (!fn.name) return;
+  // This should be a caller or adt, but currently only caller is supported.
+  const caller = item.value;
+  if (!caller.name) return;
 
   const px = Math.ceil(chPx.value);
   const plotConfig = new PlotConfig(px, flowOpts.value);
 
   const plot = new Plot(plotConfig, elk);
-  await plot.plot(fn);
+  await plot.plot(caller);
 
   const { nodes, edges, id_to_item } = plot;
   data.value = { nodes, edges, id_to_item };
