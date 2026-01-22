@@ -2,7 +2,7 @@
   <div class="upg-left">
     <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share"
       :tags="tags" />
-    <Flow :nodeItem="nodeItem" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
+    <Flow :nodeItem="nodeItem" :tags="tags" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">

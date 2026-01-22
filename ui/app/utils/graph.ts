@@ -1,18 +1,40 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Caller, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, isAdtFnKindID } from "~/lib/graph";
+import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, isAdtFnKindID, idTag, isTagID } from "~/lib/graph";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
+import { getTag, type DataTags } from "~/lib/output/tag";
 
 type Dim = { height: number, width: number };
 
 // Put label top-center inside the node.
-const FnLayoutOptions = { "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP", 'elk.direction': 'RIGHT', 'elk.alignment': 'LEFT', };
+const FnLayoutOptions = {
+  "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
+  "elk.direction": "RIGHT",
+  "elk.alignment": "LEFT",
+  // Enlarge the node to contain labels.
+  // "elk.nodeSize.constraints": "NODE_LABELS",
+  // Put more inner nodes into a row.
+  "elk.aspectRatio": "10.0",
+  // "elk.padding": "0",
+  // "elk.padding": "[top=5,left=5,bottom=5,right=5]",
+};
+
+const TagLayoutOptions = {
+  "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
+  "elk.direction": "RIGHT",
+  "elk.alignment": "LEFT",
+}
 
 export type View = { callees: boolean, adts: boolean, tags: boolean };
 
 export class PlotConfig {
+  // Tags including all functions and specs.
+  tags: DataTags;
+  // Used to help generate unique idTag to prevent the same tag 
+  // on the same fn from being hidden.
+  disam: number;
   // mono font ch width in px.
   px: number;
   // Graph view type.
@@ -22,7 +44,9 @@ export class PlotConfig {
   // ELK options.
   rootLayoutOptions: LayoutOptions;
 
-  constructor(px: number, flowOpts: FlowOpts) {
+  constructor(tags: DataTags, px: number, flowOpts: FlowOpts) {
+    this.tags = tags;
+    this.disam = 0;
     this.px = px;
     this.flowOpts = flowOpts;
 
@@ -39,23 +63,21 @@ export class PlotConfig {
   size(label: string): Dim {
     const px = this.px;
     // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
-    return { height: 5 * px, width: (label.length + 4) * px }
+    return { height: 4 * px, width: (label.length + 4) * px }
   }
 
   // Treat label size as node size if no tags are inside or viewed.
-  // tagChildren(tags: Tags): ElkNode[] {
-  tagChildren(): ElkNode[] {
-    return []
-    // return tags.tags.map(tag => {
-    //   const name = tagName(tag);
-    //   const dim = this.size(name);
-    //   return {
-    //     id: idTag(name),
-    //     layoutOptions: FnLayoutOptions,
-    //     labels: [{ text: name, ...dim }],
-    //     ...dim
-    //   }
-    // })
+  tagChildren(fn_name: string): ElkNode[] {
+    const tags = getTag(fn_name, this.tags, false)
+    return tags.map(name => {
+      const dim = this.size(name);
+      return {
+        id: idTag(name, fn_name, this.disam++),
+        layoutOptions: TagLayoutOptions,
+        labels: [{ text: name, ...dim }],
+        ...dim
+      }
+    })
   }
 
   calleeChildren(callees: Callees, id_to_item: IdToItem): ElkNode[] {
@@ -63,20 +85,18 @@ export class PlotConfig {
       const labelDim = this.size(name);
       const id = idCalleeNonGeneric(name);
       id_to_item[id] = { name: name, safe: info.safe };
+      const tags = this.tagChildren(name)
       return {
         id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
-        children: this.view.tags ? this.tagChildren() : [],
-        ...this.fnDim(labelDim)
+        children: this.view.tags ? tags : [],
+        ...this.fnDim(tags, labelDim)
       };
     });
   }
 
-  // fnDim(tags: Tags, dim: Dim) {
-  //   return (!this.view.tags || tags.tags.length === 0) ? dim : {};
-  // }
-  fnDim(dim: Dim) {
-    return dim
+  fnDim(tags: ElkNode[], dim: Dim) {
+    return (!this.view.tags || tags.length === 0) ? dim : {};
   }
 
   edgeType(): string {
@@ -110,12 +130,13 @@ export class Plot {
   rootNode(fn: Caller): ElkNode {
     const config = this.config;
     const rootLabelDim = config.size(fn.name);
+    const tags = config.tagChildren(fn.name)
     const root: ElkNode = {
       id: fn.name,
       layoutOptions: FnLayoutOptions,
       labels: [{ text: fn.name, ...rootLabelDim }],
-      children: config.view.tags ? config.tagChildren() : [],
-      ...config.fnDim(rootLabelDim)
+      children: config.view.tags ? tags : [],
+      ...config.fnDim(tags, rootLabelDim)
     };
     this.id_to_item[root.id] = { name: fn.name, safe: fn.safe };
     return root;
@@ -248,10 +269,12 @@ export class Plot {
       });
       for (const adtKind of node.children ?? []) {
         const adtFnKindID = adtKind.id;
+        const isAdtKind = isAdtFnKindID(adtFnKindID)
+        const isTag = isTagID(adtFnKindID)
         nodes.push({
           id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
           position: { x: adtKind.x!, y: adtKind.y! }, type: "no-handle",
-          class: isAdtFnKindID(adtFnKindID) ? "upg-node-adt-fn-kind" : undefined,
+          class: isAdtKind ? "upg-node-adt-fn-kind" : (isTag ? "upg-node-tag" : undefined),
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
         });
@@ -267,7 +290,7 @@ export class Plot {
           for (const tag of callee.children ?? []) {
             nodes.push({
               id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
-              position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag",
+              position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag", type: "no-handle",
               parentNode: calleeID,
               targetPosition: Position.Left, sourcePosition: Position.Right,
             })
