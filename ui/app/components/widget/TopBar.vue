@@ -1,6 +1,9 @@
 <template>
   <div class="top-menu">
-    <div class="m-2">
+    <div class="top-menu m-2 gap-1">
+      <UTooltip text="Update URL To Share The Link">
+        <UButton icon="tabler:browser-share" color="neutral" variant="ghost" @click="shareHandle" />
+      </UTooltip>
       <ClientOnly>{{ nodeItem }}</ClientOnly>
     </div>
 
@@ -99,4 +102,7 @@ watch(nodeId, targetId => {
 const expandedNodess = ref<string[]>()
 // Keep the last clicked item Selected when slideover is reopened.
 const treeValue = ref<TreeItem>()
+
+const share = defineModel<boolean>("share", { required: true })
+const shareHandle = () => { share.value = true }
 </script>

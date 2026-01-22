@@ -30,6 +30,7 @@ export default defineNuxtConfig({
         'tabler:tag', // safety tag
         'tabler:search', // search
         'tabler:sitemap', // sidebar
+        'tabler:browser-share', // share
       ],
     }
   },

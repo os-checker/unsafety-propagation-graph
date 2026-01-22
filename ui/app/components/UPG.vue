@@ -1,6 +1,6 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" />
+    <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share" />
     <Flow :nodeItem="nodeItem" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
   </div>
   <div class="upg-right">
@@ -64,4 +64,18 @@ const rightPanel = ref(Panel.Doc);
 
 const flowOpts = ref<FlowOpts>(initState.flowOpts);
 watch(() => flowOpts.value.view, view => router.push({ query: { item: nodeItem.value, view: view.join(",") } }))
+
+const share = ref<boolean>(false)
+watch(share, val => {
+  if (val) {
+    // Update URL with all queries.
+    router.push({
+      query: {
+        item: nodeItem.value,
+        view: flowOpts.value.view.join(","),
+      }
+    })
+    share.value = false // share will be triggered again shen the button is clicked
+  }
+})
 </script>
