@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Caller, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, idTag, tagName, isAdtFnKindID } from "~/lib/output";
+import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, isAdtFnKindID } from "~/lib/graph";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 
