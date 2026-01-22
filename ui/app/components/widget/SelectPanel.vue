@@ -40,7 +40,7 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
             const src: Src = JSON.parse(raw)
             content.value = { ...EMPTY_CONTENT, src, raw }
           })
-          .catch(err => console.log(err));
+          .catch(err => { console.log(err); content.value = EMPTY_CONTENT });
         return
       }
       case Panel.Mir: {
@@ -52,7 +52,7 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
             const mir: Mir = JSON.parse(raw)
             content.value = { ...EMPTY_CONTENT, mir, raw }
           })
-          .catch(err => console.log(err));
+          .catch(err => { console.log(err); content.value = EMPTY_CONTENT });
         return
       }
       case Panel.Doc: {
@@ -64,7 +64,7 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
             const doc: Doc = JSON.parse(raw)
             content.value = { ...EMPTY_CONTENT, doc, raw }
           })
-          .catch(err => console.log(err));
+          .catch(err => { console.log(err); content.value = EMPTY_CONTENT });
         return
       }
       default: content.value = EMPTY_CONTENT

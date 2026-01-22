@@ -72,6 +72,7 @@ export const EMPTY_DOC: Doc = { name: "", span: "", doc: "" }
 export const EMPTY_MIR: Mir = { name: "", span: "", mir: "" }
 
 export function functionURL(name: string, info: string): string | undefined {
+  if (typeof name !== "string") return undefined;
   // name must be `{crate_name}::{func_name}`
   const pat = /(\w+)::(.*)/;
   const matched = name.match(pat);

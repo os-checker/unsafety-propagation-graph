@@ -9,6 +9,18 @@ export const VIEW_TYPES: ViewType[] = [
   ViewType.Callees, ViewType.Adts, ViewType.Tags
 ];
 
+export function toViewTypes(s: any): ViewType[] | undefined {
+  if (typeof s !== "string") return;
+  const v = []
+  for (const ele of s.split(",")) {
+    switch (ele) {
+      case "Callees": { v.push(ViewType.Callees); continue };
+      case "Adts": { v.push(ViewType.Adts); continue };
+      case "Tags": { v.push(ViewType.Tags); continue };
+    }
+  }
+  return v.length === 0 ? undefined : v
+}
 
 // Navigation
 
@@ -137,8 +149,18 @@ export function defaultCrateItemQuery(crate: Crate): string {
     case Crate.std: return "std::time::Instant::now";
     case Crate.core: return "core::str::<impl str>::len";
     case Crate.alloc: return "alloc::vec::Vec::<T, A>::push";
-    case Crate.ostd: return "ostd::boot::call_ostd_main";
+    case Crate.ostd: return "ostd::init";
     default: return "";
+  }
+}
+
+export function toCrate(s: string): Crate | undefined {
+  switch (s) {
+    case "std": return Crate.std;
+    case "core": return Crate.core;
+    case "alloc": return Crate.alloc;
+    case "ostd": return Crate.ostd;
+    default: return undefined
   }
 }
 
