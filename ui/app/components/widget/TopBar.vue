@@ -1,6 +1,8 @@
 <template>
   <div class="top-menu">
-    <div class="m-2"> </div>
+    <div class="m-2">
+      <ClientOnly>{{ nodeItem }}</ClientOnly>
+    </div>
 
     <div class="top-menu m-2 gap-1">
 

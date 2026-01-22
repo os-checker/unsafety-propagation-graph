@@ -36,7 +36,7 @@ function init() {
   }
   return {
     crate: krate ?? Crate.std,
-    item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std)
+    item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
   }
 }
 
@@ -44,10 +44,12 @@ const initState = init();
 const crate = ref<Crate>(initState.crate);
 const nodeItem = ref<string>(initState.item);
 watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
-watch(nodeItem, item => router.replace({ query: { item } }), { immediate: true })
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
-watch(nodeItem, name => { if (name) panelContent.value.nodeItem = name })
+watch(nodeItem, item => {
+  panelContent.value.nodeItem = item
+  router.replace({ query: { item } })
+})
 
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Doc);

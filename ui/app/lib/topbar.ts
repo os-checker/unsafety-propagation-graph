@@ -137,7 +137,7 @@ export function defaultCrateItemQuery(crate: Crate): string {
     case Crate.std: return "std::time::Instant::now";
     case Crate.core: return "core::str::<impl str>::len";
     case Crate.alloc: return "alloc::vec::Vec::<T, A>::push";
-    case Crate.ostd: return "ostd::boot::call_ostd_main";
+    case Crate.ostd: return "ostd::init";
     default: return "";
   }
 }
