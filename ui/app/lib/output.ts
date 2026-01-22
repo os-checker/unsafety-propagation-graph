@@ -7,7 +7,6 @@ export type Caller = {
   callees: Callees,
   adts: { [key: string]: string[] },
   path: { type: PathType, path: string },
-  tags: Tags
 }
 
 export enum PathType {
@@ -20,7 +19,6 @@ export type Callees = { [key: string]: CalleeInfo };
 export type CalleeInfo = {
   instance_name: string[],
   safe: boolean,
-  tags: Tags,
   doc: string,
   adt: { [key: string]: AdtFnKind },
 }
@@ -32,25 +30,6 @@ export enum AdtFnKind {
   Fn = "Fn",
 }
 
-export type Tags = {
-  tags: Property[],
-  spec: { [key: string]: TagSpec },
-  docs: string[],
-}
-
-export type Property = {
-  tag: { name: string, typ: TagType | null },
-  args: string[],
-}
-
-export function tagName(tag: Property): string {
-  const { typ, name } = tag.tag;
-  switch (typ) {
-    case null: return `${name}(${tag.args.join(", ")})`;
-    case TagType.Precond: return `${name}(${tag.args.join(", ")})`;
-    default: return `${typ}.${name}`;
-  }
-}
 
 // Usually the tag name is itself, but for `any(...)`  tag, we should 
 // parse it to get real used tags.
@@ -116,9 +95,17 @@ export type TagUsageItem = {
   args: string[]
 }
 
+export function tagName(tag: TagUsageItem): string {
+  const { typ, name } = tag.tag;
+  switch (typ) {
+    case null: return `${name}(${tag.args.join(", ")})`;
+    case TagType.Precond: return `${name}(${tag.args.join(", ")})`;
+    default: return `${typ}.${name}`;
+  }
+}
+
 export const EMPTY_CALLER: Caller = {
   name: "", span: "", safe: true, callees: {}, adts: {}, path: { type: PathType.Local, path: "" },
-  tags: { tags: [], spec: {}, docs: [] },
 };
 
 export function idTag(name: string) {

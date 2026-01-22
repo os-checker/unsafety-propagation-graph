@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
-import type { Tags, Function, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, idTag, isAdtID, tagName, isAdtFnKindID } from "~/lib/output";
+import type { Caller, AdtFnKind, Callees, CalleeInfo } from "~/lib/output";
+import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, idTag, tagName, isAdtFnKindID } from "~/lib/output";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 
@@ -43,35 +43,40 @@ export class PlotConfig {
   }
 
   // Treat label size as node size if no tags are inside or viewed.
-  tagChildren(tags: Tags): ElkNode[] {
-    return tags.tags.map(tag => {
-      const name = tagName(tag);
-      const dim = this.size(name);
-      return {
-        id: idTag(name),
-        layoutOptions: FnLayoutOptions,
-        labels: [{ text: name, ...dim }],
-        ...dim
-      }
-    })
+  // tagChildren(tags: Tags): ElkNode[] {
+  tagChildren(): ElkNode[] {
+    return []
+    // return tags.tags.map(tag => {
+    //   const name = tagName(tag);
+    //   const dim = this.size(name);
+    //   return {
+    //     id: idTag(name),
+    //     layoutOptions: FnLayoutOptions,
+    //     labels: [{ text: name, ...dim }],
+    //     ...dim
+    //   }
+    // })
   }
 
   calleeChildren(callees: Callees, id_to_item: IdToItem): ElkNode[] {
     return Object.entries(callees).map(([name, info]) => {
       const labelDim = this.size(name);
       const id = idCalleeNonGeneric(name);
-      id_to_item[id] = { name: name, doc: info.doc, safe: info.safe };
+      id_to_item[id] = { name: name, safe: info.safe };
       return {
         id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
-        children: this.view.tags ? this.tagChildren(info.tags) : [],
-        ...this.fnDim(info.tags, labelDim)
+        children: this.view.tags ? this.tagChildren() : [],
+        ...this.fnDim(labelDim)
       };
     });
   }
 
-  fnDim(tags: Tags, dim: Dim) {
-    return (!this.view.tags || tags.tags.length === 0) ? dim : {};
+  // fnDim(tags: Tags, dim: Dim) {
+  //   return (!this.view.tags || tags.tags.length === 0) ? dim : {};
+  // }
+  fnDim(dim: Dim) {
+    return dim
   }
 
   edgeType(): string {
@@ -81,7 +86,7 @@ export class PlotConfig {
 
 /** id_to_item: Node id to item (fn, callee, adt) name.
     Rust forbids identical path to different items, so the name is trustworthy. */
-export type IdToItem = { [key: string]: { name: string, doc: string, safe: boolean } };
+export type IdToItem = { [key: string]: { name: string, safe: boolean } };
 
 export class Plot {
   nodes: Node[];
@@ -102,27 +107,27 @@ export class Plot {
     Object.assign(this, { nodes: [], edges: [], id_to_item: {} });
   }
 
-  rootNode(fn: Function): ElkNode {
+  rootNode(fn: Caller): ElkNode {
     const config = this.config;
     const rootLabelDim = config.size(fn.name);
     const root: ElkNode = {
       id: fn.name,
       layoutOptions: FnLayoutOptions,
       labels: [{ text: fn.name, ...rootLabelDim }],
-      children: config.view.tags ? config.tagChildren(fn.tags) : [],
-      ...config.fnDim(fn.tags, rootLabelDim)
+      children: config.view.tags ? config.tagChildren() : [],
+      ...config.fnDim(rootLabelDim)
     };
-    this.id_to_item[root.id] = { name: fn.name, doc: fn.doc, safe: fn.safe };
+    this.id_to_item[root.id] = { name: fn.name, safe: fn.safe };
     return root;
   }
 
-  async plot(fn: Function) {
+  async plot(fn: Caller) {
     if (this.config.view.adts) await this.callee_adt(fn)
     else await this.callee_tag(fn);
   }
 
   /** Generate the graph with callees and optional tags. */
-  async callee_tag(fn: Function) {
+  async callee_tag(fn: Caller) {
     this.clear();
     const root = this.rootNode(fn);
     const config = this.config;
@@ -164,7 +169,7 @@ export class Plot {
   }
 
   /** Generate the graph with callee and adt nodes. */
-  async callee_adt(fn: Function) {
+  async callee_adt(fn: Caller) {
     this.clear()
     const root = this.rootNode(fn);
     const config = this.config;
@@ -185,7 +190,7 @@ export class Plot {
     const adtNodes: ElkNode[] = Object.entries(adts).map(([name, callees]) => {
       const labelDim = config.size(name);
       const adt_id = idAdt(name);
-      id_to_adt[adt_id] = { name: name, doc: "", safe: true };
+      id_to_adt[adt_id] = { name: name, safe: true };
 
       const kinds: { [key: string]: Callees } = {};
       for (const { kind, name, info } of callees) {
