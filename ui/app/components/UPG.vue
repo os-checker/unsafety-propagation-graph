@@ -29,4 +29,11 @@ watch(nodeItem, name => { if (name) panelContent.value.nodeItem = name })
 
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Doc);
+
+const router = useRouter();
+const route = useRoute();
+watch(route, val => console.log(val.query))
+watch(nodeItem, item => {
+  router.replace({ query: { item } })
+}, { immediate: true })
 </script>
