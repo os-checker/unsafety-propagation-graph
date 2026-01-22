@@ -17,16 +17,16 @@
 import type { FlowOpts } from "~/lib/topbar"
 import { Panel, type PanelContent } from "~/lib/panel"
 import { Crate, FLOW_OPTS, defaultCrateItemQuery, toCrate, toViewTypes } from "~/lib/topbar";
+import type { LocationQuery } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
-// watch(route, val => console.log(val.query))
 
 /** Parse route query to show the specified item; default to a std item if anything wrong. */
-function init() {
+function init(query: LocationQuery) {
   let krate: undefined | Crate = undefined
 
-  const item = route.query.item
+  const item = query.item
   if (item && typeof item === "string") {
     const matched = item.match(/^([^:]+)/)
     if (matched && matched[1]) {
@@ -35,7 +35,7 @@ function init() {
   }
 
   let flowOpts_ = FLOW_OPTS
-  const view = route.query.view
+  const view = query.view
   if (typeof view === "string") {
     const viewTypes = toViewTypes(view)
     if (viewTypes) flowOpts_.view = viewTypes
@@ -48,7 +48,7 @@ function init() {
   }
 }
 
-const initState = init();
+const initState = init(route.query);
 const crate = ref<Crate>(initState.crate);
 const nodeItem = ref<string>(initState.item);
 watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
@@ -56,7 +56,7 @@ watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
 watch(nodeItem, item => {
   panelContent.value.nodeItem = item
-  router.replace({ query: { item } })
+  router.push({ query: { item } })
 })
 
 const leftPanel = ref(Panel.Src);
@@ -64,4 +64,14 @@ const rightPanel = ref(Panel.Doc);
 
 const flowOpts = ref<FlowOpts>(initState.flowOpts);
 watch(() => flowOpts.value.view, view => router.push({ query: { item: nodeItem.value, view: view.join(",") } }))
+
+// Respond to query change.
+watch(() => route.query, query => {
+  const state = init(query)
+  // Only when the value differs will it update.
+  if (state.crate !== crate.value) crate.value = state.crate;
+  if (state.item !== nodeItem.value) nodeItem.value = state.item;
+  if (!state.flowOpts.view.every((ele, idx) => ele === flowOpts.value.view[idx]))
+    flowOpts.value.view = state.flowOpts.view;
+})
 </script>
