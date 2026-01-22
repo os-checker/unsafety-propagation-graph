@@ -16,13 +16,35 @@
 <script setup lang="ts">
 import type { FlowOpts } from "~/lib/topbar"
 import { Panel, type PanelContent } from "~/lib/panel"
-import { Crate, FLOW_OPTS, defaultCrateItemQuery } from "~/lib/topbar";
+import { Crate, FLOW_OPTS, defaultCrateItemQuery, toCrate } from "~/lib/topbar";
 
 const flowOpts = ref<FlowOpts>(FLOW_OPTS);
 
-const crate = ref<Crate>(Crate.std);
-const nodeItem = ref<string>(defaultCrateItemQuery(crate.value));
+const router = useRouter();
+const route = useRoute();
+// watch(route, val => console.log(val.query))
+
+/** Parse route query to show the specified item; default to a std item if anything wrong. */
+function init() {
+  let krate: undefined | Crate = undefined
+  const item = route.query.item
+  if (item && typeof item === "string") {
+    const matched = item.match(/^([^:]+)/)
+    if (matched && matched[1]) {
+      krate = toCrate(matched[1])
+    }
+  }
+  return {
+    crate: krate ?? Crate.std,
+    item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std)
+  }
+}
+
+const initState = init();
+const crate = ref<Crate>(initState.crate);
+const nodeItem = ref<string>(initState.item);
 watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
+watch(nodeItem, item => router.replace({ query: { item } }), { immediate: true })
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
 watch(nodeItem, name => { if (name) panelContent.value.nodeItem = name })
@@ -30,10 +52,4 @@ watch(nodeItem, name => { if (name) panelContent.value.nodeItem = name })
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Doc);
 
-const router = useRouter();
-const route = useRoute();
-watch(route, val => console.log(val.query))
-watch(nodeItem, item => {
-  router.replace({ query: { item } })
-}, { immediate: true })
 </script>

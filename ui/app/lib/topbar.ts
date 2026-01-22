@@ -142,6 +142,16 @@ export function defaultCrateItemQuery(crate: Crate): string {
   }
 }
 
+export function toCrate(s: string): Crate | undefined {
+  switch (s) {
+    case "std": return Crate.std;
+    case "core": return Crate.core;
+    case "alloc": return Crate.alloc;
+    case "ostd": return Crate.ostd;
+    default: return undefined
+  }
+}
+
 export const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
 
 export function naviTreeURL(crate: Crate) {
