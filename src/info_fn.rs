@@ -4,7 +4,6 @@ use crate::output::utils::name;
 use crate::utils::{FxIndexMap, SmallVec, ThinVec};
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{
-    CrateDef,
     mir::{Body, Mutability, ProjectionElem},
     ty::{FnDef, GenericArgKind, RigidTy, Ty, TyKind},
 };
@@ -24,6 +23,7 @@ pub struct FnInfo {
     /// All types and places mentioned in the function.
     #[expect(unused)]
     pub collector: Collector,
+    #[expect(unused)]
     pub v_sp: ThinVec<PropertiesAndReason>,
     /// Direct callees in the function. The order is decided by MirVisitor,
     /// and called functions is monomorphized.

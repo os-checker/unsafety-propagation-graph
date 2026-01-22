@@ -1,6 +1,5 @@
 use super::{Writer, utils};
 use crate::{
-    get_tags,
     info_adt::{AdtFnCollector, AdtFnKind},
     info_fn::FnInfo,
     info_mod::Navigation,
@@ -25,7 +24,6 @@ pub struct Caller {
     pub callees: FxIndexMap<String, CalleeInfo>,
     pub adts: FxIndexMap<String, Vec<String>>,
     pub path: OutputPath,
-    pub tags: Tags,
 }
 
 impl Caller {
@@ -46,7 +44,6 @@ impl Caller {
                 })
                 .collect(),
             path: def_path(fn_def.def_id(), tcx, navi),
-            tags: Tags::new(&info.v_sp),
         }
     }
 
@@ -76,6 +73,7 @@ pub struct Tags {
 }
 
 impl Tags {
+    #[expect(dead_code)]
     pub fn new(v_sp: &[PropertiesAndReason]) -> Self {
         let mut this = Self::default();
         for sp in v_sp {
@@ -114,7 +112,6 @@ fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
 #[derive(Debug, Serialize)]
 pub struct CalleeInfo {
     pub safe: bool,
-    pub tags: Tags,
     pub adt: FxIndexMap<String, AdtFnKind>,
 }
 
@@ -124,8 +121,6 @@ pub fn output_callee(finfo: &FnInfo) -> FxIndexMap<String, CalleeInfo> {
         let fn_def = *fn_def;
         let callee_info = CalleeInfo {
             safe: is_safe(fn_def),
-            // TODO: optimize this.
-            tags: Tags::new(&get_tags(fn_def)),
             adt: Default::default(),
         };
         map.insert(info.non_instance_name.clone(), callee_info);
