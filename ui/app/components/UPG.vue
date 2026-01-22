@@ -16,9 +16,7 @@
 <script setup lang="ts">
 import type { FlowOpts } from "~/lib/topbar"
 import { Panel, type PanelContent } from "~/lib/panel"
-import { Crate, FLOW_OPTS, defaultCrateItemQuery, toCrate } from "~/lib/topbar";
-
-const flowOpts = ref<FlowOpts>(FLOW_OPTS);
+import { Crate, FLOW_OPTS, defaultCrateItemQuery, toCrate, toViewTypes } from "~/lib/topbar";
 
 const router = useRouter();
 const route = useRoute();
@@ -27,6 +25,7 @@ const route = useRoute();
 /** Parse route query to show the specified item; default to a std item if anything wrong. */
 function init() {
   let krate: undefined | Crate = undefined
+
   const item = route.query.item
   if (item && typeof item === "string") {
     const matched = item.match(/^([^:]+)/)
@@ -34,9 +33,18 @@ function init() {
       krate = toCrate(matched[1])
     }
   }
+
+  let flowOpts_ = FLOW_OPTS
+  const view = route.query.view
+  if (typeof view === "string") {
+    const viewTypes = toViewTypes(view)
+    if (viewTypes) flowOpts_.view = viewTypes
+  }
+
   return {
     crate: krate ?? Crate.std,
     item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
+    flowOpts: flowOpts_
   }
 }
 
@@ -54,4 +62,6 @@ watch(nodeItem, item => {
 const leftPanel = ref(Panel.Src);
 const rightPanel = ref(Panel.Doc);
 
+const flowOpts = ref<FlowOpts>(initState.flowOpts);
+watch(() => flowOpts.value.view, view => router.push({ query: { item: nodeItem.value, view: view.join(",") } }))
 </script>

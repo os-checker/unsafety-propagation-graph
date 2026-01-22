@@ -9,6 +9,18 @@ export const VIEW_TYPES: ViewType[] = [
   ViewType.Callees, ViewType.Adts, ViewType.Tags
 ];
 
+export function toViewTypes(s: any): ViewType[] | undefined {
+  if (typeof s !== "string") return;
+  const v = []
+  for (const ele of s.split(",")) {
+    switch (ele) {
+      case "Callees": { v.push(ViewType.Callees); continue };
+      case "Adts": { v.push(ViewType.Adts); continue };
+      case "Tags": { v.push(ViewType.Tags); continue };
+    }
+  }
+  return v.length === 0 ? undefined : v
+}
 
 // Navigation
 
