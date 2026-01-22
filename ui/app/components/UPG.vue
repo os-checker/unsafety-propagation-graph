@@ -1,6 +1,7 @@
 <template>
   <div class="upg-left">
-    <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share" />
+    <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share"
+      :tags="tags" />
     <Flow :nodeItem="nodeItem" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
   </div>
   <div class="upg-right">
@@ -15,8 +16,9 @@
 
 <script setup lang="ts">
 import type { FlowOpts } from "~/lib/topbar"
+import type { DataTags } from '~/lib/output/tag';
 import { Panel, type PanelContent } from "~/lib/panel"
-import { Crate, FLOW_OPTS, defaultCrateItemQuery, toCrate, toViewTypes } from "~/lib/topbar";
+import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes } from "~/lib/topbar";
 
 const router = useRouter();
 const route = useRoute();
@@ -52,6 +54,13 @@ const initState = init();
 const crate = ref<Crate>(initState.crate);
 const nodeItem = ref<string>(initState.item);
 watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
+
+const tags = ref<DataTags>({ v_fn: {}, spec: {} });
+watch(crate, val => {
+  $fetch(tagURL(val))
+    .then(text => tags.value = JSON.parse(text as string))
+    .catch(err => console.log(err));
+}, { immediate: true });
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
 watch(nodeItem, item => {

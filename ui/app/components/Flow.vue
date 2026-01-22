@@ -21,7 +21,7 @@ const panelContent = defineModel<PanelContent>('panelContent', { required: true 
 
 const elk = new ELK()
 
-const props = defineProps<{ nodeItem: string }>();
+const props = defineProps<{ nodeItem: string, }>();
 
 const item = ref<Caller>(EMPTY_CALLER)
 watch(() => props.nodeItem, name => {
