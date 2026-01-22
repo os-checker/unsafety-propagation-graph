@@ -33,6 +33,4 @@ function makeTreeItem(tree: NaviTree): TreeItem {
   }
 }
 
-// watch(expanded, console.log)
-
 </script>

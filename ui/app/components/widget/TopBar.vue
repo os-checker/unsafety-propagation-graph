@@ -74,23 +74,24 @@ watch(crate, val => {
 }, { immediate: true });
 
 const nodeId = ref<number | undefined>();
-const nodeItem = defineModel<string | undefined>({ required: true })
-watch(
-  () => ({ targetId: nodeId.value, nav: navi.value }),
-  ({ targetId, nav }) => {
-    if (targetId === undefined) {
-      nodeItem.value = undefined;
-      return;
-    }
+const nodeItem = defineModel<string>({ required: true })
+// Update nodeId when navi (crate) changes.
+watch(navi, nav => {
+  const item = nodeItem.value
+  nodeId.value = item ? nav.name_to_id[item] : undefined
+})
+// Update nodeItem when nodeId changes to a valid id, and the fn name is different.
+watch(nodeId, targetId => {
+  if (targetId === undefined) return;
 
-    for (const [fn_name, id] of Object.entries(nav.name_to_id)) {
-      if (id === targetId) {
-        nodeItem.value = fn_name;
-        return
-      }
+  const oldItem = nodeItem.value;
+  for (const [fn_name, id] of Object.entries(navi.value.name_to_id)) {
+    if (id === targetId) {
+      if (oldItem !== fn_name) nodeItem.value = fn_name;
+      return
     }
-    nodeItem.value = undefined;
-  })
+  }
+})
 
 // Keep these nodes expanded when the slideover is reopened.
 const expandedNodess = ref<string[]>()
