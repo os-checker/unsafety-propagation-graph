@@ -62,6 +62,8 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
           .then(text => {
             const raw = text as string
             const doc: Doc = JSON.parse(raw)
+            // Encode fn name and span at the start of doc string.
+            doc.doc = `\`${doc.name}\`\n\n${doc.doc}`
             content.value = { ...EMPTY_CONTENT, doc, raw }
           })
           .catch(err => { console.log(err); content.value = EMPTY_CONTENT });
