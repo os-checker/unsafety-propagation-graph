@@ -32,7 +32,9 @@
                 <li v-for="fn_name in spec.stat.occurence[item.tag]?.unqiue_tagged_fn ?? []"
                   class="flex items-start gap-2">
                   <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-gray-600 dark:bg-gray-400" />
-                  <span class="font-mono">{{ fn_name }}</span>
+                  <ULink :to="getLink(fn_name)">
+                    <span class="font-mono">{{ fn_name }}</span>
+                  </ULink>
                 </li>
               </ul>
             </div>
@@ -81,7 +83,7 @@
 
 <script setup lang="ts">
 import type { RadioGroupItem, TabsItem } from '@nuxt/ui';
-import { type DataTags, type TagSpec } from '~/lib/output';
+import { type DataTags, type TagSpec } from '~/lib/output/tag';
 import type { BarPlotData } from '~/lib/topbar';
 
 const props = defineProps<{ tags: DataTags }>()
@@ -112,11 +114,11 @@ const spec = computed<SpecData>(() => {
   for (const [fn_name, tag_usage] of Object.entries(props.tags.v_fn)) {
     for (const sp of tag_usage) {
       for (const tag of sp.tags) {
-        const name = tag.tag.name;
+        const name = tag.sp.tag.name;
         // Real tags in `any` tag are in args:
         // "core::alloc::layout::Layout::for_value_raw": [
         // { "tags": [ { "tag": { "typ": null, "name": "any" }, "args": [ "Size", "ValidSlice", "ValidTraitObj" ] } ], } ],
-        const realTags = (name === "any") ? tag.args : [name];
+        const realTags = (name === "any") ? tag.sp.args : [name];
         for (const realTag of realTags) {
           stat.occurence[realTag] ??= { full_tagged_fn: [], unqiue_tagged_fn: [] };
           stat.occurence[realTag].full_tagged_fn.push(fn_name);
@@ -194,4 +196,19 @@ const tabs: TabsItem[] = [
   { label: "Tag Specification", slot: "spec" as const },
   { label: "Tag Usage", slot: "usage" as const },
 ]
+
+const router = useRouter()
+const route = useRoute()
+
+// 生成正确的跳转字符串
+const getLink = (fnName: string) => {
+  // router.resolve 会自动处理：
+  // 1. 当前路由名称
+  // 2. 现有的 baseURL
+  // 3. 传入的 query 参数
+  return router.resolve({
+    name: route.name, // 使用 name 确保包含完整的层级
+    query: { ...route.query, item: fnName } // 保留现有参数并更新 item
+  }).href
+}
 </script>
