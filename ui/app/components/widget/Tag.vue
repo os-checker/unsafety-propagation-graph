@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import type { RadioGroupItem, TabsItem } from '@nuxt/ui';
-import { type DataTags, type TagSpec } from '~/lib/output';
+import { type DataTags, type TagSpec } from '~/lib/output/tag';
 import type { BarPlotData } from '~/lib/topbar';
 
 const props = defineProps<{ tags: DataTags }>()
@@ -112,11 +112,11 @@ const spec = computed<SpecData>(() => {
   for (const [fn_name, tag_usage] of Object.entries(props.tags.v_fn)) {
     for (const sp of tag_usage) {
       for (const tag of sp.tags) {
-        const name = tag.tag.name;
+        const name = tag.sp.tag.name;
         // Real tags in `any` tag are in args:
         // "core::alloc::layout::Layout::for_value_raw": [
         // { "tags": [ { "tag": { "typ": null, "name": "any" }, "args": [ "Size", "ValidSlice", "ValidTraitObj" ] } ], } ],
-        const realTags = (name === "any") ? tag.args : [name];
+        const realTags = (name === "any") ? tag.sp.args : [name];
         for (const realTag of realTags) {
           stat.occurence[realTag] ??= { full_tagged_fn: [], unqiue_tagged_fn: [] };
           stat.occurence[realTag].full_tagged_fn.push(fn_name);
