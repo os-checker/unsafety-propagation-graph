@@ -66,4 +66,4 @@ gen_data() {
   cp target/upg/demo/std data -r
 }
 
-gen_data
+gen_std_json

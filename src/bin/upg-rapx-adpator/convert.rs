@@ -1,7 +1,11 @@
 use crate::FunctionName;
 use indexmap::IndexMap;
-use safety_parser::{configuration, safety::PropertiesAndReason};
-use serde::{Deserialize, Serialize};
+use safety_parser::{
+    configuration,
+    json::{Ouput, OutputProperties},
+    safety::PropertiesAndReason,
+};
+use serde::Deserialize;
 use std::{
     collections::{HashMap, HashSet},
     env, fs,
@@ -40,7 +44,7 @@ pub fn run() {
     dbg!(mapping.len());
 
     // The key is upg fn name, value is vec of tag names.
-    let mut v_fn = IndexMap::<String, Vec<PropertiesAndReason>>::with_capacity(std_json.len());
+    let mut v_fn = IndexMap::<String, Vec<OutputProperties>>::with_capacity(std_json.len());
     for (raw_fn_name, data) in &std_json {
         // Check all fn names are present.
         let Some(v_fn_name) = mapping.get(raw_fn_name) else {
@@ -52,8 +56,11 @@ pub fn run() {
                     .tags
                     .iter()
                     .map(|s| {
-                        PropertiesAndReason::parse_sp_str(s)
-                            .unwrap_or_else(|err| panic!("{s} is not a valid property: {err:?}"))
+                        OutputProperties::new(
+                            PropertiesAndReason::parse_sp_str(s).unwrap_or_else(|err| {
+                                panic!("{s} is not a valid property: {err:?}")
+                            }),
+                        )
                     })
                     .collect();
                 v_fn.insert(fn_name.def_path.clone(), v_sp);
@@ -71,7 +78,7 @@ pub fn run() {
     let mut missing = HashSet::<String>::with_capacity(spec.len());
     for tags in v_fn.values() {
         for tag in tags.iter().flat_map(|t| t.tags.iter()) {
-            if let Some(any_args) = tag.args_in_any_tag() {
+            if let Some(any_args) = tag.sp.args_in_any_tag() {
                 for arg in any_args {
                     for tag in arg.tags {
                         let name = tag.tag.name();
@@ -81,7 +88,7 @@ pub fn run() {
                     }
                 }
             } else {
-                let name = tag.tag.name();
+                let name = tag.sp.tag.name();
                 if !spec.contains_key(name) {
                     missing.insert(name.to_owned());
                 }
@@ -106,10 +113,4 @@ pub fn run() {
 struct InputData {
     #[serde(rename = "0")]
     tags: Vec<String>,
-}
-
-#[derive(Serialize)]
-struct Ouput {
-    v_fn: IndexMap<String, Vec<PropertiesAndReason>>,
-    spec: IndexMap<Box<str>, configuration::Key>,
 }

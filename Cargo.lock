@@ -359,6 +359,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b3cff922bd51709b605d9ead9aa71031d81447142d828eb4a6eba76fe619f9b"
 
 [[package]]
+name = "prettyplease"
+version = "0.2.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
+dependencies = [
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -461,9 +471,10 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 [[package]]
 name = "safety-parser"
 version = "0.4.2"
-source = "git+https://github.com/Artisan-Lab/tag-std?rev=bd068b2#bd068b228857dae2095cdf6059eed573646e294a"
+source = "git+https://github.com/Artisan-Lab/tag-std?rev=92665fe#92665fe31697c334a699fdf1ba7d09abf68aea35"
 dependencies = [
  "indexmap",
+ "prettyplease",
  "proc-macro2",
  "quote",
  "serde",
