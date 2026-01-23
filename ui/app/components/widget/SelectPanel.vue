@@ -6,12 +6,14 @@
     <UCheckbox label="Wrap" v-model="isWrapped" />
   </div>
 
-  <div class="upg-panel-content">
-    <CodeSrc v-if="selected === Panel.Src" :src="content.src.src" :isWrapped="isWrapped" />
-    <CodeSrc v-else-if="selected === Panel.Mir" :src="content.mir.mir" :isWrapped="isWrapped" />
-    <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="content.doc.doc" :isWrapped="isWrapped" />
-    <CodeMarkdown v-else-if="selected === Panel.Tag" :doc="content.tagDocs" :isWrapped="isWrapped" />
-  </div>
+  <ClientOnly>
+    <div class="upg-panel-content">
+      <CodeSrc v-if="selected === Panel.Src" :src="content.src.src" :isWrapped="isWrapped" />
+      <CodeSrc v-else-if="selected === Panel.Mir" :src="content.mir.mir" :isWrapped="isWrapped" />
+      <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="content.doc.doc" :isWrapped="isWrapped" />
+      <CodeMarkdown v-else-if="selected === Panel.Tag" :doc="content.tagDocs" :isWrapped="isWrapped" />
+    </div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
