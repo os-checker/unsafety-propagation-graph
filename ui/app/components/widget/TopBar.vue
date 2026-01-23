@@ -24,7 +24,7 @@
       </UTooltip>
 
       <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
-        <UTooltip text="View Tags">
+        <UTooltip text="Safety Tags (Safety Properties)">
           <UButton icon="tabler:tag" variant="ghost" :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400' }" />
         </UTooltip>
         <template #content>
@@ -57,22 +57,20 @@
 
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
-import type { DataTags } from '~/lib/output';
-import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, tagURL } from '~/lib/topbar';
+import type { DataTags } from '~/lib/output/tag';
+import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
 import type { Navi, FlowOpts, Crate } from '~/lib/topbar';
+
+// Props values are passed in, and never mutated here.
+const props = defineProps<{ tags: DataTags }>();
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
 
 const crate = defineModel<Crate>('crate', { required: true });
-const tags = ref<DataTags>({ v_fn: {}, spec: {} });
+
 const navi = ref<Navi>(NAVI)
 watch(crate, val => {
-  // Update tag data.
-  $fetch(tagURL(val))
-    .then(text => tags.value = JSON.parse(text as string))
-    .catch(err => console.log(err));
-  // Update navi tree.
   $fetch(naviTreeURL(val))
     .then(text => navi.value = JSON.parse(text as string))
     .catch(err => console.log(err));
