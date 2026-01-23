@@ -6,18 +6,18 @@
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
-      <WidgetSelectPanel v-model="leftPanel" v-model:panelContent="panelContent" />
+      <WidgetSelectPanel v-model="upPanel" v-model:panelContent="panelContent" :tags="tags" />
     </div>
     <div class="upg-panel">
-      <WidgetSelectPanel v-model="rightPanel" v-model:panelContent="panelContent" />
+      <WidgetSelectPanel v-model="downPanel" v-model:panelContent="panelContent" :tags="tags" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FlowOpts } from "~/lib/topbar"
-import type { DataTags } from '~/lib/output/tag';
-import { Panel, type PanelContent } from "~/lib/panel"
+import { type DataTags, } from '~/lib/output/tag';
+import { Panel, toPanel, toPanelStr, type PanelContent } from "~/lib/panel"
 import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes } from "~/lib/topbar";
 
 const router = useRouter();
@@ -26,9 +26,10 @@ const route = useRoute();
 
 /** Parse route query to show the specified item; default to a std item if anything wrong. */
 function init() {
+  const query = route.query
   let krate: undefined | Crate = undefined
 
-  const item = route.query.item
+  const item = query.item
   if (item && typeof item === "string") {
     const matched = item.match(/^([^:]+)/)
     if (matched && matched[1]) {
@@ -37,7 +38,7 @@ function init() {
   }
 
   let flowOpts_ = FLOW_OPTS
-  const view = route.query.view
+  const view = query.view
   if (typeof view === "string") {
     const viewTypes = toViewTypes(view)
     if (viewTypes) flowOpts_.view = viewTypes
@@ -46,7 +47,9 @@ function init() {
   return {
     crate: krate ?? Crate.std,
     item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
-    flowOpts: flowOpts_
+    flowOpts: flowOpts_,
+    up: toPanel(query.up as string) ?? Panel.Src,
+    down: toPanel(query.down as string) ?? Panel.Doc,
   }
 }
 
@@ -68,23 +71,23 @@ watch(nodeItem, item => {
   router.replace({ query: { item } })
 })
 
-const leftPanel = ref(Panel.Src);
-const rightPanel = ref(Panel.Doc);
+const upPanel = ref(initState.up);
+const downPanel = ref(initState.down);
 
 const flowOpts = ref<FlowOpts>(initState.flowOpts);
-watch(() => flowOpts.value.view, view => router.push({ query: { item: nodeItem.value, view: view.join(",") } }))
 
 const share = ref<boolean>(false)
 watch(share, val => {
-  if (val) {
-    // Update URL with all queries.
-    router.push({
-      query: {
-        item: nodeItem.value,
-        view: flowOpts.value.view.join(","),
-      }
-    })
-    share.value = false // share will be triggered again shen the button is clicked
-  }
+  if (!val) return;
+  // Update URL with all queries.
+  router.push({
+    query: {
+      item: nodeItem.value,
+      view: flowOpts.value.view.join(","),
+      up: toPanelStr(upPanel.value),
+      down: toPanelStr(downPanel.value),
+    }
+  })
+  share.value = false // share will be triggered again shen the button is clicked
 })
 </script>

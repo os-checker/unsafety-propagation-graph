@@ -46,7 +46,7 @@
       </UTooltip>
 
       <UTooltip text="Graph View">
-        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-45" icon="tabler:braces" />
+        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" />
       </UTooltip>
 
       <UColorModeButton />

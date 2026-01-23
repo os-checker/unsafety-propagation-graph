@@ -4,6 +4,9 @@
       <template #node-no-handle="props">
         <NodeNoHandle v-bind="props" />
       </template>
+      <template #node-tag="props">
+        <NodeTag v-bind="props" />
+      </template>
     </VueFlow>
     <div id="bridge" style="width: 1ch; visibility: hidden; position: absolute;"></div>
   </ClientOnly>

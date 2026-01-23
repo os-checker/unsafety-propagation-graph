@@ -63,7 +63,7 @@ export class PlotConfig {
   size(label: string): Dim {
     const px = this.px;
     // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
-    return { height: 4 * px, width: (label.length + 4) * px }
+    return { height: 4.8 * px, width: (label.length + 4) * px }
   }
 
   // Treat label size as node size if no tags are inside or viewed.
@@ -178,7 +178,7 @@ export class Plot {
       for (const tag of node.children ?? []) {
         nodes.push({
           id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
-          position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag",
+          position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag", type: "tag",
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
         });
@@ -273,7 +273,7 @@ export class Plot {
         const isTag = isTagID(adtFnKindID)
         nodes.push({
           id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
-          position: { x: adtKind.x!, y: adtKind.y! }, type: "no-handle",
+          position: { x: adtKind.x!, y: adtKind.y! }, type: isTag ? "tag" : "no-handle",
           class: isAdtKind ? "upg-node-adt-fn-kind" : (isTag ? "upg-node-tag" : undefined),
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
@@ -290,7 +290,7 @@ export class Plot {
           for (const tag of callee.children ?? []) {
             nodes.push({
               id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
-              position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag", type: "no-handle",
+              position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag", type: "tag",
               parentNode: calleeID,
               targetPosition: Position.Left, sourcePosition: Position.Right,
             })

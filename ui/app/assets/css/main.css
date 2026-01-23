@@ -107,18 +107,20 @@ html, body {
 
 .upg-node,
 .upg-node-fn,
-.upg-node-unsafe-fn,
-.upg-node-tag {
+.upg-node-unsafe-fn {
   @apply text-lg font-mono whitespace-nowrap;
   @variant dark {
     @apply bg-gray-800 text-white border-gray-100;
   };
 }
-.upg-node-tag {
-  @apply text-orange-600 dark:text-orange-400 font-bold;
-}
 .upg-node-unsafe-fn {
-  @apply bg-red-100 dark:bg-red-500/20;
+  @apply bg-red-100 dark:bg-red-900/30;
+}
+
+.upg-node-tag {
+  @apply text-lg font-mono whitespace-nowrap
+    text-orange-600 dark:text-orange-500 font-bold
+    border flex justify-center items-center;
 }
 
 .upg-node-adt,
