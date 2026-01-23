@@ -11,3 +11,22 @@ export type PanelContent = {
   nodeItem: string
 }
 
+export function toPanelStr(p: Panel): string {
+  switch (p) {
+    case Panel.Src: return "src";
+    case Panel.Mir: return "mir";
+    case Panel.Doc: return "doc";
+    case Panel.Tag: return "tag";
+    default: return ""
+  }
+}
+
+export function toPanel(s: string): Panel | undefined {
+  if (!s) return undefined;
+  switch (s) {
+    case "src": return Panel.Src;
+    case "mir": return Panel.Mir;
+    case "doc": return Panel.Doc;
+    case "tag": return Panel.Tag;
+  }
+}
