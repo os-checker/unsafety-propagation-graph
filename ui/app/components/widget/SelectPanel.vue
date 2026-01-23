@@ -30,8 +30,8 @@ const EMPTY_CONTENT: Content = {
 }
 const content = ref<Content>(EMPTY_CONTENT)
 
-watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
-  ({ panel, name }) => {
+watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem, tags: props.tags }),
+  ({ panel, name, tags }) => {
     switch (panel) {
       case Panel.Src: {
         const url = srcURL(name)
@@ -72,12 +72,11 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem }),
         return
       }
       case Panel.Tag: {
-        const item = panelContent.value.nodeItem
-        const tagDocs = getTagDoc(item, props.tags, true)
+        const tagDocs = getTagDoc(name, tags, true)
         const doc = tagDocs.map(s => s.doc).join("\n\n")
         content.value = {
           ...EMPTY_CONTENT,
-          tagDocs: doc ? `\`${item}\`\n\n${doc}` : doc
+          tagDocs: doc ? `\`${name}\`\n\n${doc}` : doc
         }
         return
       }
