@@ -63,7 +63,7 @@ export class PlotConfig {
   size(label: string): Dim {
     const px = this.px;
     // const dim = (label: string) => ({ height: `4ch`, width: `${label.length + 2}ch`, class: "upg-elem" });
-    return { height: 4 * px, width: (label.length + 4) * px }
+    return { height: 4.8 * px, width: (label.length + 4) * px }
   }
 
   // Treat label size as node size if no tags are inside or viewed.
