@@ -6,17 +6,17 @@
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
-      <WidgetSelectPanel v-model="leftPanel" v-model:panelContent="panelContent" />
+      <WidgetSelectPanel v-model="leftPanel" v-model:panelContent="panelContent" :tags="tags" />
     </div>
     <div class="upg-panel">
-      <WidgetSelectPanel v-model="rightPanel" v-model:panelContent="panelContent" />
+      <WidgetSelectPanel v-model="rightPanel" v-model:panelContent="panelContent" :tags="tags" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FlowOpts } from "~/lib/topbar"
-import type { DataTags } from '~/lib/output/tag';
+import { type DataTags, } from '~/lib/output/tag';
 import { Panel, type PanelContent } from "~/lib/panel"
 import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes } from "~/lib/topbar";
 
