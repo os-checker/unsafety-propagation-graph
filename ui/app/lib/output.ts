@@ -25,9 +25,12 @@ export type CalleeInfo = {
 
 export enum AdtFnKind {
   Constructor = "Constructor",
+  MethodOwnedReceiver = "MethodOwnedReceiver",
+  MethodMutableRefReceiver = "MethodMutableRefReceiver",
+  MethodImmutableRefReceiver = "MethodImmutableRefReceiver",
   MutableAsArgument = "MutableAsArgument",
   ImmutableAsArgument = "ImmutableAsArgument",
-  Fn = "Fn",
+  // Fn = "Fn",
 }
 
 export type Src = { name: string, span: string, src: string, }

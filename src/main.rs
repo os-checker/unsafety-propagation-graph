@@ -1,4 +1,5 @@
 #![feature(rustc_private)]
+#![feature(if_let_guard)]
 
 extern crate itertools;
 extern crate rustc_abi;
@@ -60,12 +61,12 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     // Write src, mir, doc to disk.
     output::fn_::dump(&map_fn, tcx, &writer);
 
-    let map_adt = info_adt::adt_info(&map_fn);
+    let map_adt = info_adt::adt_info(&map_fn, tcx);
     for (adt, adt_info) in &map_adt {
         let out_adt = output::adt::Adt::new(adt, adt_info, tcx);
         out_adts.push(out_adt);
     }
-    let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn);
+    let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn, tcx);
 
     for out_func in &mut out_callers {
         out_func.update_adt_fn(&adt_fn_collecor);

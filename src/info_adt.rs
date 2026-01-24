@@ -3,10 +3,16 @@ use crate::{
     info_fn::FnInfo,
     utils::{FxIndexMap, ThinVec},
 };
-use rustc_public::ty::{AdtDef, FnDef};
+use rustc_hir::def_id::DefId;
+use rustc_middle::ty::{Ty, TyCtxt, TyKind};
+use rustc_public::{
+    CrateDef,
+    rustc_internal::internal,
+    ty::{AdtDef, FnDef},
+};
 use serde::Serialize;
 
-pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
+pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt) -> FxIndexMap<Adt, AdtInfo> {
     let mut map_adt =
         FxIndexMap::<Adt, AdtInfo>::with_capacity_and_hasher(map_fn.len(), Default::default());
 
@@ -17,9 +23,12 @@ pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> 
 
             for access in &locals.access {
                 let v = adt_info.map.entry(access.clone()).or_default();
+                let (fn_kind, receiver) = fn_kind(fn_def, tcx);
                 v.push(FnDefAdt {
                     fn_def,
                     as_argument: locals.is_argument(fn_info.arg_count),
+                    fn_kind,
+                    receiver,
                 });
             }
         }
@@ -124,6 +133,63 @@ impl AdtInfo {
 pub struct FnDefAdt {
     pub fn_def: FnDef,
     pub as_argument: bool,
+    pub fn_kind: FnKind,
+    pub receiver: Option<Receiver>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Eq, Ord)]
+pub enum FnKind {
+    Method,
+    AssocFn,
+    FreeFn,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Receiver {
+    adt: DefId,
+    kind: ReceiverKind,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum ReceiverKind {
+    Owned,
+    MutableRef,
+    ImmutableRef,
+}
+
+fn fn_kind(fn_def: FnDef, tcx: TyCtxt) -> (FnKind, Option<Receiver>) {
+    let did = internal(tcx, fn_def.def_id());
+    let Some(assoc) = tcx.opt_associated_item(did) else {
+        return (FnKind::FreeFn, None);
+    };
+    if assoc.is_method() {
+        let fn_sig = tcx.fn_sig(did).instantiate_identity();
+        let inputs = fn_sig.inputs();
+        let receiver_ty: Ty = inputs.skip_binder()[0]; // Self type
+
+        // We could traverse the adt generic arguments, but for simplicity, only one layer here
+        let receiver = match receiver_ty.kind() {
+            TyKind::Adt(adt_def, ..) => Some(Receiver {
+                adt: adt_def.did(),
+                kind: ReceiverKind::Owned,
+            }),
+            TyKind::Ref(_, ty, mutability) if let TyKind::Adt(adt_def, ..) = ty.kind() => {
+                Some(Receiver {
+                    adt: adt_def.did(),
+                    kind: if mutability.is_mut() {
+                        ReceiverKind::MutableRef
+                    } else {
+                        ReceiverKind::ImmutableRef
+                    },
+                })
+            }
+            _ => None,
+        };
+
+        (FnKind::Method, receiver)
+    } else {
+        (FnKind::AssocFn, None)
+    }
 }
 
 /// Access a place w.r.t the adt or field.
@@ -142,10 +208,13 @@ pub struct Access {
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord)]
 pub enum AdtFnKind {
     Constructor,
+    MethodOwnedReceiver,
+    MethodMutableRefReceiver,
+    MethodImmutableRefReceiver,
     MutableAsArgument,
     ImmutableAsArgument,
     // The list is not exhuastive, because we can further look in to field access.
-    Fn,
+    // Fn,
 }
 
 /// Each FnDef may be affiliated to several Adts, but each Adt only has one kind
@@ -164,22 +233,54 @@ pub struct AdtFnCollector {
 }
 
 impl AdtFnCollector {
-    pub fn new(map_adt: &FxIndexMap<Adt, AdtInfo>, map_fn: &FxIndexMap<FnDef, FnInfo>) -> Self {
+    pub fn new(
+        map_adt: &FxIndexMap<Adt, AdtInfo>,
+        map_fn: &FxIndexMap<FnDef, FnInfo>,
+        tcx: TyCtxt,
+    ) -> Self {
         let mut this = Self::default();
         let Self {
             fn_adt_map,
             caller_callee_map,
         } = &mut this;
 
+        let mut map_fn_kind =
+            FxIndexMap::<FnDef, (FnKind, Option<Receiver>)>::with_capacity_and_hasher(
+                16,
+                Default::default(),
+            );
         for (adt, info) in map_adt {
+            // Merge fn kinds for the adt.
+            map_fn_kind.clear();
+            for v_fn in info.map.values() {
+                for f in v_fn {
+                    map_fn_kind
+                        .entry(f.fn_def)
+                        .and_modify(|(kind, receiver)| {
+                            *kind = (*kind).min(f.fn_kind);
+                            *receiver = receiver.or(f.receiver);
+                        })
+                        .or_insert((f.fn_kind, f.receiver));
+                }
+            }
+
+            let adt_did = internal(tcx, adt.def.def_id());
             for constructor in &info.constructors {
                 push_adt_fn(fn_adt_map, adt, *constructor, AdtFnKind::Constructor);
             }
             for immutable in &info.as_argument.read {
-                push_adt_fn(fn_adt_map, adt, *immutable, AdtFnKind::ImmutableAsArgument);
+                let adt_fn_kind = adt_fn_kind(
+                    &map_fn_kind,
+                    adt_did,
+                    immutable,
+                    AdtFnKind::ImmutableAsArgument,
+                );
+                push_adt_fn(fn_adt_map, adt, *immutable, adt_fn_kind);
             }
             for mutable in &info.as_argument.write {
-                push_adt_fn(fn_adt_map, adt, *mutable, AdtFnKind::MutableAsArgument);
+                let adt_fn_kind =
+                    adt_fn_kind(&map_fn_kind, adt_did, mutable, AdtFnKind::MutableAsArgument);
+                push_adt_fn(fn_adt_map, adt, *mutable, adt_fn_kind);
             }
         }
 
@@ -207,10 +308,44 @@ impl AdtFnCollector {
     }
 }
 
+fn adt_fn_kind(
+    map_fn_kind: &FxIndexMap<FnDef, (FnKind, Option<Receiver>)>,
+    adt_did: DefId,
+    fn_def: &FnDef,
+    default: AdtFnKind,
+) -> AdtFnKind {
+    let (kind, receiver) = map_fn_kind.get(fn_def).unwrap();
+    match (kind, receiver) {
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::Owned,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodOwnedReceiver,
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::MutableRef,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodMutableRefReceiver,
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::ImmutableRef,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodImmutableRefReceiver,
+        _ => default,
+    }
+}
+
 fn push_adt_fn(map: &mut FnAdtMap, adt: &Adt, fn_def: FnDef, fn_kind: AdtFnKind) {
     let adt_map = map.entry(fn_def).or_default();
     adt_map
         .entry(adt.def)
+        // When the fn belongs to multiple kinds, we use the privileged one (in lower discreminate)
         .and_modify(|old| *old = fn_kind.min(*old))
         .or_insert(fn_kind);
 }
