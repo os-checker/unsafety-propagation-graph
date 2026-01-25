@@ -20,7 +20,13 @@ export type CalleeInfo = {
   instance_name: string[],
   safe: boolean,
   doc: string,
-  adt: { [key: string]: AdtFnKind },
+  // The key is adt name.
+  adt: { [key: string]: AdtInfo },
+}
+
+export type AdtInfo = {
+  kind: AdtFnKind,
+  field: { [key: string]: FieldAccessKind }
 }
 
 export enum AdtFnKind {
@@ -31,6 +37,12 @@ export enum AdtFnKind {
   MutableAsArgument = "MutableAsArgument",
   ImmutableAsArgument = "ImmutableAsArgument",
   // Fn = "Fn",
+}
+
+export enum FieldAccessKind {
+  Write = "Write",
+  Read = "Read",
+  Other = "Other",
 }
 
 export type Src = { name: string, span: string, src: string, }

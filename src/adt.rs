@@ -36,6 +36,10 @@ impl Adt {
         }
         Some(self.variant_fields.len())
     }
+
+    pub fn get(&self, idx: usize) -> Option<&VaraintField> {
+        self.variant_fields.get(idx)
+    }
 }
 
 fn new_variant_fields(def: AdtDef) -> Vec<VaraintField> {

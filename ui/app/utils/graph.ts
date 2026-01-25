@@ -199,9 +199,9 @@ export class Plot {
     const adts: { [keys: string]: { name: string, kind: AdtFnKind, info: CalleeInfo }[] } = {};
     for (const [callee_name, info] of Object.entries(fn.callees)) {
       // Callee name has been unqiue, so we push it to the adts.
-      for (const [adt, fn_kind] of Object.entries(info.adt)) {
+      for (const [adt, adt_info] of Object.entries(info.adt)) {
         adts[adt] ??= [];
-        adts[adt].push({ name: callee_name, kind: fn_kind, info });
+        adts[adt].push({ name: callee_name, kind: adt_info.kind, info });
       }
     }
 

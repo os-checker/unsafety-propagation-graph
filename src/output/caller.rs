@@ -1,6 +1,6 @@
 use super::{Writer, utils};
 use crate::{
-    info_adt::{AdtFnCollector, AdtFnKind},
+    info_adt::{AdtFnCollector, OutAdtFnKindInfo, out_adt_fn_kind_info},
     info_fn::FnInfo,
     info_mod::Navigation,
     utils::FxIndexMap,
@@ -54,7 +54,7 @@ impl Caller {
             {
                 info.adt = adt_map
                     .iter()
-                    .map(|(adt, fn_kind)| (adt.name(), *fn_kind))
+                    .map(|(adt, fn_kind)| (adt.name(), out_adt_fn_kind_info(fn_kind)))
                     .collect();
             }
         }
@@ -112,7 +112,7 @@ fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
 #[derive(Debug, Serialize)]
 pub struct CalleeInfo {
     pub safe: bool,
-    pub adt: FxIndexMap<String, AdtFnKind>,
+    pub adt: FxIndexMap<String, OutAdtFnKindInfo>,
 }
 
 pub fn output_callee(finfo: &FnInfo) -> FxIndexMap<String, CalleeInfo> {
