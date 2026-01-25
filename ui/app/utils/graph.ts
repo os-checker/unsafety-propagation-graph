@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import type { Caller, AdtFnKind, Callees, CalleeInfo, FieldAccessKind } from "~/lib/output";
-import { idAdt, idCalleeNonGeneric, idEdge, idAdtFnKind, idTag, idField } from "~/lib/graph";
+import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt } from "~/lib/graph";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 import { getTag, type DataTags } from "~/lib/output/tag";
@@ -12,19 +12,30 @@ type Dim = { height: number, width: number };
 const FnLayoutOptions = {
   "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
   "elk.direction": "RIGHT",
-  "elk.alignment": "LEFT",
+  "elk.alignment": "CENTER",
   // Enlarge the node to contain labels.
   // "elk.nodeSize.constraints": "NODE_LABELS",
   // Put more inner nodes into a row.
-  "elk.aspectRatio": "10.0",
+  "elk.aspectRatio": "5.0",
   // "elk.padding": "0",
   // "elk.padding": "[top=5,left=5,bottom=5,right=5]",
+};
+
+const AdtLayoutOptions = {
+  "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
+  "elk.direction": "LEFT",
+  "elk.aspectRatio": "10.0",
 };
 
 const TagLayoutOptions = {
   "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
   "elk.direction": "RIGHT",
-  "elk.alignment": "LEFT",
+  "elk.alignment": "CENTER",
+}
+
+const FieldLayoutOptions = {
+  "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
+  "elk.direction": "RIGHT",
 }
 
 export type View = { callees: boolean, adts: boolean, tags: boolean };
@@ -84,10 +95,10 @@ export class PlotConfig {
     })
   }
 
-  calleeChildren(callees: Callees, withAdt: boolean): ElkNode[] {
+  calleeChildren(callees: Callees, withAdt: string): ElkNode[] {
     return Object.entries(callees).map(([name, info]) => {
       const labelDim = this.size(name);
-      const id = idCalleeNonGeneric(name);
+      const id = idCalleeWithAdt(name, withAdt);
       this.id_to_item[id] = {
         name: name,
         kind: info.safe ?
@@ -110,6 +121,20 @@ export class PlotConfig {
 
   nodeType(id: string) {
     return nodeKindType(this.id_to_item[id]!.kind)
+  }
+
+  nodeSourceTargetPos(id: string) {
+    switch (this.id_to_item[id]!.kind) {
+      case NodeKind.SafeFn: case NodeKind.UnsafeFn: case NodeKind.Adt:
+        return { targetPosition: Position.Left, type: 'output' };
+      case NodeKind.SafeFnWithAdt: case NodeKind.UnsafeFnWithAdt:
+        return { targetPosition: Position.Bottom, type: 'output' };
+      case NodeKind.Field:
+        return { sourcePosition: Position.Bottom, type: 'input' };
+      case NodeKind.SafeRoot: case NodeKind.UnsafeRoot:
+        return { sourcePosition: Position.Right, type: 'input' };
+      default: return {};
+    }
   }
 
   fnDim(tags: ElkNode[], dim: Dim) {
@@ -204,7 +229,7 @@ export class Plot {
     const root = this.rootNode(fn);
     const config = this.config;
 
-    const callees = config.calleeChildren(fn.callees, false);
+    const callees = config.calleeChildren(fn.callees, "");
 
     const edges: Edge[] = callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: config.flowOpts.edge as string }));
 
@@ -221,16 +246,14 @@ export class Plot {
     for (const node of tree.children ?? []) {
       nodes.push({
         id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
-        position: { x: node.x!, y: node.y! },
-        class: config.nodeClass(node.id),
-        targetPosition: Position.Left, sourcePosition: Position.Right,
+        position: { x: node.x!, y: node.y! }, class: config.nodeClass(node.id),
+        ...config.nodeSourceTargetPos(node.id)
       });
       for (const tag of node.children ?? []) {
         nodes.push({
           id: tag.id, label: tag.labels![0]!.text!, width: tag.width, height: tag.height,
           position: { x: tag.x!, y: tag.y! }, class: "upg-node-tag", type: "tag",
           parentNode: node.id,
-          targetPosition: Position.Left, sourcePosition: Position.Right,
         });
       }
     }
@@ -246,6 +269,7 @@ export class Plot {
     const root = this.rootNode(fn);
     const config = this.config;
     const id_to_item = this.config.id_to_item;
+    const edgeType = config.edgeType();
 
     // The key is adt name, the value is callee name.
     const adt_to_fnKind: { [keys: string]: { name: string, kind: AdtFnKind, info: CalleeInfo }[] } = {};
@@ -265,11 +289,13 @@ export class Plot {
       }
     }
 
+    const edgesBetweenFieldsAndCallee: Edge[] = []
     const callees_with_adt = new Set<string>(); // Callee names.
-    const adtNodes: ElkNode[] = Object.entries(adt_to_fnKind).map(([name, callees]) => {
-      const labelDim = config.size(name);
-      const adt_id = idAdt(name);
-      id_to_item[adt_id] = { name: name, kind: NodeKind.Adt };
+    const adtNodes: ElkNode[] = Object.entries(adt_to_fnKind).map(([adtName, callees]) => {
+      const edgesInAdt: Edge[] = []
+      const labelDim = config.size(adtName);
+      const adt_id = idAdt(adtName);
+      id_to_item[adt_id] = { name: adtName, kind: NodeKind.Adt };
 
       const kinds: { [key: string]: Callees } = {};
       for (const { kind, name, info } of callees) {
@@ -277,44 +303,58 @@ export class Plot {
         kinds[kind][name] = info;
         callees_with_adt.add(name);
       }
-      const kindsChildren: ElkNode[] = Object.entries(kinds).map(([kind, callees]) => {
+      const kindNodes: ElkNode[] = Object.entries(kinds).map(([kind, callees]) => {
         const id_adt_fnKind = idAdtFnKind(adt_id, kind);
         id_to_item[id_adt_fnKind] = { name: kind, kind: NodeKind.FnKind };
         return {
           id: id_adt_fnKind, layoutOptions: FnLayoutOptions,
           labels: [{ text: kind, ...config.size(kind) }],
-          children: config.calleeChildren(callees, true),
+          children: config.calleeChildren(callees, id_adt_fnKind),
           // size will be computed from children
         }
       });
 
       const fieldsChildren: ElkNode[] = [];
-      const adt_fields = field_access[name];
+      const adt_fields = field_access[adtName];
       if (adt_fields) {
-        for (const [field,] of Object.entries(adt_fields)) {
-          const id_field = idField(name, field)
+        for (const [field, callees] of Object.entries(adt_fields)) {
+          const id_field = idField(adtName, field)
           id_to_item[id_field] = { name: field, kind: NodeKind.Field }
+          const dimField = config.size(field)
           fieldsChildren.push({
             id: id_field, layoutOptions: FnLayoutOptions,
-            labels: [{ text: field, ...config.size(field) }]
+            labels: [{ text: field, ...dimField }],
+            ...dimField
           })
+
+          for (const callee of callees) {
+            const fnKind = callee.info.adt[adtName]!.kind
+            const source = idCalleeKindAdt(callee.name, fnKind, adtName)
+            edgesInAdt.push({ id: idEdge(source, id_field), source, target: id_field, type: "step", label: callee.access })
+          }
         }
       }
-      let fieldNode: null | ElkNode = null
+      let fieldNode = null;
       if (fieldsChildren.length !== 0) {
-        const id_field_header = `Fields@adt@${name}`;
-        id_to_item[id_field_header] = { name, kind: NodeKind.FieldHeader }
+        const id_field_header = `Fields@adt@${adtName}`;
+        id_to_item[id_field_header] = { name: adtName, kind: NodeKind.FieldHeader }
         fieldNode = {
-          id: id_field_header, layoutOptions: FnLayoutOptions,
+          id: id_field_header, layoutOptions: FieldLayoutOptions,
           labels: [{ text: "Fields", ...config.size("Fields") }],
           children: fieldsChildren
         }
+        // Append the field node to kind nodes.
+        kindNodes.push(fieldNode)
       }
 
+      // Add current adt edges.
+      edgesInAdt.forEach(e => edgesBetweenFieldsAndCallee.push(e))
+
       return {
-        id: adt_id, layoutOptions: FnLayoutOptions,
-        labels: [{ text: name, ...labelDim }],
-        children: fieldNode ? [fieldNode, ...kindsChildren] : kindsChildren
+        id: adt_id, layoutOptions: AdtLayoutOptions,
+        labels: [{ text: adtName, ...labelDim }],
+        children: kindNodes,
+        edges: edgesInAdt.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
       }
     })
 
@@ -323,10 +363,9 @@ export class Plot {
     for (const [name, info] of Object.entries(fn.callees)) {
       if (!callees_with_adt.has(name)) callees_no_adt[name] = info;
     }
-    const calleesNoAdt = config.calleeChildren(callees_no_adt, false);
+    const calleesNoAdt = config.calleeChildren(callees_no_adt, "");
 
-    const edgeType = config.edgeType();
-    let edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: edgeType }));
+    const edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: edgeType }));
 
     const graph: ElkNode = {
       id: "__root",
@@ -345,8 +384,10 @@ export class Plot {
         position: { x: node.x!, y: node.y! },
         class: config.nodeClass(node.id),
         targetPosition: Position.Left, sourcePosition: Position.Right,
+        ...config.nodeSourceTargetPos(node.id)
       });
       for (const adtKind of node.children ?? []) {
+        // This can be FnKind or Field header.
         const adtFnKindID = adtKind.id;
         nodes.push({
           id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
@@ -354,8 +395,10 @@ export class Plot {
           class: config.nodeClass(adtFnKindID),
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
+          ...config.nodeSourceTargetPos(adtFnKindID)
         });
         for (const callee of adtKind.children ?? []) {
+          // This can be callee or field.
           const calleeID = callee.id;
           nodes.push({
             id: calleeID, label: callee.labels![0]!.text!, width: callee.width, height: callee.height,
@@ -363,6 +406,7 @@ export class Plot {
             class: config.nodeClass(calleeID),
             parentNode: adtFnKindID,
             targetPosition: Position.Left, sourcePosition: Position.Right,
+            ...config.nodeSourceTargetPos(calleeID)
           })
           for (const tag of callee.children ?? []) {
             nodes.push({
@@ -395,6 +439,8 @@ export class Plot {
     // Refine layout with orphan callees and adts.
     updateNodePosition(nodes.filter(n => refineNodesId.has(n.id)), edges);
 
+    // Connect callee and field in adts.
+    edgesBetweenFieldsAndCallee.forEach(e => edges.push(e))
     Object.assign(this, { nodes, edges });
   }
 }
