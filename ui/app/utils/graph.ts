@@ -43,12 +43,14 @@ export class PlotConfig {
   flowOpts: FlowOpts;
   // ELK options.
   rootLayoutOptions: LayoutOptions;
+  id_to_item: IdToItem;
 
   constructor(tags: DataTags, px: number, flowOpts: FlowOpts) {
     this.tags = tags;
     this.disam = 0;
     this.px = px;
     this.flowOpts = flowOpts;
+    this.id_to_item = {};
 
     const viewSet = new Set(flowOpts.view);
     this.view = { callees: viewSet.has(ViewType.Callees), adts: viewSet.has(ViewType.Adts), tags: viewSet.has(ViewType.Tags) };
@@ -67,12 +69,12 @@ export class PlotConfig {
   }
 
   // Treat label size as node size if no tags are inside or viewed.
-  tagChildren(fn_name: string, id_to_item: IdToItem): ElkNode[] {
+  tagChildren(fn_name: string): ElkNode[] {
     const tags = getTag(fn_name, this.tags, false)
     return tags.map(name => {
       const dim = this.size(name);
       const id = idTag(name, fn_name, this.disam++);
-      id_to_item[id] = { name, kind: NodeKind.Tag }
+      this.id_to_item[id] = { name, kind: NodeKind.Tag }
       return {
         id,
         layoutOptions: TagLayoutOptions,
@@ -82,17 +84,17 @@ export class PlotConfig {
     })
   }
 
-  calleeChildren(callees: Callees, id_to_item: IdToItem, withAdt: boolean): ElkNode[] {
+  calleeChildren(callees: Callees, withAdt: boolean): ElkNode[] {
     return Object.entries(callees).map(([name, info]) => {
       const labelDim = this.size(name);
       const id = idCalleeNonGeneric(name);
-      id_to_item[id] = {
+      this.id_to_item[id] = {
         name: name,
         kind: info.safe ?
           (withAdt ? NodeKind.SafeFnWithAdt : NodeKind.SafeFn) :
           (withAdt ? NodeKind.UnsafeFnWithAdt : NodeKind.UnsafeFn)
       };
-      const tags = this.tagChildren(name, id_to_item)
+      const tags = this.tagChildren(name)
       return {
         id, layoutOptions: FnLayoutOptions,
         labels: [{ text: name, ...labelDim }],
@@ -100,6 +102,14 @@ export class PlotConfig {
         ...this.fnDim(tags, labelDim)
       };
     });
+  }
+
+  nodeClass(id: string) {
+    return nodeKindClass(this.id_to_item[id]!.kind)
+  }
+
+  nodeType(id: string) {
+    return nodeKindType(this.id_to_item[id]!.kind)
   }
 
   fnDim(tags: ElkNode[], dim: Dim) {
@@ -153,26 +163,25 @@ export type IdToItem = { [key: string]: { name: string, kind: NodeKind } };
 export class Plot {
   nodes: Node[];
   edges: Edge[];
-  id_to_item: IdToItem;
   config: PlotConfig;
   elk: ELK;
 
   constructor(config: PlotConfig, elk: ELK) {
     this.nodes = [];
     this.edges = [];
-    this.id_to_item = {};
     this.config = config;
     this.elk = elk;
   }
 
   clear() {
-    Object.assign(this, { nodes: [], edges: [], id_to_item: {} });
+    Object.assign(this, { nodes: [], edges: [] });
+    this.config.id_to_item = {};
   }
 
   rootNode(fn: Caller): ElkNode {
     const config = this.config;
     const rootLabelDim = config.size(fn.name);
-    const tags = config.tagChildren(fn.name, this.id_to_item)
+    const tags = config.tagChildren(fn.name)
     const root: ElkNode = {
       id: fn.name,
       layoutOptions: FnLayoutOptions,
@@ -180,7 +189,7 @@ export class Plot {
       children: config.view.tags ? tags : [],
       ...config.fnDim(tags, rootLabelDim)
     };
-    this.id_to_item[root.id] = { name: fn.name, kind: fn.safe ? NodeKind.SafeRoot : NodeKind.UnsafeRoot };
+    config.id_to_item[root.id] = { name: fn.name, kind: fn.safe ? NodeKind.SafeRoot : NodeKind.UnsafeRoot };
     return root;
   }
 
@@ -194,9 +203,8 @@ export class Plot {
     this.clear();
     const root = this.rootNode(fn);
     const config = this.config;
-    const id_to_item = this.id_to_item;
 
-    const callees = config.calleeChildren(fn.callees, id_to_item, false);
+    const callees = config.calleeChildren(fn.callees, false);
 
     const edges: Edge[] = callees.map(c => ({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: config.flowOpts.edge as string }));
 
@@ -214,7 +222,7 @@ export class Plot {
       nodes.push({
         id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
         position: { x: node.x!, y: node.y! },
-        class: nodeKindClass(id_to_item[node.id]!.kind),
+        class: config.nodeClass(node.id),
         targetPosition: Position.Left, sourcePosition: Position.Right,
       });
       for (const tag of node.children ?? []) {
@@ -227,6 +235,7 @@ export class Plot {
       }
     }
 
+    const id_to_item = config.id_to_item;
     updateNodePosition(nodes.filter(n => id_to_item[n.id]?.kind !== NodeKind.Tag), edges);
     Object.assign(this, { nodes, edges });
   }
@@ -236,7 +245,7 @@ export class Plot {
     this.clear()
     const root = this.rootNode(fn);
     const config = this.config;
-    const id_to_item = this.id_to_item;
+    const id_to_item = this.config.id_to_item;
 
     // The key is adt name, the value is callee name.
     const adt_to_fnKind: { [keys: string]: { name: string, kind: AdtFnKind, info: CalleeInfo }[] } = {};
@@ -274,7 +283,7 @@ export class Plot {
         return {
           id: id_adt_fnKind, layoutOptions: FnLayoutOptions,
           labels: [{ text: kind, ...config.size(kind) }],
-          children: config.calleeChildren(callees, id_to_item, true),
+          children: config.calleeChildren(callees, true),
           // size will be computed from children
         }
       });
@@ -314,7 +323,7 @@ export class Plot {
     for (const [name, info] of Object.entries(fn.callees)) {
       if (!callees_with_adt.has(name)) callees_no_adt[name] = info;
     }
-    const calleesNoAdt = config.calleeChildren(callees_no_adt, id_to_item, false);
+    const calleesNoAdt = config.calleeChildren(callees_no_adt, false);
 
     const edgeType = config.edgeType();
     let edges: Edge[] = adtNodes.map(a => ({ id: idEdge(root.id, a.id), source: root.id, target: a.id, type: edgeType }));
@@ -334,15 +343,15 @@ export class Plot {
       nodes.push({
         id: node.id, label: node.labels![0]!.text!, width: node.width, height: node.height,
         position: { x: node.x!, y: node.y! },
-        class: nodeKindClass(id_to_item[node.id]!.kind),
+        class: config.nodeClass(node.id),
         targetPosition: Position.Left, sourcePosition: Position.Right,
       });
       for (const adtKind of node.children ?? []) {
         const adtFnKindID = adtKind.id;
         nodes.push({
           id: adtFnKindID, label: adtKind.labels![0]!.text!, width: adtKind.width, height: adtKind.height,
-          position: { x: adtKind.x!, y: adtKind.y! }, type: nodeKindType(id_to_item[adtFnKindID]!.kind),
-          class: nodeKindClass(id_to_item[adtFnKindID]!.kind),
+          position: { x: adtKind.x!, y: adtKind.y! }, type: config.nodeType(adtFnKindID),
+          class: config.nodeClass(adtFnKindID),
           parentNode: node.id,
           targetPosition: Position.Left, sourcePosition: Position.Right,
         });
@@ -351,7 +360,7 @@ export class Plot {
           nodes.push({
             id: calleeID, label: callee.labels![0]!.text!, width: callee.width, height: callee.height,
             position: { x: callee.x!, y: callee.y! },
-            class: nodeKindClass(id_to_item[calleeID]!.kind),
+            class: config.nodeClass(calleeID),
             parentNode: adtFnKindID,
             targetPosition: Position.Left, sourcePosition: Position.Right,
           })

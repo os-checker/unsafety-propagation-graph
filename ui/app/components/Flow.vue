@@ -69,8 +69,8 @@ watchEffect(async () => {
   const plot = new Plot(plotConfig, elk);
   await plot.plot(caller);
 
-  const { nodes, edges, id_to_item } = plot;
-  data.value = { nodes, edges, id_to_item };
+  const { nodes, edges, config } = plot;
+  data.value = { nodes, edges, id_to_item: config.id_to_item };
 })
 
 watch(() => flowOpts.value.fit, val => {
