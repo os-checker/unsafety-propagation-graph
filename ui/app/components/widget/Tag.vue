@@ -32,7 +32,7 @@
                 <li v-for="fn_name in spec.stat.occurence[item.tag]?.unqiue_tagged_fn ?? []"
                   class="flex items-start gap-2">
                   <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-gray-600 dark:bg-gray-400" />
-                  <ULink :to="getLink(fn_name)">
+                  <ULink :to="getLink(fn_name, $route, $router)">
                     <span class="font-mono">{{ fn_name }}</span>
                   </ULink>
                 </li>
@@ -85,6 +85,7 @@
 import type { RadioGroupItem, TabsItem } from '@nuxt/ui';
 import { type DataTags, type TagSpec } from '~/lib/output/tag';
 import type { BarPlotData } from '~/lib/topbar';
+import getLink from '~/utils/getLink';
 
 const props = defineProps<{ tags: DataTags }>()
 
@@ -197,18 +198,4 @@ const tabs: TabsItem[] = [
   { label: "Tag Usage", slot: "usage" as const },
 ]
 
-const router = useRouter()
-const route = useRoute()
-
-// 生成正确的跳转字符串
-const getLink = (fnName: string) => {
-  // router.resolve 会自动处理：
-  // 1. 当前路由名称
-  // 2. 现有的 baseURL
-  // 3. 传入的 query 参数
-  return router.resolve({
-    name: route.name, // 使用 name 确保包含完整的层级
-    query: { ...route.query, item: fnName } // 保留现有参数并更新 item
-  }).href
-}
 </script>

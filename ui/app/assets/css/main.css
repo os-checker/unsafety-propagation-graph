@@ -127,7 +127,7 @@ html, body {
 .upg-node-adt-fn-kind {
   @apply text-gray-500 font-mono whitespace-nowrap bg-transparent;
 }
-.upg-node-adt { @apply font-bold text-xl dark:border-gray-100/50; }
+.upg-node-adt { @apply font-bold text-xl dark:border-gray-100/50 border-b-0; }
 .upg-node-adt-fn-kind { @apply text-lg border-none; }
 
 .vue-flow__node.selected {

@@ -13,8 +13,22 @@ export function idCalleeNonGeneric(name: string) {
   return `c@${name}`
 }
 
+export function idCalleeWithAdt(callee: string, withAdt: string) {
+  return withAdt ? `${idCalleeNonGeneric(callee)}@withAdt@${withAdt}` : idCalleeNonGeneric(callee);
+}
+
+export function idCalleeKindAdt(callee: string, fnKind: string, adt: string) {
+  const id_adt_fnKind = idAdtFnKind(idAdt(adt), fnKind);
+  return idCalleeWithAdt(callee, id_adt_fnKind)
+  // return `c@${callee}@kind@${fnKind}@adt@${adt}@field@${field}`
+}
+
 export function idAdt(name: string) {
   return `adt@${name}`
+}
+
+export function idField(adt: string, field: string) {
+  return `field@${field}@adt@${adt}`
 }
 
 export function isAdtID(id: string) {

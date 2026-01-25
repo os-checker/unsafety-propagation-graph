@@ -36,6 +36,10 @@ impl Adt {
         }
         Some(self.variant_fields.len())
     }
+
+    pub fn get(&self, idx: usize) -> Option<&VaraintField> {
+        self.variant_fields.get(idx)
+    }
 }
 
 fn new_variant_fields(def: AdtDef) -> Vec<VaraintField> {
@@ -79,6 +83,7 @@ fn new_variant_fields(def: AdtDef) -> Vec<VaraintField> {
             }
         }
     }
+    variant_fields.sort_unstable();
     variant_fields
 }
 
@@ -140,7 +145,7 @@ pub enum AdtAccess {
 /// * `{ variant: Some(1), field: Some(0) }` means the first field in the second enum variant.
 ///
 /// `{ variant: None, field: None }` means the struct is unit (no fields), like `struct S`.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 #[debug("VariantIdx({:?})-FieldIdx({:?})", variant, field)]
 pub struct VaraintFieldIdx {
     pub variant: Option<u32>,
@@ -191,7 +196,7 @@ impl VaraintFieldIdx {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 pub struct VaraintField {
     pub idx: VaraintFieldIdx,
     pub name: Box<str>,

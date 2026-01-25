@@ -3,10 +3,16 @@ use crate::{
     info_fn::FnInfo,
     utils::{FxIndexMap, ThinVec},
 };
-use rustc_public::ty::{AdtDef, FnDef};
+use rustc_hir::def_id::DefId;
+use rustc_middle::ty::{Ty, TyCtxt, TyKind};
+use rustc_public::{
+    CrateDef,
+    rustc_internal::internal,
+    ty::{AdtDef, FnDef},
+};
 use serde::Serialize;
 
-pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> {
+pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt) -> FxIndexMap<Adt, AdtInfo> {
     let mut map_adt =
         FxIndexMap::<Adt, AdtInfo>::with_capacity_and_hasher(map_fn.len(), Default::default());
 
@@ -17,9 +23,12 @@ pub fn adt_info(map_fn: &FxIndexMap<FnDef, FnInfo>) -> FxIndexMap<Adt, AdtInfo> 
 
             for access in &locals.access {
                 let v = adt_info.map.entry(access.clone()).or_default();
+                let (fn_kind, receiver) = fn_kind(fn_def, tcx);
                 v.push(FnDefAdt {
                     fn_def,
                     as_argument: locals.is_argument(fn_info.arg_count),
+                    fn_kind,
+                    receiver,
                 });
             }
         }
@@ -118,12 +127,107 @@ impl AdtInfo {
 
         // Extract adts from type parameter.
     }
+
+    // The adt must match with self.
+    fn map_field_access(&self, adt: &Adt) -> AdtFieldMap {
+        let mut map = FxIndexMap::default();
+
+        let Some(len) = adt.num_fields() else {
+            return map;
+        };
+
+        for idx in 0..len {
+            let name = adt.get(idx).map(|f| &*f.name).unwrap_or("UNKNOWN").into();
+            let field = Field { idx, name };
+
+            if let Some(access) = self.fields.get(idx) {
+                let mut set = |v_fn: &[FnDef], set_kind: FieldAccessKind| {
+                    for &f in v_fn {
+                        map.entry(f)
+                            .and_modify(|m| {
+                                if let Some(kind) = m.get_mut(&field) {
+                                    // Override with the privileged kind.
+                                    *kind = (*kind).min(set_kind);
+                                } else {
+                                    m.insert(field.clone(), set_kind);
+                                }
+                            })
+                            .or_insert_with(|| FxIndexMap::from_iter([(field.clone(), set_kind)]));
+                    }
+                };
+
+                set(&access.write, FieldAccessKind::Write);
+                set(&access.read, FieldAccessKind::Read);
+                set(&access.other, FieldAccessKind::Other);
+            }
+        }
+
+        map.values_mut().for_each(|m| m.sort_unstable_keys());
+        map
+    }
 }
 
 #[derive(Debug)]
 pub struct FnDefAdt {
     pub fn_def: FnDef,
     pub as_argument: bool,
+    pub fn_kind: FnKind,
+    pub receiver: Option<Receiver>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Eq, Ord)]
+pub enum FnKind {
+    Method,
+    AssocFn,
+    FreeFn,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Receiver {
+    adt: DefId,
+    kind: ReceiverKind,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum ReceiverKind {
+    Owned,
+    MutableRef,
+    ImmutableRef,
+}
+
+fn fn_kind(fn_def: FnDef, tcx: TyCtxt) -> (FnKind, Option<Receiver>) {
+    let did = internal(tcx, fn_def.def_id());
+    let Some(assoc) = tcx.opt_associated_item(did) else {
+        return (FnKind::FreeFn, None);
+    };
+    if assoc.is_method() {
+        let fn_sig = tcx.fn_sig(did).instantiate_identity();
+        let inputs = fn_sig.inputs();
+        let receiver_ty: Ty = inputs.skip_binder()[0]; // Self type
+
+        // We could traverse the adt generic arguments, but for simplicity, only one layer here
+        let receiver = match receiver_ty.kind() {
+            TyKind::Adt(adt_def, ..) => Some(Receiver {
+                adt: adt_def.did(),
+                kind: ReceiverKind::Owned,
+            }),
+            TyKind::Ref(_, ty, mutability) if let TyKind::Adt(adt_def, ..) = ty.kind() => {
+                Some(Receiver {
+                    adt: adt_def.did(),
+                    kind: if mutability.is_mut() {
+                        ReceiverKind::MutableRef
+                    } else {
+                        ReceiverKind::ImmutableRef
+                    },
+                })
+            }
+            _ => None,
+        };
+
+        (FnKind::Method, receiver)
+    } else {
+        (FnKind::AssocFn, None)
+    }
 }
 
 /// Access a place w.r.t the adt or field.
@@ -138,19 +242,67 @@ pub struct Access {
     pub other: ThinVec<FnDef>,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord)]
+pub enum FieldAccessKind {
+    Write,
+    Read,
+    Other,
+}
+
 /// The less, the more strict/privileged kind.
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord)]
 pub enum AdtFnKind {
     Constructor,
+    MethodOwnedReceiver,
+    MethodMutableRefReceiver,
+    MethodImmutableRefReceiver,
     MutableAsArgument,
     ImmutableAsArgument,
     // The list is not exhuastive, because we can further look in to field access.
-    Fn,
+    // Fn,
 }
 
 /// Each FnDef may be affiliated to several Adts, but each Adt only has one kind
 /// for such FnDef, because we choose the most privileged AdtFnKind for simplicity.
-pub type AdtFnKindMap = FxIndexMap<AdtDef, AdtFnKind>;
+pub type AdtFnKindMap = FxIndexMap<AdtDef, AdtFnKindInfo>;
+
+/// An adt's fields access for all fns.
+pub type AdtFieldMap = FxIndexMap<FnDef, FieldMap>;
+pub type FieldMap = FxIndexMap<Field, FieldAccessKind>;
+
+#[derive(Clone, Debug, Serialize)]
+pub struct AdtFnKindInfo {
+    kind: AdtFnKind,
+    field: FxIndexMap<Field, FieldAccessKind>,
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub struct Field {
+    idx: usize,
+    name: Box<str>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct OutAdtFnKindInfo {
+    kind: AdtFnKind,
+    field: OutFieldMap,
+}
+
+pub fn out_adt_fn_kind_info(map: &AdtFnKindInfo) -> OutAdtFnKindInfo {
+    OutAdtFnKindInfo {
+        kind: map.kind,
+        field: out_field_map(&map.field),
+    }
+}
+
+/// JSON must use string as key.
+pub type OutFieldMap = FxIndexMap<String, FieldAccessKind>;
+pub fn out_field_map(map: &FieldMap) -> OutFieldMap {
+    map.iter()
+        .map(|(Field { idx, name }, kind)| (format!("{idx}-{name}"), *kind))
+        .collect()
+}
+
 pub type FnAdtMap = FxIndexMap<FnDef, AdtFnKindMap>;
 /// The outer key is caller FnDef, the inner key is Callee FnDef name string.
 /// AdtFnKindMap only collects Adts that are accessed directly in the caller.
@@ -164,22 +316,62 @@ pub struct AdtFnCollector {
 }
 
 impl AdtFnCollector {
-    pub fn new(map_adt: &FxIndexMap<Adt, AdtInfo>, map_fn: &FxIndexMap<FnDef, FnInfo>) -> Self {
+    pub fn new(
+        map_adt: &FxIndexMap<Adt, AdtInfo>,
+        map_fn: &FxIndexMap<FnDef, FnInfo>,
+        tcx: TyCtxt,
+    ) -> Self {
         let mut this = Self::default();
         let Self {
             fn_adt_map,
             caller_callee_map,
         } = &mut this;
 
+        let mut map_fn_kind =
+            FxIndexMap::<FnDef, (FnKind, Option<Receiver>)>::with_capacity_and_hasher(
+                16,
+                Default::default(),
+            );
         for (adt, info) in map_adt {
+            // Merge fn kinds for the adt.
+            map_fn_kind.clear();
+            for v_fn in info.map.values() {
+                for f in v_fn {
+                    map_fn_kind
+                        .entry(f.fn_def)
+                        .and_modify(|(kind, receiver)| {
+                            *kind = (*kind).min(f.fn_kind);
+                            *receiver = receiver.or(f.receiver);
+                        })
+                        .or_insert((f.fn_kind, f.receiver));
+                }
+            }
+
+            let field_map = &info.map_field_access(adt);
+
+            let adt_did = internal(tcx, adt.def.def_id());
             for constructor in &info.constructors {
-                push_adt_fn(fn_adt_map, adt, *constructor, AdtFnKind::Constructor);
+                push_adt_fn(
+                    fn_adt_map,
+                    adt,
+                    *constructor,
+                    AdtFnKind::Constructor,
+                    field_map,
+                );
             }
             for immutable in &info.as_argument.read {
-                push_adt_fn(fn_adt_map, adt, *immutable, AdtFnKind::ImmutableAsArgument);
+                let adt_fn_kind = adt_fn_kind(
+                    &map_fn_kind,
+                    adt_did,
+                    immutable,
+                    AdtFnKind::ImmutableAsArgument,
+                );
+                push_adt_fn(fn_adt_map, adt, *immutable, adt_fn_kind, field_map);
             }
             for mutable in &info.as_argument.write {
-                push_adt_fn(fn_adt_map, adt, *mutable, AdtFnKind::MutableAsArgument);
+                let adt_fn_kind =
+                    adt_fn_kind(&map_fn_kind, adt_did, mutable, AdtFnKind::MutableAsArgument);
+                push_adt_fn(fn_adt_map, adt, *mutable, adt_fn_kind, field_map);
             }
         }
 
@@ -196,7 +388,7 @@ impl AdtFnCollector {
                         // Ignore mono types.
                         let adt = adt.def;
                         if let Some(kind) = adt_fn_kind.get(&adt) {
-                            adt_map.insert(adt, *kind);
+                            adt_map.insert(adt, kind.clone());
                         }
                     }
                 }
@@ -207,10 +399,53 @@ impl AdtFnCollector {
     }
 }
 
-fn push_adt_fn(map: &mut FnAdtMap, adt: &Adt, fn_def: FnDef, fn_kind: AdtFnKind) {
+fn adt_fn_kind(
+    map_fn_kind: &FxIndexMap<FnDef, (FnKind, Option<Receiver>)>,
+    adt_did: DefId,
+    fn_def: &FnDef,
+    default: AdtFnKind,
+) -> AdtFnKind {
+    let (kind, receiver) = map_fn_kind.get(fn_def).unwrap();
+    match (kind, receiver) {
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::Owned,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodOwnedReceiver,
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::MutableRef,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodMutableRefReceiver,
+        (
+            FnKind::Method,
+            Some(Receiver {
+                adt,
+                kind: ReceiverKind::ImmutableRef,
+            }),
+        ) if *adt == adt_did => AdtFnKind::MethodImmutableRefReceiver,
+        _ => default,
+    }
+}
+
+fn push_adt_fn(
+    map: &mut FnAdtMap,
+    adt: &Adt,
+    fn_def: FnDef,
+    fn_kind: AdtFnKind,
+    field_map: &AdtFieldMap,
+) {
     let adt_map = map.entry(fn_def).or_default();
     adt_map
         .entry(adt.def)
-        .and_modify(|old| *old = fn_kind.min(*old))
-        .or_insert(fn_kind);
+        // When the fn belongs to multiple kinds, we use the privileged one (in lower discreminate)
+        .and_modify(|old| old.kind = fn_kind.min(old.kind))
+        .or_insert_with(|| AdtFnKindInfo {
+            kind: fn_kind,
+            field: field_map.get(&fn_def).cloned().unwrap_or_default(),
+        });
 }

@@ -21,6 +21,7 @@ import type { Doc, Mir, Src } from "~/lib/output";
 import { docURL, EMPTY_DOC, EMPTY_MIR, EMPTY_SRC, mirURL, srcURL } from "~/lib/output";
 import { getTagDoc, type DataTags, } from "~/lib/output/tag";
 import { Panel, PANELS, type PanelContent } from "~/lib/panel"
+import getLink from "~/utils/getLink";
 
 const selected = defineModel<Panel>();
 const panelContent = defineModel<PanelContent>("panelContent", { required: true });
@@ -31,6 +32,10 @@ const EMPTY_CONTENT: Content = {
   src: EMPTY_SRC, mir: EMPTY_MIR, doc: EMPTY_DOC, tagDocs: "", raw: "",
 }
 const content = ref<Content>(EMPTY_CONTENT)
+
+const router = useRouter()
+const route = useRoute()
+const getURL = (item: string) => getLink(item, route, router)
 
 watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem, tags: props.tags }),
   ({ panel, name, tags }) => {
@@ -61,13 +66,17 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem, tags: p
       }
       case Panel.Doc: {
         const url = docURL(name)
-        if (!url) content.value = EMPTY_CONTENT
+        if (!url) content.value = {
+          ...EMPTY_CONTENT,
+          // doc.json is failed to fetch, so we can unlink the item.
+          doc: { name, span: "", doc: name }
+        };
         else $fetch(url)
           .then(text => {
             const raw = text as string
             const doc: Doc = JSON.parse(raw)
             // Encode fn name and span at the start of doc string.
-            doc.doc = `\`${doc.name}\`\n\n${doc.doc}`
+            doc.doc = `[\`${name}\`](${getURL(name)})\n\n${doc.doc}`
             content.value = { ...EMPTY_CONTENT, doc, raw }
           })
           .catch(err => { console.log(err); content.value = EMPTY_CONTENT });
@@ -78,7 +87,10 @@ watch(() => ({ panel: selected.value, name: panelContent.value.nodeItem, tags: p
         const doc = tagDocs.map(s => s.doc).join("\n\n")
         content.value = {
           ...EMPTY_CONTENT,
-          tagDocs: doc ? `\`${name}\`\n\n${doc}` : doc
+          // FIXME: unlike Panel.Doc which doesn't return the link,
+          // here encodes the link anyway because we don't check if 
+          // the item is jumpable or not.
+          tagDocs: `[\`${name}\`](${getURL(name)})\n\n${doc}`
         }
         return
       }
