@@ -17,6 +17,10 @@ export function idAdt(name: string) {
   return `adt@${name}`
 }
 
+export function idField(adt: string, field: string) {
+  return `field@${field}@adt@${adt}`
+}
+
 export function isAdtID(id: string) {
   return id.startsWith("adt@")
 }
