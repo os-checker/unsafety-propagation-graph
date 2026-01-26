@@ -1,6 +1,6 @@
 use super::{Writer, utils};
 use crate::{
-    info_adt::{AdtFnCollector, OutAdtFnKindInfo, out_adt_fn_kind_info},
+    info_adt::{AdtFnCollector, AdtFnKindMap, OutAdtFnKindInfo, out_adt_fn_kind_info},
     info_fn::FnInfo,
     info_mod::Navigation,
     utils::FxIndexMap,
@@ -18,7 +18,8 @@ pub struct Caller {
     pub safe: bool,
     /// Direct callees. The key is generic FnDef name, the value is Instance info.
     pub callees: FxIndexMap<String, CalleeInfo>,
-    pub adts: FxIndexMap<String, Vec<String>>,
+    /// How caller interacts with adts.
+    pub adts: AdtFieldInfo,
     pub path: OutputPath,
 }
 
@@ -29,16 +30,7 @@ impl Caller {
             meta: utils::Meta::new(fn_def, tcx),
             safe: is_safe(fn_def),
             callees: output_callee(info),
-            adts: info
-                .adts
-                .iter()
-                .map(|(adt, locals)| {
-                    (
-                        adt.as_string(),
-                        locals.access.iter().map(|acc| format!("{acc:?}")).collect(),
-                    )
-                })
-                .collect(),
+            adts: Default::default(),
             path: def_path(fn_def.def_id(), tcx, navi),
         }
     }
@@ -48,11 +40,13 @@ impl Caller {
             if let Some(map) = adt_fn_collecor.caller_callee_map.get(&self.fn_def)
                 && let Some(adt_map) = map.get(callee.as_str())
             {
-                info.adt = adt_map
-                    .iter()
-                    .map(|(adt, fn_kind)| (adt.name(), out_adt_fn_kind_info(fn_kind)))
-                    .collect();
+                add_field_info(&mut info.adt, adt_map);
             }
+        }
+
+        // Update caller adts
+        if let Some(adt_map) = adt_fn_collecor.fn_adt_map.get(&self.fn_def) {
+            add_field_info(&mut self.adts, adt_map);
         }
     }
 
@@ -61,6 +55,11 @@ impl Caller {
     }
 }
 
+fn add_field_info(adt_field_info: &mut AdtFieldInfo, adt_map: &AdtFnKindMap) {
+    *adt_field_info = adt_map
+        .iter()
+        .map(|(adt, fn_kind)| (adt.name(), out_adt_fn_kind_info(fn_kind)))
+        .collect();
 }
 
 #[derive(Debug, Serialize)]
@@ -83,8 +82,10 @@ fn def_path(def_id: DefId, tcx: TyCtxt, navi: &Navigation) -> OutputPath {
 #[derive(Debug, Serialize)]
 pub struct CalleeInfo {
     pub safe: bool,
-    pub adt: FxIndexMap<String, OutAdtFnKindInfo>,
+    pub adt: AdtFieldInfo,
 }
+
+pub type AdtFieldInfo = FxIndexMap<String, OutAdtFnKindInfo>;
 
 pub fn output_callee(finfo: &FnInfo) -> FxIndexMap<String, CalleeInfo> {
     let mut map = FxIndexMap::<String, CalleeInfo>::default();
