@@ -45,7 +45,7 @@ function init() {
   }
 
   return {
-    crate: krate ?? Crate.std,
+    crate: krate ?? Crate.alloc,
     item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
     flowOpts: flowOpts_,
     up: toPanel(query.up as string) ?? Panel.Src,

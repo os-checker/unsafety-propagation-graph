@@ -132,7 +132,7 @@ export const FLOW_OPTS = {
   layout: ELKAlgorithm.mrtree,
   edge: EdgeType.bezier,
   fit: false,
-  view: [ViewType.Callees, ViewType.Tags]
+  view: [ViewType.Callees, ViewType.Tags, ViewType.Adts]
 };
 
 export enum Crate {
