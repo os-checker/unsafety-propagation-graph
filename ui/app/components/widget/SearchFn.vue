@@ -10,35 +10,34 @@
     </ol>
   </div>
   <div class="flex justify-between items-center m-2">
-    <WidgetPaginator :total="search.length" v-model:itemsPerPage="itemsPerPage" v-model:page="page" />
+    <WidgetPaginator :total="fullFns.length" v-model:itemsPerPage="search.itemsPerPage" v-model:page="search.page" />
 
     <div class="flex justify-end items-center gap-2">
-      <UInput v-model="searchText" placeholder="Search Name Or Tags" />
+      <UInput v-model="search.text" placeholder="Search Name Or Tag" />
 
-      <UCheckbox v-model="withTags" label="Only With Tags" />
+      <UCheckbox v-model="search.withTags" label="Only With Tags" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { getTag, type DataTags } from '~/lib/output/tag';
-import type { Navi } from '~/lib/topbar';
+import type { Navi, Search } from '~/lib/topbar';
 
 const props = defineProps<{ navi: Navi, tags: DataTags }>()
 
-const withTags = ref(false)
-const searchText = ref("")
+const search = defineModel<Search>({ required: true })
 
-type Search = { name: string, tags: string[] }
-const search = computed<Search[]>(() => {
+type Fn = { name: string, tags: string[] }
+const fullFns = computed<Fn[]>(() => {
   const original = Object.keys(props.navi.name_to_id).map(name => {
     return { name, tags: getTag(name, props.tags, true) }
   })
 
-  const sort = (a: Search, b: Search) => a.name.localeCompare(b.name)
+  const sort = (a: Fn, b: Fn) => a.name.localeCompare(b.name)
 
-  const filterTags = withTags.value
-  const filterText = searchText.value ? searchText.value.toLowerCase() : ""
+  const filterTags = search.value.withTags
+  const filterText = search.value.text ? search.value.text.toLowerCase() : ""
   return (filterTags || filterText) ? original.filter(i => {
     let ret = true
     if (filterTags) ret &&= i.tags.length !== 0
@@ -49,15 +48,14 @@ const search = computed<Search[]>(() => {
   }).sort(sort) : original.sort(sort)
 })
 
-const page = ref(1)
-const itemsPerPage = ref(20);
 const view = computed(() => {
-  const p = page.value ? page.value : 1
-  const ipp = itemsPerPage.value
+  const page = search.value.page
+  const p = page ? page : 1
+  const ipp = search.value.itemsPerPage
   const start = (p - 1) * ipp
   return {
     start: start + 1,
-    range: search.value.slice(start, start + ipp)
+    range: fullFns.value.slice(start, start + ipp)
   }
 })
 
