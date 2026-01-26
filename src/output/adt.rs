@@ -96,7 +96,9 @@ impl Access {
 }
 
 fn v_fn_name(v: &[FnDef], tcx: TyCtxt) -> Vec<String> {
-    v.iter().map(|c| utils::name(*c, tcx)).collect()
+    let mut v: Vec<_> = v.iter().map(|c| utils::name(*c, tcx)).collect();
+    v.sort_unstable();
+    v
 }
 
 #[derive(Debug, Serialize)]
