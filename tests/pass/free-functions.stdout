@@ -1,110 +1,92 @@
 
 {
-  "name": "a",
+  "name": "free_functions::a",
+  "span": "$DIR/free-functions.rs:3:1: 3:7",
+  "doc": ""
+}
+
+{
+  "name": "free_functions::a",
+  "span": "$DIR/free-functions.rs:3:1: 3:7",
+  "mir": "fn free_functions::a() -> () {/n    let mut _0: ();/n    bb0: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "free_functions::a",
+  "span": "$DIR/free-functions.rs:3:1: 3:7",
+  "src": "fn a() {}"
+}
+
+{
+  "name": "free_functions::b",
+  "span": "$DIR/free-functions.rs:4:1: 4:15",
+  "doc": ""
+}
+
+{
+  "name": "free_functions::b",
+  "span": "$DIR/free-functions.rs:4:1: 4:15",
+  "mir": "fn free_functions::b(_1: usize) -> () {/n    let mut _0: ();/n    bb0: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "free_functions::b",
+  "span": "$DIR/free-functions.rs:4:1: 4:15",
+  "src": "fn b(_: usize) {}"
+}
+
+{
+  "name": "free_functions::a",
+  "span": "$DIR/free-functions.rs:3:1: 3:7",
   "safe": true,
   "callees": {},
   "adts": {},
-  "path": 1,
-  "span": "$DIR/free-functions.rs:3:1: 3:10",
-  "src": "fn a() {}",
-  "mir": "fn a() -> () {/n    let mut _0: ();/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "free_functions::a"
   }
 }
 
 {
-  "name": "b",
+  "name": "free_functions::b",
+  "span": "$DIR/free-functions.rs:4:1: 4:15",
   "safe": true,
   "callees": {},
   "adts": {},
-  "path": 2,
-  "span": "$DIR/free-functions.rs:4:1: 4:18",
-  "src": "fn b(_: usize) {}",
-  "mir": "fn b(_1: usize) -> () {/n    let mut _0: ();/n    bb0: {/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "free_functions::b"
   }
 }
 
 {
-  "data": [
-    [
+  "tree": {
+    "node": {
+      "kind": "Mod",
+      "name": "free_functions",
+      "id": 0
+    },
+    "sub": [
       {
-        "kind": "Mod",
-        "name": "free_functions"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "free_functions"
+        "node": {
+          "kind": "Fn",
+          "name": "a",
+          "id": 1
+        },
+        "sub": []
       },
       {
-        "kind": "Fn",
-        "name": "a"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "free_functions"
-      },
-      {
-        "kind": "Fn",
-        "name": "b"
+        "node": {
+          "kind": "Fn",
+          "name": "b",
+          "id": 2
+        },
+        "sub": []
       }
     ]
-  ],
-  "navi": {
-    "0": {
-      "non_mod_kinds": [],
-      "subitems": [
-        {
-          "idx": 1,
-          "name": "a",
-          "kind": "Fn"
-        },
-        {
-          "idx": 2,
-          "name": "b",
-          "kind": "Fn"
-        }
-      ],
-      "groups": {
-        "Fn": [
-          0,
-          1
-        ]
-      }
-    },
-    "1": {
-      "non_mod_kinds": [
-        "Fn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "2": {
-      "non_mod_kinds": [
-        "Fn"
-      ],
-      "subitems": [],
-      "groups": {}
-    }
   },
-  "name_to_path": {
+  "name_to_id": {
     "free_functions::a": 1,
     "free_functions::b": 2
-  },
-  "path_to_name": {
-    "1": "free_functions::a",
-    "2": "free_functions::b"
   }
 }
