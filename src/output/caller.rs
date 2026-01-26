@@ -7,10 +7,6 @@ use crate::{
 };
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{CrateDef, DefId, mir::Safety, rustc_internal::internal, ty::FnDef};
-use safety_parser::{
-    configuration::Tag as TagSpec,
-    safety::{PropertiesAndReason, Property},
-};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -65,31 +61,6 @@ impl Caller {
     }
 }
 
-#[derive(Debug, Default, Serialize)]
-pub struct Tags {
-    pub tags: Vec<Property>,
-    pub spec: FxIndexMap<String, TagSpec>,
-    pub docs: Vec<Box<str>>,
-}
-
-impl Tags {
-    #[expect(dead_code)]
-    pub fn new(v_sp: &[PropertiesAndReason]) -> Self {
-        let mut this = Self::default();
-        for sp in v_sp {
-            this.docs.push(sp.gen_hover_doc());
-            this.tags.extend_from_slice(&sp.tags);
-            for tag in &sp.tags {
-                let name = tag.tag.name();
-                if let Some(spec) = tag.tag.get_spec()
-                    && this.spec.get(name).is_none()
-                {
-                    this.spec.insert(name.to_owned(), spec.clone());
-                }
-            }
-        }
-        this
-    }
 }
 
 #[derive(Debug, Serialize)]
