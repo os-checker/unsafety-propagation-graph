@@ -58,12 +58,10 @@
     }
   },
   "adts": {
-    "std::string::String": [
-      "Plain"
-    ],
-    "S": [
-      "Plain"
-    ]
+    "S": {
+      "kind": "Constructor",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -87,9 +85,10 @@
     }
   },
   "adts": {
-    "S": [
-      "Plain"
-    ]
+    "S": {
+      "kind": "Constructor",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
