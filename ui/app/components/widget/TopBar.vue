@@ -9,6 +9,15 @@
 
     <div class="top-menu m-2 gap-1">
 
+      <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
+        <UTooltip text="Search Function">
+          <UButton icon="tabler:search" variant="ghost" color="neutral" />
+        </UTooltip>
+        <template #content>
+          <WidgetSearchFn :navi="navi" :tags="tags" />
+        </template>
+      </UModal>
+
       <USlideover side="left" title="Navigation">
         <UTooltip text="Navigation">
           <UButton icon="tabler:sitemap" variant="ghost" />
@@ -57,7 +66,7 @@
 
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
-import type { DataTags } from '~/lib/output/tag';
+import { type DataTags } from '~/lib/output/tag';
 import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
 import type { Navi, FlowOpts, Crate } from '~/lib/topbar';
 
