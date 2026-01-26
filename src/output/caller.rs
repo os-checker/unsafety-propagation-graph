@@ -35,18 +35,18 @@ impl Caller {
         }
     }
 
-    pub fn update_adt_fn(&mut self, adt_fn_collecor: &AdtFnCollector) {
+    pub fn update_adt_fn(&mut self, adt_fn_collecor: &AdtFnCollector, tcx: TyCtxt) {
         for (callee, info) in &mut self.callees {
             if let Some(map) = adt_fn_collecor.caller_callee_map.get(&self.fn_def)
                 && let Some(adt_map) = map.get(callee.as_str())
             {
-                add_field_info(&mut info.adt, adt_map);
+                add_field_info(&mut info.adt, adt_map, tcx);
             }
         }
 
         // Update caller adts
         if let Some(adt_map) = adt_fn_collecor.fn_adt_map.get(&self.fn_def) {
-            add_field_info(&mut self.adts, adt_map);
+            add_field_info(&mut self.adts, adt_map, tcx);
         }
     }
 
@@ -55,10 +55,10 @@ impl Caller {
     }
 }
 
-fn add_field_info(adt_field_info: &mut AdtFieldInfo, adt_map: &AdtFnKindMap) {
+fn add_field_info(adt_field_info: &mut AdtFieldInfo, adt_map: &AdtFnKindMap, tcx: TyCtxt) {
     *adt_field_info = adt_map
         .iter()
-        .map(|(adt, fn_kind)| (adt.name(), out_adt_fn_kind_info(fn_kind)))
+        .map(|(adt, fn_kind)| (utils::name(*adt, tcx), out_adt_fn_kind_info(fn_kind)))
         .collect();
 }
 

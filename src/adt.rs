@@ -23,10 +23,6 @@ impl Adt {
         }
     }
 
-    pub fn as_string(&self) -> String {
-        self.def.name()
-    }
-
     /// Returns Some iff the adt is struct or union.
     pub fn num_fields(&self) -> Option<usize> {
         for vfield in &*self.variant_fields {
