@@ -1,19 +1,59 @@
 
 {
-  "name": "a",
+  "name": "constructors::a",
+  "span": "$DIR/constructors.rs:7:1: 7:12",
+  "doc": ""
+}
+
+{
+  "name": "constructors::a",
+  "span": "$DIR/constructors.rs:7:1: 7:12",
+  "mir": "fn constructors::a() -> S {/n    let mut _0: S;/n    let mut _1: std::string::String;/n    bb0: {/n        _1 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        _0 = S(move _1);/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "constructors::a",
+  "span": "$DIR/constructors.rs:7:1: 7:12",
+  "src": "fn a() -> S {/n    S { s: String::new() }/n}"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "src": "pub const fn new() -> String"
+}
+
+{
+  "name": "constructors::S::new",
+  "span": "$DIR/constructors.rs:12:5: 12:18",
+  "doc": ""
+}
+
+{
+  "name": "constructors::S::new",
+  "span": "$DIR/constructors.rs:12:5: 12:18",
+  "mir": "fn constructors::S::new() -> S {/n    let mut _0: S;/n    bb0: {/n        _0 = a() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "constructors::S::new",
+  "span": "$DIR/constructors.rs:12:5: 12:18",
+  "src": "fn new() -> S {/n        a()/n    }"
+}
+
+{
+  "name": "constructors::a",
+  "span": "$DIR/constructors.rs:7:1: 7:12",
   "safe": true,
   "callees": {
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     }
   },
@@ -25,35 +65,24 @@
       "Plain"
     ]
   },
-  "path": 1,
-  "span": "$DIR/constructors.rs:7:1: 9:2",
-  "src": "fn a() -> S {/n    S { s: String::new() }/n}",
-  "mir": "fn a() -> S {/n    let mut _0: S;/n    let mut _1: std::string::String;/n    bb0: {/n        _1 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        _0 = S(move _1);/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "constructors::a"
   }
 }
 
 {
-  "name": "S::new",
+  "name": "constructors::S::new",
+  "span": "$DIR/constructors.rs:12:5: 12:18",
   "safe": true,
   "callees": {
-    "a": {
-      "instance_name": [
-        "a"
-      ],
+    "constructors::a": {
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": "",
       "adt": {
-        "S": "Constructor"
+        "S": {
+          "kind": "Constructor",
+          "field": {}
+        }
       }
     }
   },
@@ -62,15 +91,9 @@
       "Plain"
     ]
   },
-  "path": 3,
-  "span": "$DIR/constructors.rs:12:5: 14:6",
-  "src": "fn new() -> S {/n        a()/n    }",
-  "mir": "fn S::new() -> S {/n    let mut _0: S;/n    bb0: {/n        _0 = a() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "constructors::S::new"
   }
 }
 
@@ -147,113 +170,43 @@
 }
 
 {
-  "data": [
-    [
+  "tree": {
+    "node": {
+      "kind": "Mod",
+      "name": "constructors",
+      "id": 0
+    },
+    "sub": [
       {
-        "kind": "Mod",
-        "name": "constructors"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "constructors"
+        "node": {
+          "kind": "Fn",
+          "name": "a",
+          "id": 1
+        },
+        "sub": []
       },
       {
-        "kind": "Fn",
-        "name": "a"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "constructors"
-      },
-      {
-        "kind": "Struct",
-        "name": "S"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "constructors"
-      },
-      {
-        "kind": "Struct",
-        "name": "S"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "new"
+        "node": {
+          "kind": "Struct",
+          "name": "S",
+          "id": 2
+        },
+        "sub": [
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "new",
+              "id": 3
+            },
+            "sub": []
+          }
+        ]
       }
     ]
-  ],
-  "navi": {
-    "0": {
-      "non_mod_kinds": [],
-      "subitems": [
-        {
-          "idx": 1,
-          "name": "a",
-          "kind": "Fn"
-        },
-        {
-          "idx": 2,
-          "name": "S",
-          "kind": "Struct"
-        }
-      ],
-      "groups": {
-        "Fn": [
-          0
-        ],
-        "Struct": [
-          1
-        ]
-      }
-    },
-    "1": {
-      "non_mod_kinds": [
-        "Fn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "2": {
-      "non_mod_kinds": [
-        "Struct"
-      ],
-      "subitems": [
-        {
-          "idx": 3,
-          "name": "new",
-          "kind": "AssocFn"
-        }
-      ],
-      "groups": {
-        "AssocFn": [
-          0
-        ]
-      }
-    },
-    "3": {
-      "non_mod_kinds": [
-        "Struct",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    }
   },
-  "name_to_path": {
+  "name_to_id": {
     "constructors::S": 2,
     "constructors::a": 1,
     "constructors::S::new": 3
-  },
-  "path_to_name": {
-    "2": "constructors::S",
-    "1": "constructors::a",
-    "3": "constructors::S::new"
   }
 }

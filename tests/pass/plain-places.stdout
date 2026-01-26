@@ -1,19 +1,41 @@
 
 {
-  "name": "main",
+  "name": "plain_places::main",
+  "span": "$DIR/plain-places.rs:1:1: 1:10",
+  "doc": ""
+}
+
+{
+  "name": "plain_places::main",
+  "span": "$DIR/plain-places.rs:1:1: 1:10",
+  "mir": "fn plain_places::main() -> () {/n    let mut _0: ();/n    let  _1: S;/n    let mut _2: std::string::String;/n    let mut _3: std::string::String;/n    let  _4: E;/n    let mut _5: std::string::String;/n    let  _6: E;/n    let mut _7: std::string::String;/n    debug s => _1;/n    debug ea => _4;/n    debug eb => _6;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        _3 = std::string::String::new() -> [return: bb2, unwind: bb10];/n    }/n    bb2: {/n        _1 = S(move _2, move _3);/n        _5 = std::string::String::new() -> [return: bb3, unwind: bb9];/n    }/n    bb3: {/n        _4 = E::A(move _5);/n        _7 = std::string::String::new() -> [return: bb4, unwind: bb8];/n    }/n    bb4: {/n        _6 = E::B(move _7);/n        drop(_6) -> [return: bb5, unwind: bb8];/n    }/n    bb5: {/n        drop(_4) -> [return: bb6, unwind: bb9];/n    }/n    bb6: {/n        drop(_1) -> [return: bb7, unwind continue];/n    }/n    bb7: {/n        return;/n    }/n    bb8: {/n        drop(_4) -> [return: bb9, unwind terminate];/n    }/n    bb9: {/n        drop(_1) -> [return: bb11, unwind terminate];/n    }/n    bb10: {/n        drop(_2) -> [return: bb11, unwind terminate];/n    }/n    bb11: {/n        resume;/n    }/n}/n"
+}
+
+{
+  "name": "plain_places::main",
+  "span": "$DIR/plain-places.rs:1:1: 1:10",
+  "src": "fn main() {/n    let s = S {/n        a: String::new(),/n        b: String::new(),/n    };/n    let ea = E::A(String::new());/n    let eb = E::B(String::new());/n}"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "src": "pub const fn new() -> String"
+}
+
+{
+  "name": "plain_places::main",
+  "span": "$DIR/plain-places.rs:1:1: 1:10",
   "safe": true,
   "callees": {
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     }
   },
@@ -28,15 +50,9 @@
       "Plain"
     ]
   },
-  "path": 1,
-  "span": "$DIR/plain-places.rs:1:1: 8:2",
-  "src": "fn main() {/n    let s = S {/n        a: String::new(),/n        b: String::new(),/n    };/n    let ea = E::A(String::new());/n    let eb = E::B(String::new());/n}",
-  "mir": "fn main() -> () {/n    let mut _0: ();/n    let  _1: S;/n    let mut _2: std::string::String;/n    let mut _3: std::string::String;/n    let  _4: E;/n    let mut _5: std::string::String;/n    let  _6: E;/n    let mut _7: std::string::String;/n    debug s => _1;/n    debug ea => _4;/n    debug eb => _6;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        _3 = std::string::String::new() -> [return: bb2, unwind: bb10];/n    }/n    bb2: {/n        _1 = S(move _2, move _3);/n        _5 = std::string::String::new() -> [return: bb3, unwind: bb9];/n    }/n    bb3: {/n        _4 = E::A(move _5);/n        _7 = std::string::String::new() -> [return: bb4, unwind: bb8];/n    }/n    bb4: {/n        _6 = E::B(move _7);/n        drop(_6) -> [return: bb5, unwind: bb8];/n    }/n    bb5: {/n        drop(_4) -> [return: bb6, unwind: bb9];/n    }/n    bb6: {/n        drop(_1) -> [return: bb7, unwind continue];/n    }/n    bb7: {/n        return;/n    }/n    bb8: {/n        drop(_4) -> [return: bb9, unwind terminate];/n    }/n    bb9: {/n        drop(_1) -> [return: bb11, unwind terminate];/n    }/n    bb10: {/n        drop(_2) -> [return: bb11, unwind terminate];/n    }/n    bb11: {/n        resume;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "plain_places::main"
   }
 }
 
@@ -158,106 +174,42 @@
 }
 
 {
-  "data": [
-    [
+  "tree": {
+    "node": {
+      "kind": "Mod",
+      "name": "plain_places",
+      "id": 0
+    },
+    "sub": [
       {
-        "kind": "Mod",
-        "name": "plain_places"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "plain_places"
+        "node": {
+          "kind": "Fn",
+          "name": "main",
+          "id": 1
+        },
+        "sub": []
       },
       {
-        "kind": "Fn",
-        "name": "main"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "plain_places"
+        "node": {
+          "kind": "Struct",
+          "name": "S",
+          "id": 2
+        },
+        "sub": []
       },
       {
-        "kind": "Struct",
-        "name": "S"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "plain_places"
-      },
-      {
-        "kind": "Enum",
-        "name": "E"
+        "node": {
+          "kind": "Enum",
+          "name": "E",
+          "id": 3
+        },
+        "sub": []
       }
     ]
-  ],
-  "navi": {
-    "0": {
-      "non_mod_kinds": [],
-      "subitems": [
-        {
-          "idx": 1,
-          "name": "main",
-          "kind": "Fn"
-        },
-        {
-          "idx": 2,
-          "name": "S",
-          "kind": "Struct"
-        },
-        {
-          "idx": 3,
-          "name": "E",
-          "kind": "Enum"
-        }
-      ],
-      "groups": {
-        "Fn": [
-          0
-        ],
-        "Struct": [
-          1
-        ],
-        "Enum": [
-          2
-        ]
-      }
-    },
-    "1": {
-      "non_mod_kinds": [
-        "Fn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "2": {
-      "non_mod_kinds": [
-        "Struct"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "3": {
-      "non_mod_kinds": [
-        "Enum"
-      ],
-      "subitems": [],
-      "groups": {}
-    }
   },
-  "name_to_path": {
+  "name_to_id": {
     "plain_places::main": 1,
     "plain_places::S": 2,
     "plain_places::E": 3
-  },
-  "path_to_name": {
-    "1": "plain_places::main",
-    "2": "plain_places::S",
-    "3": "plain_places::E"
   }
 }

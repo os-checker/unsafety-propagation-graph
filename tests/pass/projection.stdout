@@ -1,0 +1,167 @@
+
+{
+  "name": "projection::A::cap",
+  "span": "$DIR/projection.rs:6:5: 6:27",
+  "doc": ""
+}
+
+{
+  "name": "projection::A::cap",
+  "span": "$DIR/projection.rs:6:5: 6:27",
+  "mir": "fn projection::A::cap(_1: &A) -> usize {/n    let mut _0: usize;/n    let mut _2: &std::vec::Vec<u8>;/n    debug self => _1;/n    bb0: {/n        _2 = &((*_1).0: std::vec::Vec<u8>);/n        _0 = std::vec::Vec::<u8>::capacity(move _2) -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "projection::A::cap",
+  "span": "$DIR/projection.rs:6:5: 6:27",
+  "src": "fn cap(&self) -> usize {/n        self.a.capacity()/n    }"
+}
+
+{
+  "name": "std::vec::Vec::<T, A>::capacity",
+  "span": "$SYSROOT/alloc/src/vec/mod.rs:1275:5: 1275:42",
+  "doc": " Returns the total number of elements the vector can hold without/n reallocating./n/n # Examples/n/n ```/n let mut vec: Vec<i32> = Vec::with_capacity(10);/n vec.push(42);/n assert!(vec.capacity() >= 10);/n ```/n/n A vector with zero-sized elements will always have a capacity of usize::MAX:/n/n ```/n #[derive(Clone)]/n struct ZeroSized;/n/n fn main() {/n     assert_eq!(std::mem::size_of::<ZeroSized>(), 0);/n     let v = vec![ZeroSized; 0];/n     assert_eq!(v.capacity(), usize::MAX);/n }/n ```/n"
+}
+
+{
+  "name": "std::vec::Vec::<T, A>::capacity",
+  "span": "$SYSROOT/alloc/src/vec/mod.rs:1275:5: 1275:42",
+  "src": "pub const fn capacity(&self) -> usize"
+}
+
+{
+  "name": "projection::A::cap",
+  "span": "$DIR/projection.rs:6:5: 6:27",
+  "safe": true,
+  "callees": {
+    "std::vec::Vec::<T, A>::capacity": {
+      "safe": true,
+      "adt": {}
+    }
+  },
+  "adts": {
+    "std::vec::Vec": [
+      "Ref"
+    ],
+    "A": [
+      "RefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
+      "Ref"
+    ]
+  },
+  "path": {
+    "type": "Local",
+    "path": "projection::A::cap"
+  }
+}
+
+{
+  "name": "std::vec::Vec",
+  "constructors": [],
+  "access_self_as_arg": {
+    "read": [],
+    "write": [],
+    "other": []
+  },
+  "access_self_as_locals": {
+    "read": [
+      "A::cap"
+    ],
+    "write": [],
+    "other": []
+  },
+  "access_field": [
+    {
+      "read": [],
+      "write": [],
+      "other": []
+    },
+    {
+      "read": [],
+      "write": [],
+      "other": []
+    }
+  ],
+  "span": "$SYSROOT/alloc/src/vec/mod.rs:438:1: 438:97",
+  "src": "pub struct Vec<T, #[unstable(feature = /"allocator_api/", issue = /"32838/")] A: Allocator = Global>",
+  "kind": "Struct",
+  "doc_adt": " A contiguous growable array type, written as `Vec<T>`, short for 'vector'./n/n # Examples/n/n ```/n let mut vec = Vec::new();/n vec.push(1);/n vec.push(2);/n/n assert_eq!(vec.len(), 2);/n assert_eq!(vec[0], 1);/n/n assert_eq!(vec.pop(), Some(2));/n assert_eq!(vec.len(), 1);/n/n vec[0] = 7;/n assert_eq!(vec[0], 7);/n/n vec.extend([1, 2, 3]);/n/n for x in &vec {/n     println!(/"{x}/");/n }/n assert_eq!(vec, [7, 1, 2, 3]);/n ```/n/n The [`vec!`] macro is provided for convenient initialization:/n/n ```/n let mut vec1 = vec![1, 2, 3];/n vec1.push(4);/n let vec2 = Vec::from([1, 2, 3, 4]);/n assert_eq!(vec1, vec2);/n ```/n/n It can also initialize each element of a `Vec<T>` with a given value./n This may be more efficient than performing allocation and initialization/n in separate steps, especially when initializing a vector of zeros:/n/n ```/n let vec = vec![0; 5];/n assert_eq!(vec, [0, 0, 0, 0, 0]);/n/n // The following is equivalent, but potentially slower:/n let mut vec = Vec::with_capacity(5);/n vec.resize(5, 0);/n assert_eq!(vec, [0, 0, 0, 0, 0]);/n ```/n/n For more information, see/n [Capacity and Reallocation](#capacity-and-reallocation)./n/n Use a `Vec<T>` as an efficient stack:/n/n ```/n let mut stack = Vec::new();/n/n stack.push(1);/n stack.push(2);/n stack.push(3);/n/n while let Some(top) = stack.pop() {/n     // Prints 3, 2, 1/n     println!(/"{top}/");/n }/n ```/n/n # Indexing/n/n The `Vec` type allows access to values by index, because it implements the/n [`Index`] trait. An example will be more explicit:/n/n ```/n let v = vec![0, 2, 4, 6];/n println!(/"{}/", v[1]); // it will display '2'/n ```/n/n However be careful: if you try to access an index which isn't in the `Vec`,/n your software will panic! You cannot do this:/n/n ```should_panic/n let v = vec![0, 2, 4, 6];/n println!(/"{}/", v[6]); // it will panic!/n ```/n/n Use [`get`] and [`get_mut`] if you want to check whether the index is in/n the `Vec`./n/n # Slicing/n/n A `Vec` can be mutable. On the other hand, slices are read-only objects./n To get a [slice][prim@slice], use [`&`]. Example:/n/n ```/n fn read_slice(slice: &[usize]) {/n     // .../n }/n/n let v = vec![0, 1];/n read_slice(&v);/n/n // ... and that's all!/n // you can also do it like this:/n let u: &[usize] = &v;/n // or like this:/n let u: &[_] = &v;/n ```/n/n In Rust, it's more common to pass slices as arguments rather than vectors/n when you just want to provide read access. The same goes for [`String`] and/n [`&str`]./n/n # Capacity and reallocation/n/n The capacity of a vector is the amount of space allocated for any future/n elements that will be added onto the vector. This is not to be confused with/n the *length* of a vector, which specifies the number of actual elements/n within the vector. If a vector's length exceeds its capacity, its capacity/n will automatically be increased, but its elements will have to be/n reallocated./n/n For example, a vector with capacity 10 and length 0 would be an empty vector/n with space for 10 more elements. Pushing 10 or fewer elements onto the/n vector will not change its capacity or cause reallocation to occur. However,/n if the vector's length is increased to 11, it will have to reallocate, which/n can be slow. For this reason, it is recommended to use [`Vec::with_capacity`]/n whenever possible to specify how big the vector is expected to get./n/n # Guarantees/n/n Due to its incredibly fundamental nature, `Vec` makes a lot of guarantees/n about its design. This ensures that it's as low-overhead as possible in/n the general case, and can be correctly manipulated in primitive ways/n by unsafe code. Note that these guarantees refer to an unqualified `Vec<T>`./n If additional type parameters are added (e.g., to support custom allocators),/n overriding their defaults may change the behavior./n/n Most fundamentally, `Vec` is and always will be a (pointer, capacity, length)/n triplet. No more, no less. The order of these fields is completely/n unspecified, and you should use the appropriate methods to modify these./n The pointer will never be null, so this type is null-pointer-optimized./n/n However, the pointer might not actually point to allocated memory. In particular,/n if you construct a `Vec` with capacity 0 via [`Vec::new`], [`vec![]`][`vec!`],/n [`Vec::with_capacity(0)`][`Vec::with_capacity`], or by calling [`shrink_to_fit`]/n on an empty Vec, it will not allocate memory. Similarly, if you store zero-sized/n types inside a `Vec`, it will not allocate space for them. *Note that in this case/n the `Vec` might not report a [`capacity`] of 0*. `Vec` will allocate if and only/n if <code>[size_of::/<T>]/() * [capacity]/() > 0</code>. In general, `Vec`'s allocation/n details are very subtle --- if you intend to allocate memory using a `Vec`/n and use it for something else (either to pass to unsafe code, or to build your/n own memory-backed collection), be sure to deallocate this memory by using/n `from_raw_parts` to recover the `Vec` and then dropping it./n/n If a `Vec` *has* allocated memory, then the memory it points to is on the heap/n (as defined by the allocator Rust is configured to use by default), and its/n pointer points to [`len`] initialized, contiguous elements in order (what/n you would see if you coerced it to a slice), followed by <code>[capacity] - [len]</code>/n logically uninitialized, contiguous elements./n/n A vector containing the elements `'a'` and `'b'` with capacity 4 can be/n visualized as below. The top part is the `Vec` struct, it contains a/n pointer to the head of the allocation in the heap, length and capacity./n The bottom part is the allocation on the heap, a contiguous memory block./n/n ```text/n             ptr      len  capacity/n        +--------+--------+--------+/n        | 0x0123 |      2 |      4 |/n        +--------+--------+--------+/n             |/n             v/n Heap   +--------+--------+--------+--------+/n        |    'a' |    'b' | uninit | uninit |/n        +--------+--------+--------+--------+/n ```/n/n - **uninit** represents memory that is not initialized, see [`MaybeUninit`]./n - Note: the ABI is not stable and `Vec` makes no guarantees about its memory/n   layout (including the order of fields)./n/n `Vec` will never perform a /"small optimization/" where elements are actually/n stored on the stack for two reasons:/n/n * It would make it more difficult for unsafe code to correctly manipulate/n   a `Vec`. The contents of a `Vec` wouldn't have a stable address if it were/n   only moved, and it would be more difficult to determine if a `Vec` had/n   actually allocated memory./n/n * It would penalize the general case, incurring an additional branch/n   on every access./n/n `Vec` will never automatically shrink itself, even if completely empty. This/n ensures no unnecessary allocations or deallocations occur. Emptying a `Vec`/n and then filling it back up to the same [`len`] should incur no calls to/n the allocator. If you wish to free up unused memory, use/n [`shrink_to_fit`] or [`shrink_to`]./n/n [`push`] and [`insert`] will never (re)allocate if the reported capacity is/n sufficient. [`push`] and [`insert`] *will* (re)allocate if/n <code>[len] == [capacity]</code>. That is, the reported capacity is completely/n accurate, and can be relied on. It can even be used to manually free the memory/n allocated by a `Vec` if desired. Bulk insertion methods *may* reallocate, even/n when not necessary./n/n `Vec` does not guarantee any particular growth strategy when reallocating/n when full, nor when [`reserve`] is called. The current strategy is basic/n and it may prove desirable to use a non-constant growth factor. Whatever/n strategy is used will of course guarantee *O*(1) amortized [`push`]./n/n It is guaranteed, in order to respect the intentions of the programmer, that/n all of `vec![e_1, e_2, ..., e_n]`, `vec![x; n]`, and [`Vec::with_capacity(n)`] produce a `Vec`/n that requests an allocation of the exact size needed for precisely `n` elements from the allocator,/n and no other size (such as, for example: a size rounded up to the nearest power of 2)./n The allocator will return an allocation that is at least as large as requested, but it may be larger./n/n It is guaranteed that the [`Vec::capacity`] method returns a value that is at least the requested capacity/n and not more than the allocated capacity./n/n The method [`Vec::shrink_to_fit`] will attempt to discard excess capacity an allocator has given to a `Vec`./n If <code>[len] == [capacity]</code>, then a `Vec<T>` can be converted/n to and from a [`Box<[T]>`][owned slice] without reallocating or moving the elements./n `Vec` exploits this fact as much as reasonable when implementing common conversions/n such as [`into_boxed_slice`]./n/n `Vec` will not specifically overwrite any data that is removed from it,/n but also won't specifically preserve it. Its uninitialized memory is/n scratch space that it may use however it wants. It will generally just do/n whatever is most efficient or otherwise easy to implement. Do not rely on/n removed data to be erased for security purposes. Even if you drop a `Vec`, its/n buffer may simply be reused by another allocation. Even if you zero a `Vec`'s memory/n first, that might not actually happen because the optimizer does not consider/n this a side-effect that must be preserved. There is one case which we will/n not break, however: using `unsafe` code to write to the excess capacity,/n and then increasing the length to match, is always valid./n/n Currently, `Vec` does not guarantee the order in which elements are dropped./n The order has changed in the past and may change again./n/n [`get`]: slice::get/n [`get_mut`]: slice::get_mut/n [`String`]: crate::string::String/n [`&str`]: type@str/n [`shrink_to_fit`]: Vec::shrink_to_fit/n [`shrink_to`]: Vec::shrink_to/n [capacity]: Vec::capacity/n [`capacity`]: Vec::capacity/n [`Vec::capacity`]: Vec::capacity/n [size_of::/<T>]: size_of/n [len]: Vec::len/n [`len`]: Vec::len/n [`push`]: Vec::push/n [`insert`]: Vec::insert/n [`reserve`]: Vec::reserve/n [`Vec::with_capacity(n)`]: Vec::with_capacity/n [`MaybeUninit`]: core::mem::MaybeUninit/n [owned slice]: Box/n [`into_boxed_slice`]: Vec::into_boxed_slice/n",
+  "variant_fields": {
+    "VariantIdx(None)-FieldIdx(Some(0))": {
+      "name": "buf",
+      "doc": ""
+    },
+    "VariantIdx(None)-FieldIdx(Some(1))": {
+      "name": "len",
+      "doc": ""
+    }
+  }
+}
+
+{
+  "name": "A",
+  "constructors": [],
+  "access_self_as_arg": {
+    "read": [
+      "A::cap"
+    ],
+    "write": [],
+    "other": []
+  },
+  "access_self_as_locals": {
+    "read": [],
+    "write": [],
+    "other": []
+  },
+  "access_field": [
+    {
+      "read": [
+        "A::cap"
+      ],
+      "write": [],
+      "other": []
+    }
+  ],
+  "span": "$DIR/projection.rs:1:1: 1:9",
+  "src": "struct A",
+  "kind": "Struct",
+  "doc_adt": "",
+  "variant_fields": {
+    "VariantIdx(None)-FieldIdx(Some(0))": {
+      "name": "a",
+      "doc": ""
+    }
+  }
+}
+
+{
+  "tree": {
+    "node": {
+      "kind": "Mod",
+      "name": "projection",
+      "id": 0
+    },
+    "sub": [
+      {
+        "node": {
+          "kind": "Struct",
+          "name": "A",
+          "id": 1
+        },
+        "sub": [
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "cap",
+              "id": 2
+            },
+            "sub": []
+          }
+        ]
+      }
+    ]
+  },
+  "name_to_id": {
+    "projection::A": 1,
+    "projection::A::cap": 2
+  }
+}

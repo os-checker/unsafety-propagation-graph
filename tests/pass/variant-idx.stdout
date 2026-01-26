@@ -1,19 +1,125 @@
 
 {
-  "name": "S::mutate_a",
+  "name": "variant_idx::S::mutate_a",
+  "span": "$DIR/variant-idx.rs:2:5: 2:27",
+  "doc": ""
+}
+
+{
+  "name": "variant_idx::S::mutate_a",
+  "span": "$DIR/variant-idx.rs:2:5: 2:27",
+  "mir": "fn variant_idx::S::mutate_a(_1: &mut S) -> () {/n    let mut _0: ();/n    let mut _2: std::string::String;/n    debug self => _1;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        drop(((*_1).0: std::string::String)) -> [return: bb2, unwind: bb3];/n    }/n    bb2: {/n        ((*_1).0: std::string::String) = move _2;/n        return;/n    }/n    bb3: {/n        ((*_1).0: std::string::String) = move _2;/n        resume;/n    }/n}/n"
+}
+
+{
+  "name": "variant_idx::S::mutate_a",
+  "span": "$DIR/variant-idx.rs:2:5: 2:27",
+  "src": "fn mutate_a(&mut self) {/n        self.a = String::new();/n    }"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n"
+}
+
+{
+  "name": "std::string::String::new",
+  "span": "$SYSROOT/alloc/src/string.rs:437:5: 437:33",
+  "src": "pub const fn new() -> String"
+}
+
+{
+  "name": "variant_idx::S::mutate",
+  "span": "$DIR/variant-idx.rs:6:5: 6:25",
+  "doc": ""
+}
+
+{
+  "name": "variant_idx::S::mutate",
+  "span": "$DIR/variant-idx.rs:6:5: 6:25",
+  "mir": "fn variant_idx::S::mutate(_1: &mut S) -> () {/n    let mut _0: ();/n    let mut _2: std::string::String;/n    let  _3: ();/n    let mut _4: &mut std::string::String;/n    debug self => _1;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        drop(((*_1).0: std::string::String)) -> [return: bb2, unwind: bb3];/n    }/n    bb2: {/n        ((*_1).0: std::string::String) = move _2;/n        _4 = &mut ((*_1).1: std::string::String);/n        _3 = std::string::String::push(move _4, ' ') -> [return: bb4, unwind continue];/n    }/n    bb3: {/n        ((*_1).0: std::string::String) = move _2;/n        resume;/n    }/n    bb4: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "variant_idx::S::mutate",
+  "span": "$DIR/variant-idx.rs:6:5: 6:25",
+  "src": "fn mutate(&mut self) {/n        self.a = String::new();/n        self.b.push(' ');/n    }"
+}
+
+{
+  "name": "std::string::String::push",
+  "span": "$SYSROOT/alloc/src/string.rs:1402:5: 1402:37",
+  "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n"
+}
+
+{
+  "name": "std::string::String::push",
+  "span": "$SYSROOT/alloc/src/string.rs:1402:5: 1402:37",
+  "src": "pub fn push(&mut self, ch: char)"
+}
+
+{
+  "name": "variant_idx::E::mutate1",
+  "span": "$DIR/variant-idx.rs:13:5: 13:26",
+  "doc": ""
+}
+
+{
+  "name": "variant_idx::E::mutate1",
+  "span": "$DIR/variant-idx.rs:13:5: 13:26",
+  "mir": "fn variant_idx::E::mutate1(_1: &mut E) -> () {/n    let mut _0: ();/n    let mut _2: isize;/n    let  _3: &mut std::string::String;/n    let  _4: ();/n    debug self => _1;/n    debug a => _3;/n    bb0: {/n        _2 = discriminant((*_1));/n        switchInt(move _2) -> [0: bb1, 1: bb2, otherwise: bb3];/n    }/n    bb1: {/n        _3 = &mut (((*_1) as variant#0).0: std::string::String);/n        _4 = std::string::String::push(_3, ' ') -> [return: bb2, unwind continue];/n    }/n    bb2: {/n        return;/n    }/n    bb3: {/n        unreachable;/n    }/n}/n"
+}
+
+{
+  "name": "variant_idx::E::mutate1",
+  "span": "$DIR/variant-idx.rs:13:5: 13:26",
+  "src": "fn mutate1(&mut self) {/n        if let E::A(a) = self {/n            a.push(' ');/n        }/n    }"
+}
+
+{
+  "name": "variant_idx::E::mutate2",
+  "span": "$DIR/variant-idx.rs:19:5: 19:26",
+  "doc": ""
+}
+
+{
+  "name": "variant_idx::E::mutate2",
+  "span": "$DIR/variant-idx.rs:19:5: 19:26",
+  "mir": "fn variant_idx::E::mutate2(_1: &mut E) -> () {/n    let mut _0: ();/n    let  _2: ();/n    let mut _3: isize;/n    let  _4: &mut std::string::String;/n    let mut _5: std::string::String;/n    let  _6: &mut std::string::String;/n    debug self => _1;/n    debug a => _4;/n    debug b => _6;/n    bb0: {/n        _3 = discriminant((*_1));/n        switchInt(move _3) -> [0: bb3, 1: bb2, otherwise: bb1];/n    }/n    bb1: {/n        unreachable;/n    }/n    bb2: {/n        _6 = &mut (((*_1) as variant#1).0: std::string::String);/n        _2 = std::string::String::push(_6, ' ') -> [return: bb7, unwind continue];/n    }/n    bb3: {/n        _4 = &mut (((*_1) as variant#0).0: std::string::String);/n        _5 = std::string::String::new() -> [return: bb4, unwind continue];/n    }/n    bb4: {/n        drop((*_4)) -> [return: bb5, unwind: bb6];/n    }/n    bb5: {/n        (*_4) = move _5;/n        goto -> bb7;/n    }/n    bb6: {/n        (*_4) = move _5;/n        resume;/n    }/n    bb7: {/n        return;/n    }/n}/n"
+}
+
+{
+  "name": "variant_idx::E::mutate2",
+  "span": "$DIR/variant-idx.rs:19:5: 19:26",
+  "src": "fn mutate2(&mut self) {/n        match self {/n            E::A(a) => *a = String::new(),/n            E::B(b) => b.push(' '),/n        };/n    }"
+}
+
+{
+  "name": "variant_idx::E::mutate_plain",
+  "span": "$DIR/variant-idx.rs:26:5: 26:31",
+  "doc": ""
+}
+
+{
+  "name": "variant_idx::E::mutate_plain",
+  "span": "$DIR/variant-idx.rs:26:5: 26:31",
+  "mir": "fn variant_idx::E::mutate_plain(_1: &mut E) -> () {/n    let mut _0: ();/n    let mut _2: E;/n    let mut _3: isize;/n    let mut _4: std::string::String;/n    let mut _5: std::string::String;/n    debug self => _1;/n    bb0: {/n        _3 = discriminant((*_1));/n        switchInt(move _3) -> [0: bb3, 1: bb2, otherwise: bb1];/n    }/n    bb1: {/n        unreachable;/n    }/n    bb2: {/n        _5 = std::string::String::new() -> [return: bb5, unwind continue];/n    }/n    bb3: {/n        _4 = std::string::String::new() -> [return: bb4, unwind continue];/n    }/n    bb4: {/n        _2 = E::A(move _4);/n        goto -> bb6;/n    }/n    bb5: {/n        _2 = E::B(move _5);/n        goto -> bb6;/n    }/n    bb6: {/n        drop((*_1)) -> [return: bb7, unwind: bb8];/n    }/n    bb7: {/n        (*_1) = move _2;/n        return;/n    }/n    bb8: {/n        (*_1) = move _2;/n        resume;/n    }/n}/n"
+}
+
+{
+  "name": "variant_idx::E::mutate_plain",
+  "span": "$DIR/variant-idx.rs:26:5: 26:31",
+  "src": "fn mutate_plain(&mut self) {/n        *self = match self {/n            E::A(_) => E::A(String::new()),/n            E::B(_) => E::B(String::new()),/n        };/n    }"
+}
+
+{
+  "name": "variant_idx::S::mutate_a",
+  "span": "$DIR/variant-idx.rs:2:5: 2:27",
   "safe": true,
   "callees": {
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     }
   },
@@ -22,50 +128,27 @@
       "Plain"
     ],
     "S": [
-      "DerefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
+      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
       "MutRef"
     ]
   },
-  "path": 3,
-  "span": "$DIR/variant-idx.rs:2:5: 4:6",
-  "src": "fn mutate_a(&mut self) {/n        self.a = String::new();/n    }",
-  "mir": "fn S::mutate_a(_1: &mut S) -> () {/n    let mut _0: ();/n    let mut _2: std::string::String;/n    debug self => _1;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        drop(((*_1).0: std::string::String)) -> [return: bb2, unwind: bb3];/n    }/n    bb2: {/n        ((*_1).0: std::string::String) = move _2;/n        return;/n    }/n    bb3: {/n        ((*_1).0: std::string::String) = move _2;/n        resume;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "variant_idx::S::mutate_a"
   }
 }
 
 {
-  "name": "S::mutate",
+  "name": "variant_idx::S::mutate",
+  "span": "$DIR/variant-idx.rs:6:5: 6:25",
   "safe": true,
   "callees": {
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     },
     "std::string::String::push": {
-      "instance_name": [
-        "std::string::String::push"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n",
       "adt": {}
     }
   },
@@ -75,38 +158,24 @@
       "MutRef"
     ],
     "S": [
-      "DerefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "DerefVariantField(VariantIdx(None)-FieldIdx(Some(1)))",
+      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
+      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(1)))",
       "MutRef"
     ]
   },
-  "path": 2,
-  "span": "$DIR/variant-idx.rs:6:5: 9:6",
-  "src": "fn mutate(&mut self) {/n        self.a = String::new();/n        self.b.push(' ');/n    }",
-  "mir": "fn S::mutate(_1: &mut S) -> () {/n    let mut _0: ();/n    let mut _2: std::string::String;/n    let  _3: ();/n    let mut _4: &mut std::string::String;/n    debug self => _1;/n    bb0: {/n        _2 = std::string::String::new() -> [return: bb1, unwind continue];/n    }/n    bb1: {/n        drop(((*_1).0: std::string::String)) -> [return: bb2, unwind: bb3];/n    }/n    bb2: {/n        ((*_1).0: std::string::String) = move _2;/n        _4 = &mut ((*_1).1: std::string::String);/n        _3 = std::string::String::push(move _4, ' ') -> [return: bb4, unwind continue];/n    }/n    bb3: {/n        ((*_1).0: std::string::String) = move _2;/n        resume;/n    }/n    bb4: {/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "variant_idx::S::mutate"
   }
 }
 
 {
-  "name": "E::mutate1",
+  "name": "variant_idx::E::mutate1",
+  "span": "$DIR/variant-idx.rs:13:5: 13:26",
   "safe": true,
   "callees": {
     "std::string::String::push": {
-      "instance_name": [
-        "std::string::String::push"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n",
       "adt": {}
     }
   },
@@ -120,46 +189,23 @@
       "MutRef"
     ]
   },
-  "path": 5,
-  "span": "$DIR/variant-idx.rs:13:5: 17:6",
-  "src": "fn mutate1(&mut self) {/n        if let E::A(a) = self {/n            a.push(' ');/n        }/n    }",
-  "mir": "fn E::mutate1(_1: &mut E) -> () {/n    let mut _0: ();/n    let mut _2: isize;/n    let  _3: &mut std::string::String;/n    let  _4: ();/n    debug self => _1;/n    debug a => _3;/n    bb0: {/n        _2 = discriminant((*_1));/n        switchInt(move _2) -> [0: bb1, 1: bb2, otherwise: bb3];/n    }/n    bb1: {/n        _3 = &mut (((*_1) as variant#0).0: std::string::String);/n        _4 = std::string::String::push(_3, ' ') -> [return: bb2, unwind continue];/n    }/n    bb2: {/n        return;/n    }/n    bb3: {/n        unreachable;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "variant_idx::E::mutate1"
   }
 }
 
 {
-  "name": "E::mutate2",
+  "name": "variant_idx::E::mutate2",
+  "span": "$DIR/variant-idx.rs:19:5: 19:26",
   "safe": true,
   "callees": {
     "std::string::String::push": {
-      "instance_name": [
-        "std::string::String::push"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Appends the given [`char`] to the end of this `String`./n/n # Panics/n/n Panics if the new capacity exceeds `isize::MAX` _bytes_./n/n # Examples/n/n ```/n let mut s = String::from(/"abc/");/n/n s.push('1');/n s.push('2');/n s.push('3');/n/n assert_eq!(/"abc123/", s);/n ```/n",
       "adt": {}
     },
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     }
   },
@@ -176,33 +222,19 @@
       "Deref"
     ]
   },
-  "path": 6,
-  "span": "$DIR/variant-idx.rs:19:5: 24:6",
-  "src": "fn mutate2(&mut self) {/n        match self {/n            E::A(a) => *a = String::new(),/n            E::B(b) => b.push(' '),/n        };/n    }",
-  "mir": "fn E::mutate2(_1: &mut E) -> () {/n    let mut _0: ();/n    let  _2: ();/n    let mut _3: isize;/n    let  _4: &mut std::string::String;/n    let mut _5: std::string::String;/n    let  _6: &mut std::string::String;/n    debug self => _1;/n    debug a => _4;/n    debug b => _6;/n    bb0: {/n        _3 = discriminant((*_1));/n        switchInt(move _3) -> [0: bb3, 1: bb2, otherwise: bb1];/n    }/n    bb1: {/n        unreachable;/n    }/n    bb2: {/n        _6 = &mut (((*_1) as variant#1).0: std::string::String);/n        _2 = std::string::String::push(_6, ' ') -> [return: bb7, unwind continue];/n    }/n    bb3: {/n        _4 = &mut (((*_1) as variant#0).0: std::string::String);/n        _5 = std::string::String::new() -> [return: bb4, unwind continue];/n    }/n    bb4: {/n        drop((*_4)) -> [return: bb5, unwind: bb6];/n    }/n    bb5: {/n        (*_4) = move _5;/n        goto -> bb7;/n    }/n    bb6: {/n        (*_4) = move _5;/n        resume;/n    }/n    bb7: {/n        return;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "variant_idx::E::mutate2"
   }
 }
 
 {
-  "name": "E::mutate_plain",
+  "name": "variant_idx::E::mutate_plain",
+  "span": "$DIR/variant-idx.rs:26:5: 26:31",
   "safe": true,
   "callees": {
     "std::string::String::new": {
-      "instance_name": [
-        "std::string::String::new"
-      ],
       "safe": true,
-      "tags": {
-        "tags": [],
-        "spec": {},
-        "docs": []
-      },
-      "doc": " Creates a new empty `String`./n/n Given that the `String` is empty, this will not allocate any initial/n buffer. While that means that this initial operation is very/n inexpensive, it may cause excessive allocation later when you add/n data. If you have an idea of how much data the `String` will hold,/n consider the [`with_capacity`] method to prevent excessive/n re-allocation./n/n [`with_capacity`]: String::with_capacity/n/n # Examples/n/n ```/n let s = String::new();/n ```/n",
       "adt": {}
     }
   },
@@ -216,15 +248,9 @@
       "Plain"
     ]
   },
-  "path": 7,
-  "span": "$DIR/variant-idx.rs:26:5: 31:6",
-  "src": "fn mutate_plain(&mut self) {/n        *self = match self {/n            E::A(_) => E::A(String::new()),/n            E::B(_) => E::B(String::new()),/n        };/n    }",
-  "mir": "fn E::mutate_plain(_1: &mut E) -> () {/n    let mut _0: ();/n    let mut _2: E;/n    let mut _3: isize;/n    let mut _4: std::string::String;/n    let mut _5: std::string::String;/n    debug self => _1;/n    bb0: {/n        _3 = discriminant((*_1));/n        switchInt(move _3) -> [0: bb3, 1: bb2, otherwise: bb1];/n    }/n    bb1: {/n        unreachable;/n    }/n    bb2: {/n        _5 = std::string::String::new() -> [return: bb5, unwind continue];/n    }/n    bb3: {/n        _4 = std::string::String::new() -> [return: bb4, unwind continue];/n    }/n    bb4: {/n        _2 = E::A(move _4);/n        goto -> bb6;/n    }/n    bb5: {/n        _2 = E::B(move _5);/n        goto -> bb6;/n    }/n    bb6: {/n        drop((*_1)) -> [return: bb7, unwind: bb8];/n    }/n    bb7: {/n        (*_1) = move _2;/n        return;/n    }/n    bb8: {/n        (*_1) = move _2;/n        resume;/n    }/n}/n",
-  "doc": "",
-  "tags": {
-    "tags": [],
-    "spec": {},
-    "docs": []
+  "path": {
+    "type": "Local",
+    "path": "variant_idx::E::mutate_plain"
   }
 }
 
@@ -370,222 +396,74 @@
 }
 
 {
-  "data": [
-    [
+  "tree": {
+    "node": {
+      "kind": "Mod",
+      "name": "variant_idx",
+      "id": 0
+    },
+    "sub": [
       {
-        "kind": "Mod",
-        "name": "variant_idx"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
+        "node": {
+          "kind": "Struct",
+          "name": "S",
+          "id": 1
+        },
+        "sub": [
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "mutate",
+              "id": 2
+            },
+            "sub": []
+          },
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "mutate_a",
+              "id": 3
+            },
+            "sub": []
+          }
+        ]
       },
       {
-        "kind": "Struct",
-        "name": "S"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Struct",
-        "name": "S"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "mutate"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Struct",
-        "name": "S"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "mutate_a"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Enum",
-        "name": "E"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Enum",
-        "name": "E"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "mutate1"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Enum",
-        "name": "E"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "mutate2"
-      }
-    ],
-    [
-      {
-        "kind": "Mod",
-        "name": "variant_idx"
-      },
-      {
-        "kind": "Enum",
-        "name": "E"
-      },
-      {
-        "kind": "AssocFn",
-        "name": "mutate_plain"
+        "node": {
+          "kind": "Enum",
+          "name": "E",
+          "id": 4
+        },
+        "sub": [
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "mutate1",
+              "id": 5
+            },
+            "sub": []
+          },
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "mutate2",
+              "id": 6
+            },
+            "sub": []
+          },
+          {
+            "node": {
+              "kind": "AssocFn",
+              "name": "mutate_plain",
+              "id": 7
+            },
+            "sub": []
+          }
+        ]
       }
     ]
-  ],
-  "navi": {
-    "0": {
-      "non_mod_kinds": [],
-      "subitems": [
-        {
-          "idx": 1,
-          "name": "S",
-          "kind": "Struct"
-        },
-        {
-          "idx": 4,
-          "name": "E",
-          "kind": "Enum"
-        }
-      ],
-      "groups": {
-        "Struct": [
-          0
-        ],
-        "Enum": [
-          1
-        ]
-      }
-    },
-    "1": {
-      "non_mod_kinds": [
-        "Struct"
-      ],
-      "subitems": [
-        {
-          "idx": 2,
-          "name": "mutate",
-          "kind": "AssocFn"
-        },
-        {
-          "idx": 3,
-          "name": "mutate_a",
-          "kind": "AssocFn"
-        }
-      ],
-      "groups": {
-        "AssocFn": [
-          0,
-          1
-        ]
-      }
-    },
-    "2": {
-      "non_mod_kinds": [
-        "Struct",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "3": {
-      "non_mod_kinds": [
-        "Struct",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "4": {
-      "non_mod_kinds": [
-        "Enum"
-      ],
-      "subitems": [
-        {
-          "idx": 5,
-          "name": "mutate1",
-          "kind": "AssocFn"
-        },
-        {
-          "idx": 6,
-          "name": "mutate2",
-          "kind": "AssocFn"
-        },
-        {
-          "idx": 7,
-          "name": "mutate_plain",
-          "kind": "AssocFn"
-        }
-      ],
-      "groups": {
-        "AssocFn": [
-          0,
-          1,
-          2
-        ]
-      }
-    },
-    "5": {
-      "non_mod_kinds": [
-        "Enum",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "6": {
-      "non_mod_kinds": [
-        "Enum",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    },
-    "7": {
-      "non_mod_kinds": [
-        "Enum",
-        "AssocFn"
-      ],
-      "subitems": [],
-      "groups": {}
-    }
   },
-  "name_to_path": {
+  "name_to_id": {
     "variant_idx::S::mutate_a": 3,
     "variant_idx::S::mutate": 2,
     "variant_idx::E::mutate1": 5,
@@ -593,14 +471,5 @@
     "variant_idx::E::mutate_plain": 7,
     "variant_idx::S": 1,
     "variant_idx::E": 4
-  },
-  "path_to_name": {
-    "3": "variant_idx::S::mutate_a",
-    "2": "variant_idx::S::mutate",
-    "5": "variant_idx::E::mutate1",
-    "6": "variant_idx::E::mutate2",
-    "7": "variant_idx::E::mutate_plain",
-    "1": "variant_idx::S",
-    "4": "variant_idx::E"
   }
 }
