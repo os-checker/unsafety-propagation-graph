@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^2.0.3",
+    "@dagrejs/dagre": "^1.1.8",
     "@nuxt/ui": "^4.3.0",
     "@vue-flow/core": "^1.48.1",
     "d3": "^7.9.0",
