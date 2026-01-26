@@ -183,3 +183,5 @@ export type BarPlotData = {
   label: string,
   value: number,
 }
+
+export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }

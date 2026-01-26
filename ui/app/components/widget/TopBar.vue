@@ -9,6 +9,15 @@
 
     <div class="top-menu m-2 gap-1">
 
+      <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
+        <UTooltip text="Search Function">
+          <UButton icon="tabler:search" variant="ghost" color="neutral" />
+        </UTooltip>
+        <template #content>
+          <WidgetSearchFn :navi="navi" :tags="tags" v-model="search" />
+        </template>
+      </UModal>
+
       <USlideover side="left" title="Navigation">
         <UTooltip text="Navigation">
           <UButton icon="tabler:sitemap" variant="ghost" />
@@ -57,9 +66,9 @@
 
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
-import type { DataTags } from '~/lib/output/tag';
+import { type DataTags } from '~/lib/output/tag';
 import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
-import type { Navi, FlowOpts, Crate } from '~/lib/topbar';
+import type { Navi, FlowOpts, Crate, Search } from '~/lib/topbar';
 
 // Props values are passed in, and never mutated here.
 const props = defineProps<{ tags: DataTags }>();
@@ -103,4 +112,7 @@ const treeValue = ref<TreeItem>()
 
 const share = defineModel<boolean>("share", { required: true })
 const shareHandle = () => { share.value = true }
+
+// Search fn
+const search = ref<Search>({ withTags: false, text: "", page: 1, itemsPerPage: 20 })
 </script>

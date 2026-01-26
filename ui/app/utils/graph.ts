@@ -54,7 +54,11 @@ export class PlotConfig {
   flowOpts: FlowOpts;
   // ELK options.
   rootLayoutOptions: LayoutOptions;
+  // All nodes IDs.
   id_to_item: IdToItem;
+  // Adt node IDs that have callees connected to fields.
+  // We unset bottom border for not making lines messy.
+  adt_border_b_0: Set<string>;
 
   constructor(tags: DataTags, px: number, flowOpts: FlowOpts) {
     this.tags = tags;
@@ -62,6 +66,7 @@ export class PlotConfig {
     this.px = px;
     this.flowOpts = flowOpts;
     this.id_to_item = {};
+    this.adt_border_b_0 = new Set();
 
     const viewSet = new Set(flowOpts.view);
     this.view = { callees: viewSet.has(ViewType.Callees), adts: viewSet.has(ViewType.Adts), tags: viewSet.has(ViewType.Tags) };
@@ -116,7 +121,11 @@ export class PlotConfig {
   }
 
   nodeClass(id: string) {
-    return nodeKindClass(this.id_to_item[id]!.kind)
+    let ret = nodeKindClass(this.id_to_item[id]!.kind)
+    if (this.adt_border_b_0.has(id)) {
+      ret += " upg-node-adt-border-b-0"
+    }
+    return ret
   }
 
   nodeType(id: string) {
@@ -201,6 +210,7 @@ export class Plot {
   clear() {
     Object.assign(this, { nodes: [], edges: [] });
     this.config.id_to_item = {};
+    this.config.adt_border_b_0.clear();
   }
 
   rootNode(fn: Caller): ElkNode {
@@ -345,6 +355,8 @@ export class Plot {
         }
         // Append the field node to kind nodes.
         kindNodes.push(fieldNode)
+        // Unset bottom border of adt node.
+        config.adt_border_b_0.add(adt_id)
       }
 
       // Add current adt edges.
