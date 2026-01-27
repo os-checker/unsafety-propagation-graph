@@ -50,8 +50,8 @@ const fieldAccess = computed<{ field: string, data: AdtPanelItem }[]>(() => {
   return fields_.flatMap((field, idx) => {
     const access = adt!.access_field[idx]!
     return [
-      { field, data: gen(access.read, "Read", `Read Access to Field \`${field}\` of Self`) },
-      { field, data: gen(access.write, "Write", `Write Access to Field \`${field}\` of Self`) },
+      { field, data: gen(access.read, "Read", `Read Access to Field \`${field}\` of \`${adt.name}\``) },
+      { field, data: gen(access.write, "Write", `Write Access to Field \`${field}\` of \`${adt.name}\``) },
       // { field, data: gen(access.other, "Unknown", `Other Access to Field \`${field}\` of Self`) },
     ]
   })
@@ -68,7 +68,7 @@ const groupedFieldAccess = computed<{ [key: string]: AdtPanelItem[] }>(() => {
 
 // Constructors
 const constructors = computed<AdtPanelItem>(() =>
-  gen(props.adt?.constructors, "Constructors", "All Constructors")
+  gen(props.adt?.constructors, "Constructors", `All Constructors of ${props.adt?.name ?? ''}`)
 )
 
 // As arguments
@@ -79,8 +79,8 @@ const group_access_self_as_arg = computed<{ group: string, data: AdtPanelItem[] 
   const group = adt.access_self_as_arg
   return {
     group: "Access Adt through arguments:", data: [
-      gen(group.read, "Read", "Read Access to Self through a function argument"),
-      gen(group.write, "Write", "Write Access to Self through a function argument"),
+      gen(group.read, "Read", `Read Access to \`${adt.name}\` through a Function Argument`),
+      gen(group.write, "Write", `Write Access to \`${adt.name}\` through a Function Argument`),
       // gen(group.other, "Unknown", "Other Access to Self through a function argument"),
     ]
   }
@@ -94,8 +94,8 @@ const group_access_self_as_locals = computed<{ group: string, data: AdtPanelItem
   const group = adt.access_self_as_locals
   return {
     group: "Access Adt through locals:", data: [
-      gen(group.read, "Read", "Read Access to Self through a function local"),
-      gen(group.write, "Write", "Write Access to Self through a function local"),
+      gen(group.read, "Read", `Read Access to \`${adt.name}\` through a Function Local`),
+      gen(group.write, "Write", `Write Access to \`${adt.name}\` through a Function Local`),
       // gen(group.other, "Unknown", "Other Access to Self through a function local"),
     ]
   }

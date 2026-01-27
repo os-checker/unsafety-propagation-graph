@@ -14,7 +14,7 @@
           <UButton icon="tabler:search" variant="ghost" color="neutral" />
         </UTooltip>
         <template #content>
-          <WidgetSearchFn :v_fn="searchFnItems" v-model="search" />
+          <WidgetSearchFn :v_fn="searchFnItems" v-model="search" :title="`Search All Funtions in Crate ${crate}`" />
         </template>
       </UModal>
 

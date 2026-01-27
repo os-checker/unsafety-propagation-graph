@@ -7,7 +7,7 @@
       </UButton>
     </UTooltip>
     <template #content>
-      <WidgetSearchFn :v_fn="val.v_fn" v-model="search" />
+      <WidgetSearchFn :v_fn="val.v_fn" v-model="search" :title="val.desc" />
     </template>
   </UModal>
 </template>

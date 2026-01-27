@@ -1,5 +1,6 @@
 <template>
   <div class="h-[70vh] overflow-y-auto m-2">
+    <div class="text-lg font-bold">{{ title }}</div>
     <ol class="list-decimal ml-3 list-inside" :start="view.start">
       <li v-for="item in view.range" class="my-1">
         <ULink :to="getLink(item.name, $route, $router)">
@@ -23,7 +24,7 @@
 <script setup lang="ts">
 import type { Search, SearchFnItem } from '~/lib/topbar';
 
-const props = defineProps<{ v_fn: SearchFnItem[] }>()
+const props = defineProps<{ v_fn: SearchFnItem[], title: string }>()
 
 const search = defineModel<Search>({ required: true })
 
