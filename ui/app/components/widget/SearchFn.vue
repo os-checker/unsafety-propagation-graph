@@ -21,20 +21,15 @@
 </template>
 
 <script setup lang="ts">
-import { getTag, type DataTags } from '~/lib/output/tag';
-import type { Navi, Search } from '~/lib/topbar';
+import type { Search, SearchFnItem } from '~/lib/topbar';
 
-const props = defineProps<{ navi: Navi, tags: DataTags }>()
+const props = defineProps<{ v_fn: SearchFnItem[] }>()
 
 const search = defineModel<Search>({ required: true })
 
-type Fn = { name: string, tags: string[] }
-const fullFns = computed<Fn[]>(() => {
-  const original = Object.keys(props.navi.name_to_id).map(name => {
-    return { name, tags: getTag(name, props.tags, true) }
-  })
-
-  const sort = (a: Fn, b: Fn) => a.name.localeCompare(b.name)
+const sort = (a: SearchFnItem, b: SearchFnItem) => a.name.localeCompare(b.name)
+const fullFns = computed<SearchFnItem[]>(() => {
+  const original = props.v_fn
 
   const filterTags = search.value.withTags
   const filterText = search.value.text ? search.value.text.toLowerCase() : ""

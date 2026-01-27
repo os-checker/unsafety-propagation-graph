@@ -1,4 +1,3 @@
-import type { AdtFieldFnKind } from "./output";
 
 /** The way to view UPG. */
 export enum ViewType {
@@ -197,3 +196,5 @@ export type BarPlotData = {
 }
 
 export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }
+
+export type SearchFnItem = { name: string, tags: string[] }

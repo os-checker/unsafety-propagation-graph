@@ -1,6 +1,6 @@
 <template>
   <div class="upg-panel-header">
-    <USelect v-model="selected" :items="PANELS" placeholder="Select Panel" class="w-40"
+    <USelect v-model="selected" :items="PANELS" placeholder="Select Panel" class="w-43"
       :content="{ bodyLock: false }" />
 
     <UCheckbox label="Wrap" v-model="isWrapped" />
@@ -12,6 +12,7 @@
       <CodeSrc v-else-if="selected === Panel.Mir" :src="mir.mir" :isWrapped="isWrapped" />
       <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="doc.doc" :isWrapped="isWrapped" />
       <CodeMarkdown v-else-if="selected === Panel.Tag" :doc="tagDoc" :isWrapped="isWrapped" />
+      <CodeAdt v-else-if="selected === Panel.Adt" :adt="adtOpts.data" :tags="tags" />
     </div>
   </ClientOnly>
 </template>

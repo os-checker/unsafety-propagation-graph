@@ -146,6 +146,10 @@ html, body {
 .upg-node-adt-border-b-0 { @apply border-b-0; }
 .upg-node-adt-fn-kind { @apply text-lg border-none; }
 
+.adt-fn-group {
+  @apply flex justify-start items-center gap-2 my-1;
+}
+
 @plugin "@tailwindcss/typography";
 @layer base {
   /* 针对技术文档的深度定制 */
@@ -199,5 +203,13 @@ html, body {
     h2 {
       @apply !text-2xl !text-teal-600 dark:!text-teal-400;
     }
+  }
+}
+
+@layer components {
+  .prose-tight-list li {
+    line-height: 0.5 !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
   }
 }

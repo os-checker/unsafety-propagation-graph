@@ -1,3 +1,4 @@
+import type { SearchFnItem } from "../topbar"
 
 export type AdtOpts = {
   name?: string, data?: DataAdt,
@@ -30,15 +31,13 @@ export type VariantField = {
 }
 
 export function adtDoc(adt: DataAdt) {
-  let doc = `\`${adt.name}\`\n\n${adt.doc_adt}\n\n### Fields\n\n`
+  let doc = `\`${adt.name}\`\n\n### Fields Doc:\n\n`
   for (const field of Object.values(adt.variant_fields)) {
     const field_doc = field.doc ? `: ${field.doc}` : ""
     doc += `* \`${field.name}\`${field_doc}\n\n`
   }
-  if (adt.access_self_as_arg.read.length !== 0)
-    doc += "### access_self_as_locals.read\n\n"
-  for (const fnName of adt.access_self_as_arg.read) {
-    doc += `* ${fnName}\n\n`
-  }
+  doc += `### Adt Doc:\n\n${adt.doc_adt}`
   return doc
 }
+
+export type AdtPanelItem = { v_fn: SearchFnItem[], kind: string, desc: string }
