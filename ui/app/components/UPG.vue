@@ -2,14 +2,15 @@
   <div class="upg-left">
     <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share"
       :tags="tags" />
-    <Flow :nodeItem="nodeItem" :tags="tags" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent" />
+    <Flow :nodeItem="nodeItem" :tags="tags" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent"
+      v-model:adtOpts="adtOpts" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
-      <WidgetSelectPanel v-model="upPanel" v-model:panelContent="panelContent" :tags="tags" />
+      <WidgetSelectPanel v-model="upPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags" />
     </div>
     <div class="upg-panel">
-      <WidgetSelectPanel v-model="downPanel" v-model:panelContent="panelContent" :tags="tags" />
+      <WidgetSelectPanel v-model="downPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags" />
     </div>
   </div>
 </template>
@@ -19,6 +20,7 @@ import type { FlowOpts } from "~/lib/topbar"
 import { type DataTags, } from '~/lib/output/tag';
 import { Panel, toPanel, toPanelStr, type PanelContent } from "~/lib/panel"
 import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes } from "~/lib/topbar";
+import type { AdtOpts } from "~/lib/output/adt";
 
 const router = useRouter();
 const route = useRoute();
@@ -62,7 +64,7 @@ const tags = ref<DataTags>({ v_fn: {}, spec: {} });
 watch(crate, val => {
   $fetch(tagURL(val))
     .then(text => tags.value = JSON.parse(text as string))
-    .catch(err => console.log(err));
+  // .catch(err => console.log(err));
 }, { immediate: true });
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });
@@ -75,6 +77,7 @@ const upPanel = ref(initState.up);
 const downPanel = ref(initState.down);
 
 const flowOpts = ref<FlowOpts>(initState.flowOpts);
+const adtOpts = ref<AdtOpts>({});
 
 const share = ref<boolean>(false)
 watch(share, val => {

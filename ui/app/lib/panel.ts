@@ -3,6 +3,9 @@ export const enum Panel {
   Mir = "MIR",
   Doc = "Documentation",
   Tag = "Safety Property",
+  // This will never appear in URL, because it should be auto-switched to
+  // when an Adt node is selected.
+  Adt = "Adt",
 }
 
 export const PANELS: Panel[] = [Panel.Src, Panel.Mir, Panel.Doc, Panel.Tag];
