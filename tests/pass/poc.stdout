@@ -196,26 +196,7 @@
       "adt": {}
     }
   },
-  "adts": {
-    "std::ptr::NonNull": [
-      "Plain"
-    ],
-    "std::ptr::Unique": [
-      "Plain"
-    ],
-    "std::boxed::Box": [
-      "Plain",
-      "Unknown([Field(0, Ty { id: 6, kind: RigidTy(Adt(AdtDef(DefId { id: 7, name: /"std::ptr::Unique/" }), GenericArgs([Type(Ty { id: 1, kind: RigidTy(Array(Ty { id: 10, kind: RigidTy(Uint(U32)) }, TyConst { kind: Value(Ty { id: 2, kind: RigidTy(Uint(Usize)) }, Allocation { bytes: [Some(3), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0)], provenance: ProvenanceMap { ptrs: [] }, align: 8, mutability: Mut }), id: TyConstId(0, ThreadLocalIndex) })) })]))) }), Field(0, Ty { id: 7, kind: RigidTy(Adt(AdtDef(DefId { id: 6, name: /"std::ptr::NonNull/" }), GenericArgs([Type(Ty { id: 1, kind: RigidTy(Array(Ty { id: 10, kind: RigidTy(Uint(U32)) }, TyConst { kind: Value(Ty { id: 2, kind: RigidTy(Uint(Usize)) }, Allocation { bytes: [Some(3), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0)], provenance: ProvenanceMap { ptrs: [] }, align: 8, mutability: Mut }), id: TyConstId(0, ThreadLocalIndex) })) })]))) })])"
-    ],
-    "std::vec::Vec": [
-      "Plain"
-    ],
-    "SecretRegion": [
-      "Plain",
-      "MutRef",
-      "Ref"
-    ]
-  },
+  "adts": {},
   "path": {
     "type": "Local",
     "path": "poc::f"
@@ -228,9 +209,10 @@
   "safe": false,
   "callees": {},
   "adts": {
-    "SecretRegion": [
-      "Plain"
-    ]
+    "SecretRegion": {
+      "kind": "Constructor",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -244,10 +226,12 @@
   "safe": false,
   "callees": {},
   "adts": {
-    "SecretRegion": [
-      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(1)))",
-      "MutRef"
-    ]
+    "SecretRegion": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {
+        "1-len": "Write"
+      }
+    }
   },
   "path": {
     "type": "Local",
@@ -270,10 +254,12 @@
     }
   },
   "adts": {
-    "SecretRegion": [
-      "RefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "Ref"
-    ]
+    "SecretRegion": {
+      "kind": "MethodImmutableRefReceiver",
+      "field": {
+        "0-buffer": "Read"
+      }
+    }
   },
   "path": {
     "type": "Local",

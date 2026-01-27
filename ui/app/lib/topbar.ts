@@ -1,3 +1,4 @@
+
 /** The way to view UPG. */
 export enum ViewType {
   Callees = "Callees",
@@ -128,11 +129,12 @@ export const EDGE_TYPES = [
 ]
 
 export type FlowOpts = { layout: ELKAlgorithm, edge: EdgeType, fit: boolean, view: ViewType[] };
+
 export const FLOW_OPTS = {
   layout: ELKAlgorithm.mrtree,
   edge: EdgeType.bezier,
   fit: false,
-  view: [ViewType.Callees, ViewType.Tags]
+  view: [ViewType.Callees, ViewType.Tags, ViewType.Adts]
 };
 
 export enum Crate {
@@ -166,6 +168,15 @@ export function toCrate(s: string): Crate | undefined {
 
 export const BASE_URL = `https://raw.githubusercontent.com/os-checker/unsafety-propagation-graph-data/refs/heads/main`;
 
+export function adtURL(adtName: string) {
+  if (!adtName) return ""
+
+  const crate = adtName.match(/^[^:]+/)?.[0]
+  if (!crate) return ""
+
+  return `${BASE_URL}/${crate}/adt/${adtName}.json`;
+}
+
 export function naviTreeURL(crate: Crate) {
   return `${BASE_URL}/${crate}/navi/tree.json`;
 }
@@ -185,3 +196,5 @@ export type BarPlotData = {
 }
 
 export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }
+
+export type SearchFnItem = { name: string, tags: string[] }

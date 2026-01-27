@@ -3,9 +3,12 @@ export const enum Panel {
   Mir = "MIR",
   Doc = "Documentation",
   Tag = "Safety Property",
+  // This will never appear in URL, because it should be auto-switched to
+  // when an Adt node is selected.
+  Adt = "Adt Exogenous Fn",
 }
 
-export const PANELS: Panel[] = [Panel.Src, Panel.Mir, Panel.Doc, Panel.Tag];
+export const PANELS: Panel[] = [Panel.Tag, Panel.Adt, Panel.Doc, Panel.Src, Panel.Mir];
 
 export type PanelContent = {
   nodeItem: string
@@ -17,6 +20,7 @@ export function toPanelStr(p: Panel): string {
     case Panel.Mir: return "mir";
     case Panel.Doc: return "doc";
     case Panel.Tag: return "tag";
+    case Panel.Adt: return "adt";
     default: return ""
   }
 }
@@ -28,5 +32,6 @@ export function toPanel(s: string): Panel | undefined {
     case "mir": return Panel.Mir;
     case "doc": return Panel.Doc;
     case "tag": return Panel.Tag;
+    case "adt": return Panel.Adt;
   }
 }

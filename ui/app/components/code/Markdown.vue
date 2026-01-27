@@ -1,5 +1,7 @@
 <template>
-  <div v-html="html" class="prose prose-slate max-w-none dark:prose-invert" :class="{ 'code-wrap': isWrapped }"></div>
+  <div v-html="html" class="prose prose-slate max-w-none dark:prose-invert mt-2 prose-tight-list"
+    :class="{ 'code-wrap': isWrapped }">
+  </div>
 </template>
 
 <script setup lang="ts">

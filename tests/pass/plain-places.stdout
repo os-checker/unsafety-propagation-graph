@@ -39,17 +39,7 @@
       "adt": {}
     }
   },
-  "adts": {
-    "std::string::String": [
-      "Plain"
-    ],
-    "S": [
-      "Plain"
-    ],
-    "E": [
-      "Plain"
-    ]
-  },
+  "adts": {},
   "path": {
     "type": "Local",
     "path": "plain_places::main"

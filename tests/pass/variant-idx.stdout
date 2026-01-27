@@ -124,13 +124,12 @@
     }
   },
   "adts": {
-    "std::string::String": [
-      "Plain"
-    ],
-    "S": [
-      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "MutRef"
-    ]
+    "S": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {
+        "0-a": "Write"
+      }
+    }
   },
   "path": {
     "type": "Local",
@@ -153,15 +152,13 @@
     }
   },
   "adts": {
-    "std::string::String": [
-      "Plain",
-      "MutRef"
-    ],
-    "S": [
-      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(1)))",
-      "MutRef"
-    ]
+    "S": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {
+        "0-a": "Write",
+        "1-b": "Write"
+      }
+    }
   },
   "path": {
     "type": "Local",
@@ -180,14 +177,10 @@
     }
   },
   "adts": {
-    "E": [
-      "Deref",
-      "Unknown([Deref, Downcast(VariantIdx(0, ThreadLocalIndex)), Field(0, Ty { id: 1, kind: RigidTy(Adt(AdtDef(DefId { id: 6, name: /"std::string::String/" }), GenericArgs([]))) })])",
-      "MutRef"
-    ],
-    "std::string::String": [
-      "MutRef"
-    ]
+    "E": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -210,17 +203,10 @@
     }
   },
   "adts": {
-    "E": [
-      "Deref",
-      "Unknown([Deref, Downcast(VariantIdx(1, ThreadLocalIndex)), Field(0, Ty { id: 1, kind: RigidTy(Adt(AdtDef(DefId { id: 6, name: /"std::string::String/" }), GenericArgs([]))) })])",
-      "Unknown([Deref, Downcast(VariantIdx(0, ThreadLocalIndex)), Field(0, Ty { id: 1, kind: RigidTy(Adt(AdtDef(DefId { id: 6, name: /"std::string::String/" }), GenericArgs([]))) })])",
-      "MutRef"
-    ],
-    "std::string::String": [
-      "MutRef",
-      "Plain",
-      "Deref"
-    ]
+    "E": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -239,14 +225,10 @@
     }
   },
   "adts": {
-    "E": [
-      "Deref",
-      "Plain",
-      "MutRef"
-    ],
-    "std::string::String": [
-      "Plain"
-    ]
+    "E": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",

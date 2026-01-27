@@ -6,7 +6,7 @@ use crate::{
     output::utils::doc_internal,
 };
 use rustc_middle::ty::TyCtxt;
-use rustc_public::{CrateDef, rustc_internal::internal, ty::FnDef};
+use rustc_public::{rustc_internal::internal, ty::FnDef};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -60,11 +60,11 @@ impl Adt {
         }
 
         Adt {
-            name: adt.as_string(),
-            constructors: v_fn_name(&info.constructors),
-            access_self_as_arg: Access::new(&info.as_argument),
-            access_self_as_locals: Access::new(&info.otherwise),
-            access_field: info.fields.iter().map(Access::new).collect(),
+            name: utils::name(adt.def, tcx),
+            constructors: v_fn_name(&info.constructors, tcx),
+            access_self_as_arg: Access::new(&info.as_argument, tcx),
+            access_self_as_locals: Access::new(&info.otherwise, tcx),
+            access_field: info.fields.iter().map(|f| Access::new(f, tcx)).collect(),
             span: utils::span(adt.def, tcx),
             src: utils::src(adt.def, tcx),
             kind,
@@ -86,17 +86,19 @@ pub struct Access {
 }
 
 impl Access {
-    fn new(raw: &RawAccess) -> Access {
+    fn new(raw: &RawAccess, tcx: TyCtxt) -> Access {
         Access {
-            read: v_fn_name(&raw.read),
-            write: v_fn_name(&raw.write),
-            other: v_fn_name(&raw.other),
+            read: v_fn_name(&raw.read, tcx),
+            write: v_fn_name(&raw.write, tcx),
+            other: v_fn_name(&raw.other, tcx),
         }
     }
 }
 
-fn v_fn_name(v: &[FnDef]) -> Vec<String> {
-    v.iter().map(|c| c.name()).collect()
+fn v_fn_name(v: &[FnDef], tcx: TyCtxt) -> Vec<String> {
+    let mut v: Vec<_> = v.iter().map(|c| utils::name(*c, tcx)).collect();
+    v.sort_unstable();
+    v
 }
 
 #[derive(Debug, Serialize)]

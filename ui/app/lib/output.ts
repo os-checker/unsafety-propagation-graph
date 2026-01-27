@@ -5,7 +5,7 @@ export type Caller = {
   span: string,
   safe: boolean,
   callees: Callees,
-  adts: { [key: string]: string[] },
+  adts: AdtFieldFnKind,
   path: { type: PathType, path: string },
 }
 
@@ -21,8 +21,11 @@ export type CalleeInfo = {
   safe: boolean,
   doc: string,
   // The key is adt name.
-  adt: { [key: string]: AdtInfo },
+  adt: AdtFieldFnKind,
 }
+
+// The key is adt name.
+export type AdtFieldFnKind = { [key: string]: AdtInfo }
 
 export type AdtInfo = {
   kind: AdtFnKind,

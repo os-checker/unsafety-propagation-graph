@@ -17,12 +17,14 @@ import type { Node, Edge } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { type Caller, callerURL, EMPTY_CALLER } from "~/lib/output"
 import type { DataTags } from '~/lib/output/tag';
-import { type FlowOpts } from '~/lib/topbar';
+import { adtURL, type FlowOpts } from '~/lib/topbar';
 import type { PanelContent } from '~/lib/panel';
 import ELK from 'elkjs/lib/elk.bundled.js'
-import { Plot, PlotConfig, type IdToItem } from '~/utils/graph';
+import { NodeKind, Plot, PlotConfig, type IdToItem } from '~/utils/graph';
+import type { AdtOpts } from '~/lib/output/adt';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
+const adtOpts = defineModel<AdtOpts>('adtOpts', { required: true });
 const panelContent = defineModel<PanelContent>('panelContent', { required: true });
 
 const elk = new ELK()
@@ -55,23 +57,42 @@ const data = ref<Data>(EMPTY_DATA);
 
 // Respond to node click.
 onNodeClick(event => {
-  panelContent.value.nodeItem = data.value.id_to_item[event.node.id]?.name ?? "";
+  const selected = data.value.id_to_item[event.node.id]
+  if (selected && selected.kind === NodeKind.Adt) {
+    const name = selected.name
+
+    // Update adt data.
+    const url = adtURL(name)
+    $fetch(url)
+      .then(text => {
+        // Update nodeItem here because panel reacts to the two values.
+        panelContent.value.nodeItem = name
+        adtOpts.value = { name, data: JSON.parse(text as string) }
+      })
+      .catch(err => console.log("Failed to fetch adt.json", err))
+    return
+  }
+
+  panelContent.value.nodeItem = selected?.name ?? ""
+  // Reset adt data.
+  adtOpts.value = {}
 })
 
-watchEffect(async () => {
-  // This should be a caller or adt, but currently only caller is supported.
-  const caller = item.value;
-  if (!caller.name) return;
+watch(
+  () => ({ caller: item.value, opts: flowOpts.value, tags: props.tags, ch: chPx.value }),
+  async ({ caller, opts, tags, ch }) => {
+    // This should be a caller or adt, but currently only caller is supported.
+    if (!caller.name) return;
 
-  const px = Math.ceil(chPx.value);
-  const plotConfig = new PlotConfig(props.tags, px, flowOpts.value,);
+    const px = Math.ceil(ch);
+    const plotConfig = new PlotConfig(tags, px, opts);
 
-  const plot = new Plot(plotConfig, elk);
-  await plot.plot(caller);
+    const plot = new Plot(plotConfig, elk);
+    await plot.plot(caller);
 
-  const { nodes, edges, config } = plot;
-  data.value = { nodes, edges, id_to_item: config.id_to_item };
-})
+    const { nodes, edges, config } = plot;
+    data.value = { nodes, edges, id_to_item: config.id_to_item };
+  })
 
 watch(() => flowOpts.value.fit, val => {
   if (val) { fitView(); flowOpts.value.fit = false; }

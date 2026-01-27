@@ -125,12 +125,10 @@
   "safe": true,
   "callees": {},
   "adts": {
-    "S": [
-      "Plain"
-    ],
-    "std::string::String": [
-      "Plain"
-    ]
+    "S": {
+      "kind": "Constructor",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -144,9 +142,10 @@
   "safe": true,
   "callees": {},
   "adts": {
-    "S": [
-      "Ref"
-    ]
+    "S": {
+      "kind": "MethodImmutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -160,9 +159,10 @@
   "safe": true,
   "callees": {},
   "adts": {
-    "S": [
-      "MutRef"
-    ]
+    "S": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -176,9 +176,10 @@
   "safe": true,
   "callees": {},
   "adts": {
-    "S": [
-      "Ref"
-    ]
+    "S": {
+      "kind": "MethodImmutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -192,9 +193,10 @@
   "safe": true,
   "callees": {},
   "adts": {
-    "S": [
-      "MutRef"
-    ]
+    "S": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {}
+    }
   },
   "path": {
     "type": "Local",
@@ -213,13 +215,12 @@
     }
   },
   "adts": {
-    "std::string::String": [
-      "Plain"
-    ],
-    "S": [
-      "MutRefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "MutRef"
-    ]
+    "S": {
+      "kind": "MethodMutableRefReceiver",
+      "field": {
+        "0-s": "Write"
+      }
+    }
   },
   "path": {
     "type": "Local",

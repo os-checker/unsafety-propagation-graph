@@ -14,7 +14,7 @@
           <UButton icon="tabler:search" variant="ghost" color="neutral" />
         </UTooltip>
         <template #content>
-          <WidgetSearchFn :navi="navi" :tags="tags" v-model="search" />
+          <WidgetSearchFn :v_fn="searchFnItems" v-model="search" :title="`Search All Funtions in Crate ${crate}`" />
         </template>
       </UModal>
 
@@ -66,9 +66,9 @@
 
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
-import { type DataTags } from '~/lib/output/tag';
+import { getTag, type DataTags } from '~/lib/output/tag';
 import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
-import type { Navi, FlowOpts, Crate, Search } from '~/lib/topbar';
+import type { Navi, FlowOpts, Crate, Search, SearchFnItem } from '~/lib/topbar';
 
 // Props values are passed in, and never mutated here.
 const props = defineProps<{ tags: DataTags }>();
@@ -115,4 +115,9 @@ const shareHandle = () => { share.value = true }
 
 // Search fn
 const search = ref<Search>({ withTags: false, text: "", page: 1, itemsPerPage: 20 })
+const searchFnItems = computed<SearchFnItem[]>(() => {
+  return Object.keys(navi.value.name_to_id).map(name => {
+    return { name, tags: getTag(name, props.tags, true) }
+  })
+})
 </script>

@@ -69,7 +69,7 @@ fn run(tcx: TyCtxt) -> ControlFlow<(), ()> {
     let adt_fn_collecor = info_adt::AdtFnCollector::new(&map_adt, &map_fn, tcx);
 
     for out_func in &mut out_callers {
-        out_func.update_adt_fn(&adt_fn_collecor);
+        out_func.update_adt_fn(&adt_fn_collecor, tcx);
         out_func.dump(&writer);
     }
     for out_adt in &mut out_adts {

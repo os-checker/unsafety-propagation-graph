@@ -40,13 +40,12 @@
     }
   },
   "adts": {
-    "std::vec::Vec": [
-      "Ref"
-    ],
-    "A": [
-      "RefVariantField(VariantIdx(None)-FieldIdx(Some(0)))",
-      "Ref"
-    ]
+    "A": {
+      "kind": "MethodImmutableRefReceiver",
+      "field": {
+        "0-a": "Read"
+      }
+    }
   },
   "path": {
     "type": "Local",
