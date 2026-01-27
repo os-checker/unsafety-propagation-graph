@@ -1,6 +1,6 @@
 use rustc_hir::def_id::DefId as IDefId;
 use rustc_middle::ty::TyCtxt;
-use rustc_public::{CrateDef, rustc_internal::internal};
+use rustc_public::{CrateDef, rustc_internal::internal, ty::Span};
 use serde::Serialize;
 
 use crate::info_mod::crate_name;
@@ -38,24 +38,14 @@ pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
     src_map.span_to_string(span, rustc_span::FileNameDisplayPreference::Remapped)
 }
 
-// pub fn src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
-//     src_from_span(item.span(), tcx)
-// }
-//
-// pub fn src_from_span(span: Span, tcx: TyCtxt) -> String {
-//     let span = internal(tcx, span);
-//     span_to_snippet(tcx, span)
-// }
-
-fn span_to_snippet(tcx: TyCtxt, span: rustc_span::Span) -> String {
-    let src_map = tcx.sess.source_map();
-    src_map.span_to_snippet(span).unwrap_or_default()
+pub fn src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
+    src_from_span(item.span(), tcx)
 }
 
-pub fn def_src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
-    let did = internal(tcx, item.def_id());
-    let span = tcx.def_span(did);
-    span_to_snippet(tcx, span)
+pub fn src_from_span(span: Span, tcx: TyCtxt) -> String {
+    let span = internal(tcx, span);
+    let src_map = tcx.sess.source_map();
+    src_map.span_to_snippet(span).unwrap_or_default()
 }
 
 pub fn did<T: CrateDef>(item: T, tcx: TyCtxt) -> IDefId {

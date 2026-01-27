@@ -66,7 +66,7 @@ impl Adt {
             access_self_as_locals: Access::new(&info.otherwise, tcx),
             access_field: info.fields.iter().map(|f| Access::new(f, tcx)).collect(),
             span: utils::span(adt.def, tcx),
-            src: utils::def_src(adt.def, tcx),
+            src: utils::src(adt.def, tcx),
             kind,
             doc_adt: utils::doc(adt.def, tcx),
             variant_fields,
