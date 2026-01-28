@@ -68,7 +68,7 @@ const groupedFieldAccess = computed<{ [key: string]: AdtPanelItem[] }>(() => {
 
 // Constructors
 const constructors = computed<AdtPanelItem>(() =>
-  gen(props.adt?.constructors, "Constructors", `All Constructors of ${props.adt?.name ?? ''}`)
+  gen(props.adt?.constructors, "Constructors", `All Constructors of \`${props.adt?.name ?? ''}\``)
 )
 
 // As arguments
