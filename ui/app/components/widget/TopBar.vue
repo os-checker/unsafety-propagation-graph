@@ -18,7 +18,7 @@
         </template>
       </UModal>
 
-      <USlideover side="left" title="Navigation">
+      <USlideover side="left" title="Navigation Tree">
         <UTooltip text="Navigation">
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
@@ -33,8 +33,9 @@
       </UTooltip>
 
       <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
-        <UTooltip text="Safety Tags (Safety Properties)">
-          <UButton icon="tabler:tag" variant="ghost" :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400' }" />
+        <UTooltip text="Safety Properties Specs & Stats">
+          <UButton icon="tabler:tag" variant="ghost" label="Safety Tags"
+            :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400', label: 'text-orange-600 dark:text-orange-400' }" />
         </UTooltip>
         <template #content>
           <WidgetTag :tags="tags" />
