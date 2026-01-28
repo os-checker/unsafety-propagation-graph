@@ -1,7 +1,7 @@
 import { Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
-import type { Caller, AdtFnKind, Callees, CalleeInfo, FieldAccessKind } from "~/lib/output";
-import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt } from "~/lib/graph";
+import { FieldAccessKind, type Caller, AdtFnKind, type Callees, type CalleeInfo } from "~/lib/output";
+import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt, idCalleeNonGeneric } from "~/lib/graph";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 import { getTag, type DataTags } from "~/lib/output/tag";
@@ -23,7 +23,7 @@ const FnLayoutOptions = {
 
 const AdtLayoutOptions = {
   "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
-  "elk.direction": "LEFT",
+  "elk.direction": "RIGHT",
   "elk.aspectRatio": "10.0",
 };
 
@@ -118,6 +118,48 @@ export class PlotConfig {
         ...this.fnDim(tags, labelDim)
       };
     });
+  }
+
+  /** Generate unsafe callee nodes with tags inside, but without adts. */
+  calleeUnsafe(callees: Callees): ElkNode[] {
+    const nodes: ElkNode[] = []
+
+    for (const [name, info] of Object.entries(callees)) {
+      // if (info.safe) continue;
+
+      const labelDim = this.size(name);
+      const id = idCalleeNonGeneric(name);
+      this.id_to_item[id] = { name, kind: info.safe ? NodeKind.SafeFn : NodeKind.UnsafeFn };
+      const tags = this.tagChildren(name)
+      nodes.push({
+        id, layoutOptions: FnLayoutOptions,
+        labels: [{ text: name, ...labelDim }],
+        children: this.view.tags ? tags : [],
+        ...this.fnDim(tags, labelDim)
+      })
+    }
+
+    return nodes
+  }
+
+  elkNode_to_vuewFlowNode(node: ElkNode, opts: any = {}): Node {
+    const id = node.id
+
+    const kind = this.id_to_item[id]!.kind
+    let type = "no-handle"
+    switch (kind) {
+      case NodeKind.Tag: { type = "tag"; break };
+      case NodeKind.SafeFn: case NodeKind.UnsafeFn: { type = "output"; break };
+      case NodeKind.Field: { type = "input"; break };
+      case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { type = "default"; break };
+    }
+
+    return {
+      id, label: node.labels![0]!.text!, width: node.width, height: node.height,
+      position: { x: node.x!, y: node.y! }, class: this.nodeClass(id), type,
+      sourcePosition: Position.Right, targetPosition: Position.Left,
+      ...opts
+    }
   }
 
   nodeClass(id: string) {
@@ -229,8 +271,9 @@ export class Plot {
   }
 
   async plot(fn: Caller) {
-    if (this.config.view.adts) await this.callee_adt(fn)
-    else await this.callee_tag(fn);
+    // if (this.config.view.adts) await this.callee_adt(fn)
+    // else await this.callee_tag(fn);
+    await this.caller_adt(fn)
   }
 
   /** Generate the graph with callees and optional tags. */
@@ -453,6 +496,124 @@ export class Plot {
 
     // Connect callee and field in adts.
     edgesBetweenFieldsAndCallee.forEach(e => edges.push(e))
+    Object.assign(this, { nodes, edges });
+  }
+
+  /** Generate the graph: caller as a method of an adt, and unsafe callees. */
+  async caller_adt(fn: Caller) {
+    this.clear()
+    const root = this.rootNode(fn);
+    let rootNode = root// possibly with adt
+    const config = this.config;
+    const id_to_item = this.config.id_to_item;
+    const edgeType = config.edgeType();
+    const edges: Edge[] = []
+
+    const callees = this.config.calleeUnsafe(fn.callees)
+    // Connect caller to callees: | caller (source) | -> | callee (target) |
+    callees.forEach(c => edges.push({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType }))
+
+    // Determine the caller's method adt
+    let adt: { name: string, kind: AdtFnKind, field: { name: string, access: FieldAccessKind }[] } | null = null
+    for (const [name, info] of Object.entries(fn.adts)) {
+      const kind = info.kind
+      switch (kind) {
+        case AdtFnKind.MethodImmutableRefReceiver:
+        case AdtFnKind.MethodMutableRefReceiver:
+        case AdtFnKind.MethodOwnedReceiver: {
+          const field = Object.entries(info.field)
+            .map(([name, access]) => ({ name, access }))
+            .filter(f => f.access !== FieldAccessKind.Other)
+          adt = { name, kind, field }
+        }
+      }
+    }
+
+    if (adt !== null) {
+      const children: ElkNode[] = []
+
+      for (const field of adt.field) {
+        const fieldID = idField(adt.name, field.name)
+        id_to_item[fieldID] = { name: field.name, kind: NodeKind.Field }
+        const dimField = config.size(field.name)
+        children.push({
+          id: fieldID, layoutOptions: FnLayoutOptions,
+          labels: [{ text: field.name, ...dimField }],
+          ...dimField
+        })
+        // | field (source) | -> | caller (target) |
+        edges.push({ id: idEdge(root.id, fieldID,), source: fieldID, target: root.id, type: edgeType })
+      }
+
+      children.push(root)
+
+      const adtID = idAdt(adt.name)
+      id_to_item[adtID] = { name: adt.name, kind: NodeKind.Adt }
+      const dimAdt = config.size(adt.name)
+      // Override rootNode.
+      rootNode = {
+        id: adtID, children, layoutOptions: AdtLayoutOptions,
+        labels: [{ text: adt.name, ...dimAdt }],
+      }
+    }
+
+    const graph: ElkNode = {
+      id: "__root",
+      layoutOptions: config.rootLayoutOptions,
+      children: [rootNode, ...callees],
+      edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
+    };
+
+    const tree = await this.elk.layout(graph);
+
+    const nodes: Node[] = [];
+    for (const adtOrCaller of tree.children ?? []) {
+      nodes.push(config.elkNode_to_vuewFlowNode(adtOrCaller));
+
+      const isAdt = id_to_item[adtOrCaller.id]?.kind === NodeKind.Adt
+      if (isAdt) {
+        for (const fieldOrCaller of adtOrCaller.children ?? []) {
+          nodes.push(config.elkNode_to_vuewFlowNode(fieldOrCaller, { parentNode: adtOrCaller.id }))
+
+          for (const tag of fieldOrCaller.children ?? []) {
+            nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: fieldOrCaller.id }))
+          }
+        }
+      } else {
+        const caller = adtOrCaller
+        for (const tag of caller.children ?? []) {
+          nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: caller.id }))
+        }
+      }
+    }
+
+    // Refine layout with caller and callees.
+    const refinedNodes = nodes.filter(n => {
+      switch (id_to_item[n.id]!.kind) {
+        // Always inculde callees.
+        case NodeKind.UnsafeFn: case NodeKind.SafeFn: return true;
+        // Include caller if no adt wraps it.
+        case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: return adt ? false : true;
+        // Include adt if adt wraps the caller.
+        case NodeKind.Adt: return adt ? true : false;
+        // Don't relayout other nodes.
+        default: return false;
+      }
+    })
+    const refinedEdges: Edge[] = []
+    if (adt) {
+      // Relayout adt node with callees.
+      const adtID = idAdt(adt.name)
+      callees.forEach(c => refinedEdges.push({
+        id: idEdge(adtID, c.id), source: adtID, target: c.id, type: edgeType
+      }))
+    } else {
+      callees.forEach(c => refinedEdges.push({
+        id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType
+      }))
+    }
+    updateNodePosition(refinedNodes, refinedEdges);
+
     Object.assign(this, { nodes, edges });
   }
 }
