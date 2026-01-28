@@ -19,7 +19,7 @@
       </UModal>
 
       <USlideover side="left" title="Navigation Tree">
-        <UTooltip text="Navigation">
+        <UTooltip text="Navigation Tree">
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
@@ -55,9 +55,9 @@
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
 
-      <UTooltip text="Graph View">
-        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" />
-      </UTooltip>
+      <!-- <UTooltip text="Graph View"> -->
+      <!--   <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" /> -->
+      <!-- </UTooltip> -->
 
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
 import { getTag, type DataTags } from '~/lib/output/tag';
-import { VIEW_TYPES, NAVI, naviTreeURL, CRATES, } from '~/lib/topbar';
+import { NAVI, naviTreeURL, CRATES, } from '~/lib/topbar';
 import type { Navi, FlowOpts, Crate, Search, SearchFnItem } from '~/lib/topbar';
 
 // Props values are passed in, and never mutated here.
