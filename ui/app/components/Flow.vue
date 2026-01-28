@@ -78,21 +78,21 @@ onNodeClick(event => {
   adtOpts.value = {}
 })
 
-watch(
-  () => ({ caller: item.value, opts: flowOpts.value, tags: props.tags, ch: chPx.value }),
-  async ({ caller, opts, tags, ch }) => {
-    // This should be a caller or adt, but currently only caller is supported.
-    if (!caller.name) return;
+// () => ({ caller: item.value, opts: flowOpts.value, tags: props.tags, ch: chPx.value }),
+watchEffect(async () => {
+  const caller = item.value
+  // This should be a caller or adt, but currently only caller is supported.
+  if (!caller.name) return;
 
-    const px = Math.ceil(ch);
-    const plotConfig = new PlotConfig(tags, px, opts);
+  const px = Math.ceil(chPx.value);
+  const plotConfig = new PlotConfig(props.tags, px, flowOpts.value);
 
-    const plot = new Plot(plotConfig, elk);
-    await plot.plot(caller);
+  const plot = new Plot(plotConfig, elk);
+  await plot.plot(caller);
 
-    const { nodes, edges, config } = plot;
-    data.value = { nodes, edges, id_to_item: config.id_to_item };
-  })
+  const { nodes, edges, config } = plot;
+  data.value = { nodes, edges, id_to_item: config.id_to_item };
+})
 
 watch(() => flowOpts.value.fit, val => {
   if (val) { fitView(); flowOpts.value.fit = false; }

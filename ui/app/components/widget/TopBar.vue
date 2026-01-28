@@ -18,7 +18,7 @@
         </template>
       </UModal>
 
-      <USlideover side="left" title="Navigation">
+      <USlideover side="left" title="Navigation Tree">
         <UTooltip text="Navigation">
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
@@ -33,22 +33,23 @@
       </UTooltip>
 
       <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
-        <UTooltip text="Safety Tags (Safety Properties)">
-          <UButton icon="tabler:tag" variant="ghost" :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400' }" />
+        <UTooltip text="Safety Properties Specs & Stats">
+          <UButton icon="tabler:tag" variant="ghost" label="Safety Tags"
+            :ui="{ leadingIcon: 'text-orange-600 dark:text-orange-400', label: 'text-orange-600 dark:text-orange-400' }" />
         </UTooltip>
         <template #content>
           <WidgetTag :tags="tags" />
         </template>
       </UModal>
 
-      <UTooltip v-if="false" text="Layout Algorithm">
-        <USelect v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" class="w-31"
-          icon="tabler:layout-board-split-filled" />
-      </UTooltip>
-
-      <UTooltip text="Edge Type">
-        <USelect v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" class="w-30" icon="tabler:line" />
-      </UTooltip>
+      <!-- <UTooltip v-if="false" text="Layout Algorithm"> -->
+      <!--   <USelect v-model="flowOpts.layout" placeholder="Layout" :items="ELK_LAYOUTS" class="w-31" -->
+      <!--     icon="tabler:layout-board-split-filled" /> -->
+      <!-- </UTooltip> -->
+      <!---->
+      <!-- <UTooltip text="Edge Type"> -->
+      <!--   <USelect v-model="flowOpts.edge" placeholder="Edge Type" :items="EDGE_TYPES" class="w-30" icon="tabler:line" /> -->
+      <!-- </UTooltip> -->
 
       <UTooltip text="Fit To Screen">
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
@@ -67,7 +68,7 @@
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
 import { getTag, type DataTags } from '~/lib/output/tag';
-import { VIEW_TYPES, NAVI, naviTreeURL, ELK_LAYOUTS, EDGE_TYPES, CRATES, } from '~/lib/topbar';
+import { VIEW_TYPES, NAVI, naviTreeURL, CRATES, } from '~/lib/topbar';
 import type { Navi, FlowOpts, Crate, Search, SearchFnItem } from '~/lib/topbar';
 
 // Props values are passed in, and never mutated here.

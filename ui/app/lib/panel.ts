@@ -8,7 +8,7 @@ export const enum Panel {
   Adt = "Adt Exogenous Fn",
 }
 
-export const PANELS: Panel[] = [Panel.Tag, Panel.Adt, Panel.Doc, Panel.Src, Panel.Mir];
+export const PANELS: Panel[] = [Panel.Adt, Panel.Tag, Panel.Doc, Panel.Src, Panel.Mir];
 
 export type PanelContent = {
   nodeItem: string
