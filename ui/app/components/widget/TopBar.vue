@@ -116,7 +116,7 @@ const share = defineModel<boolean>("share", { required: true })
 const shareHandle = () => { share.value = true }
 
 // Search fn
-const search = ref<Search>({ withTags: true, text: "", page: 1, itemsPerPage: 20 })
+const search = ref<Search>({ withTags: true, unsafeOnly: true, text: "", page: 1, itemsPerPage: 20 })
 const searchFnItems = computed<SearchFnItem[]>(() => {
   return Object.keys(navi.value.name_to_id).map(name => {
     return { name, tags: getTag(name, props.tags, true) }

@@ -215,4 +215,4 @@ html, body {
 }
 
 /* .fnLink { @apply font-mono; } */
-.unsafeFnLink { @apply text-red-700 dark:text-red-400 hover:text-red-500 transition-colors; }
+.unsafeFnLink { @apply text-red-700 dark:text-red-400 hover:font-bold hover:text-red-500 transition-colors; }

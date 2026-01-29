@@ -195,7 +195,7 @@ export type BarPlotData = {
   value: number,
 }
 
-export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }
+export type Search = { withTags: boolean, unsafeOnly: boolean, text: string, page: number, itemsPerPage: number }
 
 export type SearchFnItem = { name: string, tags: string[] }
 

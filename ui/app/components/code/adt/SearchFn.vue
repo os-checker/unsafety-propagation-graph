@@ -17,5 +17,5 @@ import type { AdtPanelItem } from '~/lib/output/adt';
 import type { Search, UnsafeFns } from '~/lib/topbar';
 
 const props = defineProps<{ val: AdtPanelItem, unsafeFns: UnsafeFns }>()
-const search = ref<Search>({ withTags: false, text: "", page: 1, itemsPerPage: 20 })
+const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
 </script>
