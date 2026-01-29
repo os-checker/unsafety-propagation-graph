@@ -648,8 +648,8 @@ export class Plot {
 
     updateNodePosition(refinedNodes, refinedEdges);
 
-    // Don't overlap large adt node with callees.
     if (adt) {
+      // Don't overlap large adt node with callees.
       const fieldNodes = []
       let adtNode: Node | null = null
       let callerNode: Node | null = null
@@ -710,8 +710,27 @@ export class Plot {
           nodes.push(callerHeader)
         }
       }
-    }
+    } else {
+      let calleeNodes: Node[] = []
+      let callerNode: Node | null = null
 
+      for (const node of nodes) {
+        switch (config.nodeKind(node.id)) {
+          case NodeKind.UnsafeFn: case NodeKind.SafeFn: { calleeNodes.push(node); break };
+          case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { callerNode = node; break };
+        }
+      }
+
+      // Don't overlap caller and callees.
+      let calleeX: number | null = null
+      calleeNodes.forEach(c => calleeX = calleeX ? Math.min(c.position.x) : c.position.x)
+      if (calleeX !== null) {
+        const gap = calleeX - callerNode!.position.x - (callerNode!.width as number)
+        const spacing = 100
+        // Move left if the gap is narrow. Use abs for negative gap (overlapping).
+        if (gap < spacing) callerNode!.position.x -= (Math.abs(gap) + spacing)
+      }
+    }
 
     Object.assign(this, { nodes, edges });
   }
