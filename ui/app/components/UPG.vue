@@ -46,9 +46,10 @@ function init() {
     if (viewTypes) flowOpts_.view = viewTypes
   }
 
+  const defaultCrate = Crate.alloc
   return {
-    crate: krate ?? Crate.alloc,
-    item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
+    crate: krate ?? defaultCrate,
+    item: (krate && item && item as string) ?? defaultCrateItemQuery(defaultCrate),
     flowOpts: flowOpts_,
     up: toPanel(query.up as string) ?? Panel.Src,
     down: toPanel(query.down as string) ?? Panel.Doc,

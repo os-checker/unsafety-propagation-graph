@@ -150,7 +150,7 @@ export function defaultCrateItemQuery(crate: Crate): string {
   switch (crate) {
     case Crate.std: return "std::time::Instant::now";
     case Crate.core: return "core::str::<impl str>::len";
-    case Crate.alloc: return "alloc::vec::Vec::<T, A>::push";
+    case Crate.alloc: return "alloc::vec::Vec::<T, A>::set_len";
     case Crate.ostd: return "ostd::init";
     default: return "";
   }
