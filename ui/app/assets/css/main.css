@@ -122,7 +122,7 @@ html, body {
 .upg-node,
 .upg-node-fn,
 .upg-node-unsafe-fn {
-  @apply text-lg font-mono whitespace-nowrap;
+  @apply text-lg font-mono whitespace-nowrap border border-gray-400;
   @variant dark {
     @apply bg-gray-800 text-white border-gray-100;
   };
@@ -141,7 +141,7 @@ html, body {
 .upg-node-adt-fn-kind {
   @apply text-gray-500 font-mono whitespace-nowrap bg-transparent;
 }
-.upg-node-adt { @apply font-bold text-xl dark:border-gray-100/50; }
+.upg-node-adt { @apply font-bold text-xl border dark:border-gray-100/50; }
 /* Unset bottom border if fields are connected to callees. */
 .upg-node-adt-border-b-0 { @apply border-b-0; }
 .upg-node-adt-fn-kind { @apply text-lg border-none; }
@@ -213,3 +213,6 @@ html, body {
     margin-bottom: 0.1rem !important;
   }
 }
+
+/* .fnLink { @apply font-mono; } */
+.unsafeFnLink { @apply text-red-700 dark:text-red-400 hover:font-bold hover:text-red-500 transition-colors; }

@@ -1,25 +1,27 @@
 <template>
   <div class="upg-left">
     <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share"
-      :tags="tags" />
+      :tags="tags" :unsafeFns="unsafeFns" />
     <Flow :nodeItem="nodeItem" :tags="tags" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent"
       v-model:adtOpts="adtOpts" />
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
-      <WidgetSelectPanel v-model="upPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags" />
+      <WidgetSelectPanel v-model="upPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags"
+        :unsafeFns="unsafeFns" />
     </div>
     <div class="upg-panel">
-      <WidgetSelectPanel v-model="downPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags" />
+      <WidgetSelectPanel v-model="downPanel" v-model:panelContent="panelContent" :adtOpts="adtOpts" :tags="tags"
+        :unsafeFns="unsafeFns" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FlowOpts } from "~/lib/topbar"
+import type { FlowOpts, UnsafeFns } from "~/lib/topbar"
 import { type DataTags, } from '~/lib/output/tag';
 import { Panel, toPanel, toPanelStr, type PanelContent } from "~/lib/panel"
-import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes } from "~/lib/topbar";
+import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes, unsafeFnsURL } from "~/lib/topbar";
 import type { AdtOpts } from "~/lib/output/adt";
 
 const router = useRouter();
@@ -46,9 +48,10 @@ function init() {
     if (viewTypes) flowOpts_.view = viewTypes
   }
 
+  const defaultCrate = Crate.alloc
   return {
-    crate: krate ?? Crate.alloc,
-    item: (krate && item && item as string) ?? defaultCrateItemQuery(Crate.std),
+    crate: krate ?? defaultCrate,
+    item: (krate && item && item as string) ?? defaultCrateItemQuery(defaultCrate),
     flowOpts: flowOpts_,
     up: toPanel(query.up as string) ?? Panel.Src,
     down: toPanel(query.down as string) ?? Panel.Doc,
@@ -60,11 +63,14 @@ const crate = ref<Crate>(initState.crate);
 const nodeItem = ref<string>(initState.item);
 watch(crate, root => nodeItem.value = defaultCrateItemQuery(root))
 
+const unsafeFns = ref<UnsafeFns>({})
 const tags = ref<DataTags>({ v_fn: {}, spec: {} });
 watch(crate, val => {
   $fetch(tagURL(val))
     .then(text => tags.value = JSON.parse(text as string))
   // .catch(err => console.log(err));
+  $fetch(unsafeFnsURL(val))
+    .then(text => unsafeFns.value = JSON.parse(text as string))
 }, { immediate: true });
 
 const panelContent = ref<PanelContent>({ nodeItem: nodeItem.value });

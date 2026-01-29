@@ -12,7 +12,7 @@
       <CodeSrc v-else-if="selected === Panel.Mir" :src="mir.mir" :isWrapped="isWrapped" />
       <CodeMarkdown v-else-if="selected === Panel.Doc" :doc="doc.doc" :isWrapped="isWrapped" />
       <CodeMarkdown v-else-if="selected === Panel.Tag" :doc="tagDoc" :isWrapped="isWrapped" />
-      <CodeAdt v-else-if="selected === Panel.Adt" :adt="adtOpts.data" :tags="tags" />
+      <CodeAdt v-else-if="selected === Panel.Adt" :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" />
     </div>
   </ClientOnly>
 </template>
@@ -24,10 +24,11 @@ import { adtDoc, type AdtOpts } from "~/lib/output/adt";
 import { getTagDoc, type DataTags, } from "~/lib/output/tag";
 import { Panel, PANELS, type PanelContent } from "~/lib/panel"
 import getLink from "~/utils/getLink";
+import { type UnsafeFns } from "~/lib/topbar";
 
 const selected = defineModel<Panel>();
 const panelContent = defineModel<PanelContent>("panelContent", { required: true });
-const props = defineProps<{ tags: DataTags, adtOpts: AdtOpts }>()
+const props = defineProps<{ tags: DataTags, unsafeFns: UnsafeFns, adtOpts: AdtOpts }>()
 
 const src = ref<Src>(EMPTY_SRC)
 const mir = ref<Mir>(EMPTY_MIR)

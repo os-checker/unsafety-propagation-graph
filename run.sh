@@ -64,6 +64,15 @@ gen_data() {
   cp target/upg/demo/alloc data -r
   cp target/upg/demo/core data -r
   cp target/upg/demo/std data -r
+
+  merge_unsafe_fns_json
+}
+
+merge_unsafe_fns_json() {
+  pushd data
+  # Merge all objects by key, and sort by key.
+  jq -s 'add' -S core/navi/unsafe_fns.json alloc/navi/unsafe_fns.json std/navi/unsafe_fns.json >core-alloc-std_unsafe_fns.json
+  popd
 }
 
 gen_data

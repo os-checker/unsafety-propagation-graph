@@ -47,7 +47,7 @@
         <div class="flex items-center gap-4">
           <USelectMenu v-model="filterTagNames" multiple clear :items="tagNames" placeholder="Filter Tags"
             variant="ghost" icon="tabler:search" />
-          <UCheckbox label="Toggle Function" color="secondary" v-model="showFunction" />
+          <UCheckbox label="Display Functions" color="secondary" v-model="showFunction" />
         </div>
         <div class="text-xs">
           Used Tag Kind: {{ spec.stat.tag_cardinality }},

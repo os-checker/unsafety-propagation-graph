@@ -150,7 +150,7 @@ export function defaultCrateItemQuery(crate: Crate): string {
   switch (crate) {
     case Crate.std: return "std::time::Instant::now";
     case Crate.core: return "core::str::<impl str>::len";
-    case Crate.alloc: return "alloc::vec::Vec::<T, A>::push";
+    case Crate.alloc: return "alloc::vec::Vec::<T, A>::set_len";
     case Crate.ostd: return "ostd::init";
     default: return "";
   }
@@ -195,6 +195,18 @@ export type BarPlotData = {
   value: number,
 }
 
-export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }
+export type Search = { withTags: boolean, unsafeOnly: boolean, text: string, page: number, itemsPerPage: number }
 
 export type SearchFnItem = { name: string, tags: string[] }
+
+export function unsafeFnsURL(crate: Crate) {
+  return `${BASE_URL}/${crate}/navi/unsafe_fns.json`
+}
+
+export type UnsafeFns = {
+  [key: string]: Unsafe
+}
+
+export enum Unsafe {
+  Caller, Callee, Both,
+}

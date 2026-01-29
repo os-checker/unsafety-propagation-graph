@@ -14,12 +14,13 @@
           <UButton icon="tabler:search" variant="ghost" color="neutral" />
         </UTooltip>
         <template #content>
-          <WidgetSearchFn :v_fn="searchFnItems" v-model="search" :title="`Search All Funtions in Crate ${crate}`" />
+          <WidgetSearchFn :v_fn="searchFnItems" :unsafe-fns="unsafeFns" v-model="search"
+            :title="`Search All Funtions in Crate ${crate}`" />
         </template>
       </UModal>
 
       <USlideover side="left" title="Navigation Tree">
-        <UTooltip text="Navigation">
+        <UTooltip text="Navigation Tree">
           <UButton icon="tabler:sitemap" variant="ghost" />
         </UTooltip>
         <template #body>
@@ -55,9 +56,9 @@
         <UButton icon="tabler:arrow-autofit-height" color="neutral" variant="ghost" @click="fitViewHandle" />
       </UTooltip>
 
-      <UTooltip text="Graph View">
-        <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" />
-      </UTooltip>
+      <!-- <UTooltip text="Graph View"> -->
+      <!--   <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" /> -->
+      <!-- </UTooltip> -->
 
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
@@ -68,11 +69,11 @@
 <script setup lang="ts">
 import type { TreeItem } from '@nuxt/ui';
 import { getTag, type DataTags } from '~/lib/output/tag';
-import { VIEW_TYPES, NAVI, naviTreeURL, CRATES, } from '~/lib/topbar';
-import type { Navi, FlowOpts, Crate, Search, SearchFnItem } from '~/lib/topbar';
+import { NAVI, naviTreeURL, CRATES, } from '~/lib/topbar';
+import type { Navi, FlowOpts, Crate, Search, SearchFnItem, UnsafeFns } from '~/lib/topbar';
 
 // Props values are passed in, and never mutated here.
-const props = defineProps<{ tags: DataTags }>();
+const props = defineProps<{ tags: DataTags, unsafeFns: UnsafeFns }>();
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 function fitViewHandle() { if (flowOpts.value) flowOpts.value.fit = true }
@@ -115,7 +116,7 @@ const share = defineModel<boolean>("share", { required: true })
 const shareHandle = () => { share.value = true }
 
 // Search fn
-const search = ref<Search>({ withTags: false, text: "", page: 1, itemsPerPage: 20 })
+const search = ref<Search>({ withTags: true, unsafeOnly: true, text: "", page: 1, itemsPerPage: 20 })
 const searchFnItems = computed<SearchFnItem[]>(() => {
   return Object.keys(navi.value.name_to_id).map(name => {
     return { name, tags: getTag(name, props.tags, true) }

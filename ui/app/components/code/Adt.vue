@@ -3,22 +3,22 @@
     <div> Field Access: </div>
     <div v-for="[field, v_data], idx in Object.entries(groupedFieldAccess)" class="adt-fn-group">
       <div class="min-w-15 ml-5 font-mono">{{ idx }}-{{ field }}:</div>
-      <CodeAdtSearchFn v-for="data in v_data" :val="data" />
+      <CodeAdtSearchFn v-for="data in v_data" :val="data" :unsafeFns="unsafeFns" />
     </div>
 
     <div class="adt-fn-group">
       <div> Construct Adt: </div>
-      <CodeAdtSearchFn :val="constructors" />
+      <CodeAdtSearchFn :val="constructors" :unsafeFns="unsafeFns" />
     </div>
 
     <div class="adt-fn-group">
       <div>{{ group_access_self_as_arg.group }}</div>
-      <CodeAdtSearchFn v-for="data in group_access_self_as_arg.data" :val="data" />
+      <CodeAdtSearchFn v-for="data in group_access_self_as_arg.data" :val="data" :unsafeFns="unsafeFns" />
     </div>
 
     <div class="adt-fn-group">
       <div>{{ group_access_self_as_locals.group }}</div>
-      <CodeAdtSearchFn v-for="data in group_access_self_as_locals.data" :val="data" />
+      <CodeAdtSearchFn v-for="data in group_access_self_as_locals.data" :val="data" :unsafeFns="unsafeFns" />
     </div>
   </div>
 </template>
@@ -26,8 +26,9 @@
 <script setup lang="ts">
 import type { AdtPanelItem, DataAdt } from '~/lib/output/adt';
 import { getTag, type DataTags } from '~/lib/output/tag';
+import type { UnsafeFns } from '~/lib/topbar';
 
-const props = defineProps<{ adt?: DataAdt, tags: DataTags }>()
+const props = defineProps<{ adt?: DataAdt, tags: DataTags, unsafeFns: UnsafeFns }>()
 
 function gen(v: string[] | undefined, kind: string, desc: string) {
   const v_fn = v ? v.map(

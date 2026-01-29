@@ -6,7 +6,7 @@ use crate::{
     utils::FxIndexMap,
 };
 use rustc_middle::ty::TyCtxt;
-use rustc_public::{CrateDef, DefId, mir::Safety, rustc_internal::internal, ty::FnDef};
+use rustc_public::{CrateDef, DefId, rustc_internal::internal, ty::FnDef};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -28,7 +28,7 @@ impl Caller {
         Caller {
             fn_def,
             meta: utils::Meta::new(fn_def, tcx),
-            safe: is_safe(fn_def),
+            safe: utils::is_safe(fn_def),
             callees: output_callee(info),
             adts: Default::default(),
             path: def_path(fn_def.def_id(), tcx, navi),
@@ -92,14 +92,10 @@ pub fn output_callee(finfo: &FnInfo) -> FxIndexMap<String, CalleeInfo> {
     for (fn_def, info) in &finfo.callees {
         let fn_def = *fn_def;
         let callee_info = CalleeInfo {
-            safe: is_safe(fn_def),
+            safe: utils::is_safe(fn_def),
             adt: Default::default(),
         };
         map.insert(info.non_instance_name.clone(), callee_info);
     }
     map
-}
-
-fn is_safe(fn_def: FnDef) -> bool {
-    matches!(fn_def.fn_sig().value.safety, Safety::Safe)
 }

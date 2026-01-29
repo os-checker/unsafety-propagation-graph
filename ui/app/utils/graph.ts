@@ -1,7 +1,7 @@
-import { Position, type Edge, type Node } from "@vue-flow/core";
+import { MarkerType, Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
-import type { Caller, AdtFnKind, Callees, CalleeInfo, FieldAccessKind } from "~/lib/output";
-import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt } from "~/lib/graph";
+import { FieldAccessKind, type Caller, AdtFnKind, type Callees, type CalleeInfo } from "~/lib/output";
+import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt, idCalleeNonGeneric } from "~/lib/graph";
 import { ViewType, type FlowOpts } from "~/lib/topbar";
 import updateNodePosition from "./updateNodePosition";
 import { getTag, type DataTags } from "~/lib/output/tag";
@@ -23,7 +23,7 @@ const FnLayoutOptions = {
 
 const AdtLayoutOptions = {
   "elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
-  "elk.direction": "LEFT",
+  "elk.direction": "RIGHT",
   "elk.aspectRatio": "10.0",
 };
 
@@ -120,6 +120,72 @@ export class PlotConfig {
     });
   }
 
+  /** Generate unsafe callee nodes with tags inside, but without adts. */
+  calleeUnsafe(callees: Callees): ElkNode[] {
+    const nodes: ElkNode[] = []
+
+    for (const [name, info] of Object.entries(callees)) {
+      // if (info.safe) continue;
+
+      const labelDim = this.size(name);
+      const id = idCalleeNonGeneric(name);
+      this.id_to_item[id] = { name, kind: info.safe ? NodeKind.SafeFn : NodeKind.UnsafeFn };
+      const tags = this.tagChildren(name)
+      nodes.push({
+        id, layoutOptions: FnLayoutOptions,
+        labels: [{ text: name, ...labelDim }],
+        children: this.view.tags ? tags : [],
+        ...this.fnDim(tags, labelDim)
+      })
+    }
+
+    return nodes
+  }
+
+  elkNode_to_vueFlowNode(node: ElkNode, opts: any = {}): Node {
+    const id = node.id
+
+    const kind = this.id_to_item[id]!.kind
+    let type = "no-handle"
+    switch (kind) {
+      case NodeKind.Tag: { type = "tag"; break };
+      case NodeKind.SafeFn: case NodeKind.UnsafeFn: { type = "output"; break };
+      case NodeKind.Field: { type = "input"; break };
+      case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { type = "default"; break };
+    }
+
+    const labelWidth = node.labels![0]!.width!
+    return {
+      id, label: node.labels![0]!.text!, width: Math.max(node.width!, labelWidth), height: node.height,
+      position: { x: node.x!, y: node.y! }, class: this.nodeClass(id), type,
+      sourcePosition: Position.Right, targetPosition: Position.Left,
+      ...opts
+    }
+  }
+
+  fieldHeaderNode(x: number, y: number, adt: string, nFields: number, parent: string): Node {
+    const id = `FieldHeader@${adt}`
+    this.id_to_item[id] = { name: adt, kind: NodeKind.FieldHeader }
+    const label = (nFields === 1) ? "Field" : "Fields"
+    const dim = this.size(label)
+    return {
+      id, label, width: dim.width, height: dim.height, parentNode: parent,
+      position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+    }
+  }
+
+  callerHeaderNode(x: number, y: number, caller: string, kind: AdtFnKind, parent: string): Node {
+    const id = `CallerHeader@${caller}`
+    this.id_to_item[id] = { name: caller, kind: NodeKind.CallerHeader }
+    const label = kind as string
+    const dim = this.size(label)
+    return {
+      id, label, width: dim.width, height: dim.height, parentNode: parent,
+      position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+    }
+  }
+
+
   nodeClass(id: string) {
     let ret = nodeKindClass(this.id_to_item[id]!.kind)
     if (this.adt_border_b_0.has(id)) {
@@ -153,6 +219,10 @@ export class PlotConfig {
   edgeType(): string {
     return this.flowOpts.edge as string
   }
+
+  nodeKind(id: string) {
+    return this.id_to_item[id]!.kind
+  }
 }
 
 export enum NodeKind {
@@ -167,6 +237,7 @@ export enum NodeKind {
   FnKind,
   Field,
   FieldHeader,
+  CallerHeader,
 }
 
 function nodeKindClass(kind: NodeKind) {
@@ -177,7 +248,7 @@ function nodeKindClass(kind: NodeKind) {
     case NodeKind.Adt: return "upg-node-adt";
     case NodeKind.FnKind: return "upg-node-adt-fn-kind";
     case NodeKind.Field: return "upg-node-fn";
-    case NodeKind.FieldHeader: return "upg-node-adt-fn-kind";
+    case NodeKind.FieldHeader: case NodeKind.CallerHeader: return "upg-node-adt-fn-kind";
     default: return "";
   }
 }
@@ -229,8 +300,9 @@ export class Plot {
   }
 
   async plot(fn: Caller) {
-    if (this.config.view.adts) await this.callee_adt(fn)
-    else await this.callee_tag(fn);
+    // if (this.config.view.adts) await this.callee_adt(fn)
+    // else await this.callee_tag(fn);
+    await this.caller_adt(fn)
   }
 
   /** Generate the graph with callees and optional tags. */
@@ -453,6 +525,231 @@ export class Plot {
 
     // Connect callee and field in adts.
     edgesBetweenFieldsAndCallee.forEach(e => edges.push(e))
+    Object.assign(this, { nodes, edges });
+  }
+
+  /** Generate the graph: caller as a method of an adt, and unsafe callees. */
+  async caller_adt(fn: Caller) {
+    this.clear()
+    const root = this.rootNode(fn);
+    let rootNode = root// possibly with adt
+    const config = this.config;
+    const id_to_item = this.config.id_to_item;
+    const edgeType = config.edgeType();
+    const edges: Edge[] = []
+
+    const callees = this.config.calleeUnsafe(fn.callees)
+    // Connect caller to callees: | caller (source) | -> | callee (target) |
+    callees.forEach(c => edges.push({ id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType }))
+
+    // Determine the caller's method adt
+    let adt: { name: string, kind: AdtFnKind, field: { name: string, access: FieldAccessKind }[] } | null = null
+    for (const [name, info] of Object.entries(fn.adts)) {
+      const kind = info.kind
+      switch (kind) {
+        case AdtFnKind.MethodImmutableRefReceiver:
+        case AdtFnKind.MethodMutableRefReceiver:
+        case AdtFnKind.MethodOwnedReceiver: {
+          const field = Object.entries(info.field)
+            .map(([name, access]) => ({ name, access }))
+            .filter(f => f.access !== FieldAccessKind.Other)
+          adt = { name, kind, field }
+        }
+      }
+    }
+
+    if (adt !== null) {
+      const children: ElkNode[] = []
+
+      for (const field of adt.field) {
+        const fieldID = idField(adt.name, field.name)
+        id_to_item[fieldID] = { name: field.name, kind: NodeKind.Field }
+        const dimField = config.size(field.name)
+        children.push({
+          id: fieldID, layoutOptions: FnLayoutOptions,
+          labels: [{ text: field.name, ...dimField }],
+          ...dimField
+        })
+        // | field (source) | -> | caller (target) |
+        edges.push({
+          id: idEdge(root.id, fieldID,), source: fieldID, target: root.id, type: edgeType,
+          label: field.access as string, markerStart: { type: MarkerType.Arrow, color: 'gray', width: 25, height: 25 }
+        })
+      }
+
+      children.push(root)
+
+      const adtID = idAdt(adt.name)
+      id_to_item[adtID] = { name: adt.name, kind: NodeKind.Adt }
+      const dimAdt = config.size(adt.name)
+      // Override rootNode.
+      rootNode = {
+        id: adtID, children, layoutOptions: AdtLayoutOptions,
+        labels: [{ text: adt.name, ...dimAdt }],
+      }
+    }
+
+    const graph: ElkNode = {
+      id: "__root",
+      layoutOptions: config.rootLayoutOptions,
+      children: [rootNode, ...callees],
+      edges: edges.map(e => ({ id: e.id, sources: [e.source], targets: [e.target] }))
+    };
+
+    const tree = await this.elk.layout(graph);
+
+    const nodes: Node[] = [];
+    for (const adtOrCallerOrCallee of tree.children ?? []) {
+      const parent = config.elkNode_to_vueFlowNode(adtOrCallerOrCallee)
+      nodes.push(parent);
+
+      const isAdt = config.nodeKind(adtOrCallerOrCallee.id) === NodeKind.Adt
+      if (isAdt) {
+        for (const fieldOrCaller of adtOrCallerOrCallee.children ?? []) {
+          const child = config.elkNode_to_vueFlowNode(fieldOrCaller, { parentNode: parent.id })
+          nodes.push(child)
+
+          const isCaller = root.id === fieldOrCaller.id
+          if (isCaller) {
+            // Enlarge adt node when caller has been enlarged due to label width.
+            // NOTE: must use vue node instead of elk node because we ignore elk node by using label width.
+            const adtNode = parent
+            const caller = child
+            const gapX = (adtNode.width as number) - caller.position.x - (caller.width as number)
+            const spacingX = config.px * 3
+            if (gapX < spacingX) (adtNode.width as number) += ((gapX < 0) ? (-gapX) : 0) + spacingX
+
+            const gapY = (adtNode.height as number) - caller.position.y - (caller.height as number)
+            const spacingY = config.px
+            if (gapY < spacingY) (adtNode.height as number) += ((gapY < 0) ? (-gapY) : 0) + spacingY
+          }
+
+          for (const tag of fieldOrCaller.children ?? []) {
+            nodes.push(config.elkNode_to_vueFlowNode(tag, { parentNode: fieldOrCaller.id }))
+          }
+        }
+      } else {
+        const func = adtOrCallerOrCallee
+        for (const tag of func.children ?? []) {
+          nodes.push(config.elkNode_to_vueFlowNode(tag, { parentNode: func.id }))
+        }
+      }
+    }
+
+    // Refine layout with caller and callees.
+    const refinedNodes = nodes.filter(n => {
+      switch (id_to_item[n.id]!.kind) {
+        // Always inculde callees.
+        case NodeKind.UnsafeFn: case NodeKind.SafeFn: return true;
+        // Include caller if no adt wraps it.
+        case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: return adt ? false : true;
+        // Include adt if adt wraps the caller.
+        case NodeKind.Adt: return adt ? true : false;
+        // Don't relayout other nodes.
+        default: return false;
+      }
+    })
+
+    const refinedEdges: Edge[] = []
+    if (adt) {
+      // Relayout adt node with callees.
+      const adtID = idAdt(adt.name)
+      callees.forEach(c => refinedEdges.push({
+        id: idEdge(adtID, c.id), source: adtID, target: c.id, type: edgeType
+      }))
+    } else {
+      callees.forEach(c => refinedEdges.push({
+        id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType
+      }))
+    }
+
+    updateNodePosition(refinedNodes, refinedEdges);
+
+    if (adt) {
+      // Don't overlap large adt node with callees.
+      const fieldNodes = []
+      let adtNode: Node | null = null
+      let callerNode: Node | null = null
+
+      for (const node of nodes) {
+        switch (config.nodeKind(node.id)) {
+          case NodeKind.Field: { fieldNodes.push(node); break };
+          case NodeKind.Adt: { adtNode = node; break };
+          case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { callerNode = node; break };
+        }
+      }
+
+      if (adtNode !== null) {
+        const adtMaxX = (typeof adtNode.width === "number") ? (adtNode.position.x + adtNode.width) : null
+        if (adtMaxX) {
+          for (const node of refinedNodes) {
+            const kind = config.nodeKind(node.id)
+            if (kind === NodeKind.UnsafeFn || kind === NodeKind.SafeFn) {
+              const x = node.position.x
+              if (x < adtMaxX) node.position.x = adtMaxX + 50
+            }
+          }
+        }
+
+        // Enlarge fields and caller spacing.
+        let enlarge_spacing = false
+        let firstFieldY: number | null = null
+        let firstFieldX: number | null = null
+        const spacing = config.px * 7 // in the unit of a mono char with
+        for (const field of fieldNodes) {
+          const x = field.position.x
+          const gap = callerNode!.position.x - x - (field.width as number)
+          if (gap < spacing) enlarge_spacing = true
+
+          const y = field.position.y
+          firstFieldY = firstFieldY ? Math.min(y, firstFieldY) : y
+          firstFieldX = firstFieldX ? Math.min(x, firstFieldX) : x
+        }
+
+        if (enlarge_spacing) {
+          // Move adt node left. All elements inside will also be moved left.
+          adtNode.position.x -= spacing;
+          // Widen adt node for enclosing all elements .
+          adtNode.width = adtNode.width as number + spacing
+          // Move caller node right.
+          callerNode!.position.x += spacing
+        }
+
+        // Add field and caller header
+        if (firstFieldY !== null && firstFieldX !== null) {
+          const parent = adtNode!.id
+          const y = firstFieldY - config.px * 3
+          const fieldHeader = config.fieldHeaderNode(firstFieldX, y, adt.name, fieldNodes.length, parent)
+          nodes.push(fieldHeader)
+
+          const callerHeaderX = (callerNode!.position.x + (callerNode!.width as number)) / 2
+          const callerY = callerNode!.position.y - config.px * 3
+          const callerHeader = config.callerHeaderNode(callerHeaderX, callerY, fn.name, adt.kind, parent)
+          nodes.push(callerHeader)
+        }
+      }
+    } else {
+      let calleeNodes: Node[] = []
+      let callerNode: Node | null = null
+
+      for (const node of nodes) {
+        switch (config.nodeKind(node.id)) {
+          case NodeKind.UnsafeFn: case NodeKind.SafeFn: { calleeNodes.push(node); break };
+          case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { callerNode = node; break };
+        }
+      }
+
+      // Don't overlap caller and callees.
+      let calleeX: number | null = null
+      calleeNodes.forEach(c => calleeX = calleeX ? Math.min(c.position.x) : c.position.x)
+      if (calleeX !== null) {
+        const gap = calleeX - callerNode!.position.x - (callerNode!.width as number)
+        const spacing = 100
+        // Move left if the gap is narrow. Use abs for negative gap (overlapping).
+        if (gap < spacing) callerNode!.position.x -= (Math.abs(gap) + spacing)
+      }
+    }
+
     Object.assign(this, { nodes, edges });
   }
 }
