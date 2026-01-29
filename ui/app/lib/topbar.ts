@@ -198,3 +198,15 @@ export type BarPlotData = {
 export type Search = { withTags: boolean, text: string, page: number, itemsPerPage: number }
 
 export type SearchFnItem = { name: string, tags: string[] }
+
+export function unsafeFnsURL(crate: Crate) {
+  return `${BASE_URL}/${crate}/navi/unsafe_fns.json`
+}
+
+export type UnsafeFns = {
+  [key: string]: Unsafe
+}
+
+export enum Unsafe {
+  Caller, Callee, Both,
+}

@@ -7,15 +7,15 @@
       </UButton>
     </UTooltip>
     <template #content>
-      <WidgetSearchFn :v_fn="val.v_fn" v-model="search" :title="val.desc" />
+      <WidgetSearchFn :v_fn="val.v_fn" :unsafeFns="unsafeFns" v-model="search" :title="val.desc" />
     </template>
   </UModal>
 </template>
 
 <script setup lang="ts">
 import type { AdtPanelItem } from '~/lib/output/adt';
-import type { Search } from '~/lib/topbar';
+import type { Search, UnsafeFns } from '~/lib/topbar';
 
-const props = defineProps<{ val: AdtPanelItem }>()
+const props = defineProps<{ val: AdtPanelItem, unsafeFns: UnsafeFns }>()
 const search = ref<Search>({ withTags: false, text: "", page: 1, itemsPerPage: 20 })
 </script>

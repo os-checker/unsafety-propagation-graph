@@ -213,3 +213,6 @@ html, body {
     margin-bottom: 0.1rem !important;
   }
 }
+
+/* .fnLink { @apply font-mono; } */
+.unsafeFnLink { @apply text-red-700 dark:text-red-400 hover:text-red-500 transition-colors; }

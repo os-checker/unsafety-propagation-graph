@@ -3,7 +3,7 @@
     <div class="text-lg font-bold">{{ title }}</div>
     <ol class="list-decimal ml-3 list-inside" :start="view.start">
       <li v-for="item in view.range" class="my-1">
-        <ULink :to="getLink(item.name, $route, $router)">
+        <ULink :to="getLink(item.name, $route, $router)" :class="isUnsafe(item.name) ? 'unsafeFnLink' : ''">
           <span class="font-mono">{{ item.name }}</span>
         </ULink>
         <UBadge v-for="tag in item.tags" :label="tag" color="warning" variant="outline" class="ml-2" />
@@ -22,9 +22,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Search, SearchFnItem } from '~/lib/topbar';
+import type { Search, SearchFnItem, UnsafeFns } from '~/lib/topbar';
 
-const props = defineProps<{ v_fn: SearchFnItem[], title: string }>()
+const props = defineProps<{ v_fn: SearchFnItem[], title: string, unsafeFns: UnsafeFns }>()
+
+function isUnsafe(name: string): boolean {
+  return props.unsafeFns[name] ? true : false
+}
 
 const search = defineModel<Search>({ required: true })
 
