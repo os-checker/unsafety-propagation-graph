@@ -1,6 +1,11 @@
 use rustc_hir::def_id::DefId as IDefId;
 use rustc_middle::ty::TyCtxt;
-use rustc_public::{CrateDef, rustc_internal::internal, ty::Span};
+use rustc_public::{
+    CrateDef,
+    mir::Safety,
+    rustc_internal::internal,
+    ty::{FnDef, Span},
+};
 use serde::Serialize;
 
 use crate::info_mod::crate_name;
@@ -68,4 +73,9 @@ pub fn doc_internal(did: IDefId, tcx: TyCtxt) -> String {
         }
     }
     buf
+}
+
+/// If the function is unsafe.
+pub fn is_safe(fn_def: FnDef) -> bool {
+    matches!(fn_def.fn_sig().value.safety, Safety::Safe)
 }

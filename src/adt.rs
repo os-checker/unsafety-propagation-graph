@@ -1,7 +1,6 @@
 use crate::utils::{FxHashMap, FxIndexSet, ThinVec};
 use derive_more::Debug;
 use rustc_public::{
-    CrateDef,
     mir::ProjectionElem,
     ty::{AdtDef, AdtKind},
 };
