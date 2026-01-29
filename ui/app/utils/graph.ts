@@ -1,4 +1,4 @@
-import { Position, type Edge, type Node } from "@vue-flow/core";
+import { MarkerType, Position, type Edge, type Node } from "@vue-flow/core";
 import type { ELK, ElkNode, LayoutOptions } from "elkjs";
 import { FieldAccessKind, type Caller, AdtFnKind, type Callees, type CalleeInfo } from "~/lib/output";
 import { idAdt, idEdge, idAdtFnKind, idTag, idField, idCalleeWithAdt, idCalleeKindAdt, idCalleeNonGeneric } from "~/lib/graph";
@@ -194,6 +194,10 @@ export class PlotConfig {
 
   edgeType(): string {
     return this.flowOpts.edge as string
+  }
+
+  nodeKind(id: string) {
+    return this.id_to_item[id]!.kind
   }
 }
 
@@ -542,7 +546,10 @@ export class Plot {
           ...dimField
         })
         // | field (source) | -> | caller (target) |
-        edges.push({ id: idEdge(root.id, fieldID,), source: fieldID, target: root.id, type: edgeType })
+        edges.push({
+          id: idEdge(root.id, fieldID,), source: fieldID, target: root.id, type: edgeType,
+          label: field.access as string, markerStart: { type: MarkerType.Arrow, color: 'gray', width: 25, height: 25 }
+        })
       }
 
       children.push(root)
@@ -567,22 +574,22 @@ export class Plot {
     const tree = await this.elk.layout(graph);
 
     const nodes: Node[] = [];
-    for (const adtOrCaller of tree.children ?? []) {
-      nodes.push(config.elkNode_to_vuewFlowNode(adtOrCaller));
+    for (const adtOrCallerOrCallee of tree.children ?? []) {
+      nodes.push(config.elkNode_to_vuewFlowNode(adtOrCallerOrCallee));
 
-      const isAdt = id_to_item[adtOrCaller.id]?.kind === NodeKind.Adt
+      const isAdt = config.nodeKind(adtOrCallerOrCallee.id) === NodeKind.Adt
       if (isAdt) {
-        for (const fieldOrCaller of adtOrCaller.children ?? []) {
-          nodes.push(config.elkNode_to_vuewFlowNode(fieldOrCaller, { parentNode: adtOrCaller.id }))
+        for (const fieldOrCaller of adtOrCallerOrCallee.children ?? []) {
+          nodes.push(config.elkNode_to_vuewFlowNode(fieldOrCaller, { parentNode: adtOrCallerOrCallee.id }))
 
           for (const tag of fieldOrCaller.children ?? []) {
             nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: fieldOrCaller.id }))
           }
         }
       } else {
-        const caller = adtOrCaller
-        for (const tag of caller.children ?? []) {
-          nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: caller.id }))
+        const func = adtOrCallerOrCallee
+        for (const tag of func.children ?? []) {
+          nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: func.id }))
         }
       }
     }
@@ -618,17 +625,46 @@ export class Plot {
 
     // Don't overlap large adt node with callees.
     if (adt) {
-      const adtNode = refinedNodes.find(n => id_to_item[n.id]!.kind === NodeKind.Adt)
-      if (adtNode) {
+      const fieldNodes = []
+      let adtNode: Node | null = null
+      let callerNode: Node | null = null
+
+      for (const node of nodes) {
+        switch (config.nodeKind(node.id)) {
+          case NodeKind.Field: { fieldNodes.push(node); break };
+          case NodeKind.Adt: { adtNode = node; break };
+          case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { callerNode = node; break };
+        }
+      }
+
+      if (adtNode !== null) {
         const adtMaxX = (typeof adtNode.width === "number") ? (adtNode.position.x + adtNode.width) : null
         if (adtMaxX) {
           for (const node of refinedNodes) {
-            const kind = id_to_item[node.id]!.kind
+            const kind = config.nodeKind(node.id)
             if (kind === NodeKind.UnsafeFn || kind === NodeKind.SafeFn) {
               const x = node.position.x
               if (x < adtMaxX) node.position.x = adtMaxX + 50
             }
           }
+        }
+
+        // Enlarge fields and caller spacing.
+        let enlarge_spacing = false
+        const spacing = config.px * 7 // in the unit of a mono char with
+        for (const field of fieldNodes) {
+          if (enlarge_spacing) break
+          const gap = callerNode!.position.x - field.position.x - (field.width as number)
+          if (gap < spacing) enlarge_spacing = true
+        }
+
+        if (enlarge_spacing) {
+          // Move adt node left. All elements inside will also be moved left.
+          adtNode.position.x -= spacing;
+          // Widen adt node for enclosing all elements .
+          adtNode.width = adtNode.width as number + spacing
+          // Move caller node right.
+          callerNode!.position.x += spacing
         }
       }
     }
