@@ -154,8 +154,9 @@ export class PlotConfig {
       case NodeKind.UnsafeRoot: case NodeKind.SafeRoot: { type = "default"; break };
     }
 
+    const labelWidth = node.labels![0]!.width!
     return {
-      id, label: node.labels![0]!.text!, width: node.width, height: node.height,
+      id, label: node.labels![0]!.text!, width: Math.max(node.width!, labelWidth), height: node.height,
       position: { x: node.x!, y: node.y! }, class: this.nodeClass(id), type,
       sourcePosition: Position.Right, targetPosition: Position.Left,
       ...opts
