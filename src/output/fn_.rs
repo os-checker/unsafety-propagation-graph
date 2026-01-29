@@ -25,7 +25,7 @@ pub fn dump(map_fn: &FxIndexMap<FnDef, FnInfo>, tcx: TyCtxt, writer: &Writer) {
         // Collect all unsafe fns, including
         // * unsafe caller
         // * or safe fn with unsafe callees
-        let unsafe_caller = utils::is_safe(caller);
+        let unsafe_caller = !utils::is_safe(caller);
         let unsafe_callee = info.callees.keys().any(|&f| !utils::is_safe(f));
         if unsafe_caller | unsafe_callee {
             let fn_name = utils::name(caller, tcx);

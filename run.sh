@@ -69,7 +69,7 @@ gen_data() {
 }
 
 merge_unsafe_fns_json() {
-  popd data
+  pushd data
   # Merge all objects by key, and sort by key.
   jq -s 'add' -S core/navi/unsafe_fns.json alloc/navi/unsafe_fns.json std/navi/unsafe_fns.json >core-alloc-std_unsafe_fns.json
   popd
