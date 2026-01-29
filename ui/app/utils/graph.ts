@@ -600,12 +600,29 @@ export class Plot {
 
     const nodes: Node[] = [];
     for (const adtOrCallerOrCallee of tree.children ?? []) {
-      nodes.push(config.elkNode_to_vueFlowNode(adtOrCallerOrCallee));
+      const parent = config.elkNode_to_vueFlowNode(adtOrCallerOrCallee)
+      nodes.push(parent);
 
       const isAdt = config.nodeKind(adtOrCallerOrCallee.id) === NodeKind.Adt
       if (isAdt) {
         for (const fieldOrCaller of adtOrCallerOrCallee.children ?? []) {
-          nodes.push(config.elkNode_to_vueFlowNode(fieldOrCaller, { parentNode: adtOrCallerOrCallee.id }))
+          const child = config.elkNode_to_vueFlowNode(fieldOrCaller, { parentNode: parent.id })
+          nodes.push(child)
+
+          const isCaller = root.id === fieldOrCaller.id
+          if (isCaller) {
+            // Enlarge adt node when caller has been enlarged due to label width.
+            // NOTE: must use vue node instead of elk node because we ignore elk node by using label width.
+            const adtNode = parent
+            const caller = child
+            const gapX = (adtNode.width as number) - caller.position.x - (caller.width as number)
+            const spacingX = config.px * 3
+            if (gapX < spacingX) (adtNode.width as number) += ((gapX < 0) ? (-gapX) : 0) + spacingX
+
+            const gapY = (adtNode.height as number) - caller.position.y - (caller.height as number)
+            const spacingY = config.px * 2
+            if (gapY < spacingY) (adtNode.height as number) += ((gapY < 0) ? (-gapY) : 0) + spacingY
+          }
 
           for (const tag of fieldOrCaller.children ?? []) {
             nodes.push(config.elkNode_to_vueFlowNode(tag, { parentNode: fieldOrCaller.id }))
@@ -706,11 +723,9 @@ export class Plot {
           nodes.push(fieldHeader)
 
           const callerHeaderX = (callerNode!.position.x + (callerNode!.width as number)) / 2
-          const callerHeader = config.callerHeaderNode(callerHeaderX, y, fn.name, parent)
+          const callerY = callerNode!.position.y - config.px * 3
+          const callerHeader = config.callerHeaderNode(callerHeaderX, callerY, fn.name, parent)
           nodes.push(callerHeader)
-
-          // Align caller with first field.
-          callerNode!.position.y = firstFieldY
         }
       }
     } else {
