@@ -142,7 +142,7 @@ export class PlotConfig {
     return nodes
   }
 
-  elkNode_to_vuewFlowNode(node: ElkNode, opts: any = {}): Node {
+  elkNode_to_vueFlowNode(node: ElkNode, opts: any = {}): Node {
     const id = node.id
 
     const kind = this.id_to_item[id]!.kind
@@ -161,6 +161,29 @@ export class PlotConfig {
       ...opts
     }
   }
+
+  fieldHeaderNode(x: number, y: number, adt: string, nFields: number, parent: string): Node {
+    const id = `FieldHeader@${adt}`
+    this.id_to_item[id] = { name: adt, kind: NodeKind.FieldHeader }
+    const label = (nFields === 1) ? "Field" : "Fields"
+    const dim = this.size(label)
+    return {
+      id, label, width: dim.width, height: dim.height, parentNode: parent,
+      position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+    }
+  }
+
+  callerHeaderNode(x: number, y: number, caller: string, parent: string): Node {
+    const id = `CallerHeader@${caller}`
+    this.id_to_item[id] = { name: caller, kind: NodeKind.CallerHeader }
+    const label = "Caller"
+    const dim = this.size(label)
+    return {
+      id, label, width: dim.width, height: dim.height, parentNode: parent,
+      position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+    }
+  }
+
 
   nodeClass(id: string) {
     let ret = nodeKindClass(this.id_to_item[id]!.kind)
@@ -213,6 +236,7 @@ export enum NodeKind {
   FnKind,
   Field,
   FieldHeader,
+  CallerHeader,
 }
 
 function nodeKindClass(kind: NodeKind) {
@@ -223,7 +247,7 @@ function nodeKindClass(kind: NodeKind) {
     case NodeKind.Adt: return "upg-node-adt";
     case NodeKind.FnKind: return "upg-node-adt-fn-kind";
     case NodeKind.Field: return "upg-node-fn";
-    case NodeKind.FieldHeader: return "upg-node-adt-fn-kind";
+    case NodeKind.FieldHeader: case NodeKind.CallerHeader: return "upg-node-adt-fn-kind";
     default: return "";
   }
 }
@@ -575,21 +599,21 @@ export class Plot {
 
     const nodes: Node[] = [];
     for (const adtOrCallerOrCallee of tree.children ?? []) {
-      nodes.push(config.elkNode_to_vuewFlowNode(adtOrCallerOrCallee));
+      nodes.push(config.elkNode_to_vueFlowNode(adtOrCallerOrCallee));
 
       const isAdt = config.nodeKind(adtOrCallerOrCallee.id) === NodeKind.Adt
       if (isAdt) {
         for (const fieldOrCaller of adtOrCallerOrCallee.children ?? []) {
-          nodes.push(config.elkNode_to_vuewFlowNode(fieldOrCaller, { parentNode: adtOrCallerOrCallee.id }))
+          nodes.push(config.elkNode_to_vueFlowNode(fieldOrCaller, { parentNode: adtOrCallerOrCallee.id }))
 
           for (const tag of fieldOrCaller.children ?? []) {
-            nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: fieldOrCaller.id }))
+            nodes.push(config.elkNode_to_vueFlowNode(tag, { parentNode: fieldOrCaller.id }))
           }
         }
       } else {
         const func = adtOrCallerOrCallee
         for (const tag of func.children ?? []) {
-          nodes.push(config.elkNode_to_vuewFlowNode(tag, { parentNode: func.id }))
+          nodes.push(config.elkNode_to_vueFlowNode(tag, { parentNode: func.id }))
         }
       }
     }
@@ -651,11 +675,17 @@ export class Plot {
 
         // Enlarge fields and caller spacing.
         let enlarge_spacing = false
+        let firstFieldY: number | null = null
+        let firstFieldX: number | null = null
         const spacing = config.px * 7 // in the unit of a mono char with
         for (const field of fieldNodes) {
-          if (enlarge_spacing) break
-          const gap = callerNode!.position.x - field.position.x - (field.width as number)
+          const x = field.position.x
+          const gap = callerNode!.position.x - x - (field.width as number)
           if (gap < spacing) enlarge_spacing = true
+
+          const y = field.position.y
+          firstFieldY = firstFieldY ? Math.min(y, firstFieldY) : y
+          firstFieldX = firstFieldX ? Math.min(x, firstFieldX) : x
         }
 
         if (enlarge_spacing) {
@@ -665,6 +695,18 @@ export class Plot {
           adtNode.width = adtNode.width as number + spacing
           // Move caller node right.
           callerNode!.position.x += spacing
+        }
+
+        // Add field and caller header
+        if (firstFieldY !== null && firstFieldX !== null) {
+          const parent = adtNode!.id
+          const y = firstFieldY - config.px * 3
+          const fieldHeader = config.fieldHeaderNode(firstFieldX, y, adt.name, fieldNodes.length, parent)
+          nodes.push(fieldHeader)
+
+          const callerHeaderX = (callerNode!.position.x + (callerNode!.width as number)) / 2
+          const callerHeader = config.callerHeaderNode(callerHeaderX, y, fn.name, parent)
+          nodes.push(callerHeader)
         }
       }
     }
