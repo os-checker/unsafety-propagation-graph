@@ -600,6 +600,7 @@ export class Plot {
         default: return false;
       }
     })
+
     const refinedEdges: Edge[] = []
     if (adt) {
       // Relayout adt node with callees.
@@ -612,7 +613,26 @@ export class Plot {
         id: idEdge(root.id, c.id), source: root.id, target: c.id, type: edgeType
       }))
     }
+
     updateNodePosition(refinedNodes, refinedEdges);
+
+    // Don't overlap large adt node with callees.
+    if (adt) {
+      const adtNode = refinedNodes.find(n => id_to_item[n.id]!.kind === NodeKind.Adt)
+      if (adtNode) {
+        const adtMaxX = (typeof adtNode.width === "number") ? (adtNode.position.x + adtNode.width) : null
+        if (adtMaxX) {
+          for (const node of refinedNodes) {
+            const kind = id_to_item[node.id]!.kind
+            if (kind === NodeKind.UnsafeFn || kind === NodeKind.SafeFn) {
+              const x = node.position.x
+              if (x < adtMaxX) node.position.x = adtMaxX + 50
+            }
+          }
+        }
+      }
+    }
+
 
     Object.assign(this, { nodes, edges });
   }

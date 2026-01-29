@@ -122,7 +122,7 @@ html, body {
 .upg-node,
 .upg-node-fn,
 .upg-node-unsafe-fn {
-  @apply text-lg font-mono whitespace-nowrap border border-black;
+  @apply text-lg font-mono whitespace-nowrap border border-gray-400;
   @variant dark {
     @apply bg-gray-800 text-white border-gray-100;
   };
