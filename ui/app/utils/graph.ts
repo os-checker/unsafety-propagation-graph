@@ -708,6 +708,9 @@ export class Plot {
           const callerHeaderX = (callerNode!.position.x + (callerNode!.width as number)) / 2
           const callerHeader = config.callerHeaderNode(callerHeaderX, y, fn.name, parent)
           nodes.push(callerHeader)
+
+          // Align caller with first field.
+          callerNode!.position.y = firstFieldY
         }
       }
     } else {
