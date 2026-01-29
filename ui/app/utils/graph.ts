@@ -174,10 +174,10 @@ export class PlotConfig {
     }
   }
 
-  callerHeaderNode(x: number, y: number, caller: string, parent: string): Node {
+  callerHeaderNode(x: number, y: number, caller: string, kind: AdtFnKind, parent: string): Node {
     const id = `CallerHeader@${caller}`
     this.id_to_item[id] = { name: caller, kind: NodeKind.CallerHeader }
-    const label = "Caller"
+    const label = kind as string
     const dim = this.size(label)
     return {
       id, label, width: dim.width, height: dim.height, parentNode: parent,
@@ -620,7 +620,7 @@ export class Plot {
             if (gapX < spacingX) (adtNode.width as number) += ((gapX < 0) ? (-gapX) : 0) + spacingX
 
             const gapY = (adtNode.height as number) - caller.position.y - (caller.height as number)
-            const spacingY = config.px * 2
+            const spacingY = config.px
             if (gapY < spacingY) (adtNode.height as number) += ((gapY < 0) ? (-gapY) : 0) + spacingY
           }
 
@@ -724,7 +724,7 @@ export class Plot {
 
           const callerHeaderX = (callerNode!.position.x + (callerNode!.width as number)) / 2
           const callerY = callerNode!.position.y - config.px * 3
-          const callerHeader = config.callerHeaderNode(callerHeaderX, callerY, fn.name, parent)
+          const callerHeader = config.callerHeaderNode(callerHeaderX, callerY, fn.name, adt.kind, parent)
           nodes.push(callerHeader)
         }
       }
