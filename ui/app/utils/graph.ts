@@ -551,7 +551,8 @@ export class Plot {
       switch (kind) {
         case AdtFnKind.MethodImmutableRefReceiver:
         case AdtFnKind.MethodMutableRefReceiver:
-        case AdtFnKind.MethodOwnedReceiver: {
+        case AdtFnKind.MethodOwnedReceiver:
+        case AdtFnKind.Constructor: {
           const field = Object.entries(info.field)
             .map(([name, access]) => ({ name, access }))
             .filter(f => f.access !== FieldAccessKind.Other)
