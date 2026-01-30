@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-[75vh] flex">
-    <UTree :items="items" :get-key="item => item.id" class="w-50 h-full" expanded-icon="tabler:square-letter-f" />
+    <UTree :items="items" :get-key="item => item.id" v-model="active" class="w-50 h-full"
+      expanded-icon="tabler:square-letter-f" />
 
     <div class="w-full">
       <WidgetSearchFn :v_fn="adtItem.v_fn" :unsafeFns="unsafeFns" v-model="search" :title="adtItem.desc" />
@@ -9,12 +10,12 @@
 </template>
 
 <script setup lang="ts">
-import type { AdtPanelItem, DataAdt } from '~/lib/output/adt';
+import type { AdtClicked, AdtPanelItem, DataAdt } from '~/lib/output/adt';
 import { getTag, type DataTags } from '~/lib/output/tag';
 import type { Search, UnsafeFns } from '~/lib/topbar';
 import type { TreeItem } from '@nuxt/ui'
 
-const props = defineProps<{ adt?: DataAdt, tags: DataTags, unsafeFns: UnsafeFns }>()
+const props = defineProps<{ adt?: DataAdt, tags: DataTags, unsafeFns: UnsafeFns, adtClicked: AdtClicked }>()
 
 function gen(v: string[] | undefined, kind: string, desc: string) {
   const v_fn = v ? v.map(
@@ -88,19 +89,72 @@ const group_access_self_as_locals = computed<{ group: string, data: AdtPanelItem
   }
 })
 
+const active = ref<TreeItem>()
 const adtItem = ref<AdtPanelItem>({ v_fn: [], kind: "", desc: "" })
+
+// This is used to determine which subpanel is selected as per the click,
+enum Selected { Field, Constructor, AsArg, AsLocals }
+
+// The default selected item panel.
+const initAdtItem = () => {
+  let item: AdtPanelItem | undefined = undefined
+  let selected: Selected | undefined = undefined
+
+  const clicked = props.adtClicked
+  const field = clicked.lastClickedField
+  const fields = groupedFieldAccess.value
+  if (field) {
+    // field name in fn json includes the idx prefix like `0-fieldName`,
+    // while adt json only uses `fieldName` directly.
+    const fieldName = field.match(/[^-]+$/)?.[0]
+    item = fields[field]?.[0] || (fieldName ? fields[fieldName]?.[0] : undefined)
+    if (item) selected = Selected.Field
+  } else if (clicked.lastClickedAdt) {
+    if (constructors.value.v_fn.length) {
+      item = constructors.value
+      selected = Selected.Constructor
+    } else {
+      item = Object.values(fields)[0]?.[0]
+      if (item) selected = Selected.Field
+      else {
+        item = group_access_self_as_arg.value.data[0]
+        if (item) selected = Selected.AsArg
+        else {
+          item = group_access_self_as_locals.value.data[0]
+          if (item) selected = Selected.AsLocals
+        }
+      }
+    }
+  }
+
+  if (item) return { item, selected }
+}
+
 const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
 
 const items = computed<TreeItem[]>(() => {
   const tree: TreeItem[] = []
 
+  const initItem = initAdtItem()
+  let selected: Selected | undefined = undefined
+  if (initItem) {
+    // We must explicitly set adtItem, because active doesn't trigger onSelect.
+    adtItem.value = initItem.item
+    selected = initItem.selected
+  }
+
   const lenConstructor = constructors.value.v_fn.length
   if (lenConstructor) {
     const label = kindLabel(constructors.value)
-    tree.push({
+    const node = {
       label, id: label, onSelect: () => adtItem.value = constructors.value,
       icon: "tabler:hexagon-letter-c-filled",
-    })
+    }
+    tree.push(node)
+    if (selected === Selected.Constructor) {
+      active.value = node
+      selected = undefined
+    }
   }
 
   const fields = Object.entries(groupedFieldAccess.value)
@@ -117,10 +171,16 @@ const items = computed<TreeItem[]>(() => {
         icon: "tabler:hexagon-letter-f-filled",
       }
       for (const data of v_data) {
-        fieldItem.children!.push({
-          label: kindLabel(data), id: `Field@${field}@kind@${data.kind}`,
+        const label = kindLabel(data)
+        const node = {
+          label, id: `Field@${field}@kind@${data.kind}`,
           onSelect: () => adtItem.value = data
-        })
+        }
+        fieldItem.children!.push(node)
+        if (selected === Selected.Field) {
+          active.value = node
+          selected = undefined // don't set active again
+        }
       }
 
       fieldHeader.children!.push(fieldItem)
@@ -145,10 +205,15 @@ const items = computed<TreeItem[]>(() => {
       header.children!.push(argHeader)
 
       for (const data of as_arg) {
-        argHeader.children!.push({
+        const node = {
           label: kindLabel(data), id: `AsArg@${data.kind}`,
           onSelect: () => adtItem.value = data
-        })
+        }
+        argHeader.children!.push(node)
+        if (selected === Selected.Field) {
+          active.value = node
+          selected = undefined // don't set active again
+        }
       }
     }
 
@@ -161,10 +226,15 @@ const items = computed<TreeItem[]>(() => {
       header.children!.push(localsHeader)
 
       for (const data of as_local) {
-        localsHeader.children!.push({
+        const node = {
           label: kindLabel(data), id: `AsLocal@${data.kind}`,
           onSelect: () => adtItem.value = data
-        })
+        }
+        localsHeader.children!.push(node)
+        if (selected === Selected.Field) {
+          active.value = node
+          selected = undefined // don't set active again
+        }
       }
     }
   }

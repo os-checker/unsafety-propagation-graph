@@ -2,7 +2,10 @@ import type { SearchFnItem } from "../topbar"
 
 export type AdtOpts = { name?: string, data?: DataAdt }
 
-export type AdtClicked = { open: boolean, clickedAdt?: string, clickedField?: string }
+export type AdtClicked = {
+  open: boolean, clickedAdt?: string, clickedField?: string,
+  lastClickedAdt?: string, lastClickedField?: string,
+}
 
 export type DataAdt = {
   name: string,

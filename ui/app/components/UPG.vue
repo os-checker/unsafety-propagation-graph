@@ -6,7 +6,7 @@
       v-model:panelContent="panelContent" v-model:adtOpts="adtOpts" />
     <UModal :ui="{ content: 'w-[80vw] max-w-none' }" v-model:open="adtClicked.open">
       <template #content>
-        <CodeAdtPopup :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" />
+        <CodeAdtPopup :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" :adtClicked="adtClicked" />
       </template>
     </UModal>
   </div>
@@ -93,11 +93,13 @@ const adtOpts = ref<AdtOpts>({});
 const adtClicked = ref<AdtClicked>({ open: false })
 watch(() => ({
   isAdtPanel: upPanel.value === Panel.Adt || downPanel.value === Panel.Adt,
-  adt: adtClicked.value.clickedAdt || adtClicked.value.clickedField
-}), ({ isAdtPanel, adt }) => {
+  isClicked: adtClicked.value.clickedAdt || adtClicked.value.clickedField,
+  adt: adtClicked.value
+}), ({ isAdtPanel, isClicked, adt }) => {
   // Auto open adt panel when side panels doesn't show adt panel, and user clicked adt or field.
-  if (!isAdtPanel && adt)
-    adtClicked.value = { open: true }
+  if (!isAdtPanel && isClicked) {
+    adtClicked.value = { open: true, lastClickedAdt: adt.clickedAdt, lastClickedField: adt.clickedField }
+  }
 })
 
 const share = ref<boolean>(false)
