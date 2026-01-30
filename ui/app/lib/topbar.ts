@@ -148,8 +148,8 @@ export const CRATES: Crate[] = [Crate.std, Crate.core, Crate.alloc, Crate.ostd];
 
 export function defaultCrateItemQuery(crate: Crate): string {
   switch (crate) {
-    case Crate.std: return "std::time::Instant::now";
-    case Crate.core: return "core::str::<impl str>::len";
+    case Crate.std: return "std::<os::unix::net::listener::UnixListener as os::fd::raw::FromRawFd>::from_raw_fd";
+    case Crate.core: return "core::ptr::write_volatile";
     case Crate.alloc: return "alloc::vec::Vec::<T, A>::set_len";
     case Crate.ostd: return "ostd::init";
     default: return "";
