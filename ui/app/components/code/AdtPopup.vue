@@ -95,10 +95,11 @@ const adtItem = ref<AdtPanelItem>({ v_fn: [], kind: "", desc: "" })
 // This is used to determine which subpanel is selected as per the click,
 enum Selected { Field, Constructor, AsArg, AsLocals }
 
-// The default selected item panel.
+// The default selected item panel (write).
 const initAdtItem = () => {
   let item: AdtPanelItem | undefined = undefined
   let selected: Selected | undefined = undefined
+  let selectedIdx: string | number | undefined = undefined
 
   const clicked = props.adtClicked
   const field = clicked.lastClickedField
@@ -107,27 +108,38 @@ const initAdtItem = () => {
     // field name in fn json includes the idx prefix like `0-fieldName`,
     // while adt json only uses `fieldName` directly.
     const fieldName = field.match(/[^-]+$/)?.[0]
-    item = fields[field]?.[0] || (fieldName ? fields[fieldName]?.[0] : undefined)
-    if (item) selected = Selected.Field
+    item = fields[field]?.at(-1) || (fieldName ? fields[fieldName]?.at(-1) : undefined)
+    if (item) {
+      selected = Selected.Field
+      selectedIdx = fieldName
+    }
   } else if (clicked.lastClickedAdt) {
     if (constructors.value.v_fn.length) {
       item = constructors.value
       selected = Selected.Constructor
     } else {
-      item = Object.values(fields)[0]?.[0]
-      if (item) selected = Selected.Field
-      else {
-        item = group_access_self_as_arg.value.data[0]
-        if (item) selected = Selected.AsArg
-        else {
-          item = group_access_self_as_locals.value.data[0]
-          if (item) selected = Selected.AsLocals
+      item = Object.values(fields)[0]?.at(-1)
+      if (item) {
+        selected = Selected.Field
+        // Default to write access
+        selectedIdx = -1
+      } else {
+        item = group_access_self_as_arg.value.data.at(-1)
+        if (item) {
+          selected = Selected.AsArg
+          selectedIdx = -1
+        } else {
+          item = group_access_self_as_locals.value.data.at(-1)
+          if (item) {
+            selected = Selected.AsLocals
+            selectedIdx = -1
+          }
         }
       }
     }
   }
 
-  if (item) return { item, selected }
+  if (item) return { item, selected, selectedIdx }
 }
 
 const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
@@ -137,10 +149,12 @@ const items = computed<TreeItem[]>(() => {
 
   const initItem = initAdtItem()
   let selected: Selected | undefined = undefined
+  let selectedIdx = undefined
   if (initItem) {
     // We must explicitly set adtItem, because active doesn't trigger onSelect.
     adtItem.value = initItem.item
     selected = initItem.selected
+    selectedIdx = initItem.selectedIdx
   }
 
   const lenConstructor = constructors.value.v_fn.length
@@ -177,13 +191,17 @@ const items = computed<TreeItem[]>(() => {
           onSelect: () => adtItem.value = data
         }
         fieldItem.children!.push(node)
-        if (selected === Selected.Field) {
-          active.value = node
-          selected = undefined // don't set active again
-        }
       }
 
       fieldHeader.children!.push(fieldItem)
+    }
+    if (selected === Selected.Field) {
+      if (typeof selectedIdx === "string") {
+        const fieldName = selectedIdx
+        selectedIdx = fields.findIndex(([f, _]) => f === fieldName)
+        if (selectedIdx === -1) console.log(`${fieldName} is not a valid field in`, fields)
+      }
+      active.value = fieldHeader.children!.at(selectedIdx as number)!.children!.at(-1)
     }
   }
 
@@ -210,10 +228,9 @@ const items = computed<TreeItem[]>(() => {
           onSelect: () => adtItem.value = data
         }
         argHeader.children!.push(node)
-        if (selected === Selected.Field) {
-          active.value = node
-          selected = undefined // don't set active again
-        }
+      }
+      if (selected === Selected.AsArg) {
+        active.value = argHeader.children!.at(selectedIdx as number)
       }
     }
 
@@ -231,10 +248,9 @@ const items = computed<TreeItem[]>(() => {
           onSelect: () => adtItem.value = data
         }
         localsHeader.children!.push(node)
-        if (selected === Selected.Field) {
-          active.value = node
-          selected = undefined // don't set active again
-        }
+      }
+      if (selected === Selected.AsLocals) {
+        active.value = localsHeader.children!.at(selectedIdx as number)
       }
     }
   }
