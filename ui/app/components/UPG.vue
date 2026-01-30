@@ -4,6 +4,11 @@
       :tags="tags" :unsafeFns="unsafeFns" />
     <Flow :nodeItem="nodeItem" :tags="tags" :adtClicked="adtClicked" v-model:flowOpts="flowOpts"
       v-model:panelContent="panelContent" v-model:adtOpts="adtOpts" />
+    <UModal :ui="{ content: 'w-[80vw] max-w-none' }" v-model:open="adtClicked.open">
+      <template #content>
+        <CodeAdtPopup :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" />
+      </template>
+    </UModal>
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
@@ -15,11 +20,6 @@
         :unsafeFns="unsafeFns" />
     </div>
   </div>
-  <UModal :ui="{ content: 'w-[70vw] max-w-none' }" v-model:open="adtClicked.open">
-    <template #content>
-      <CodeAdt :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" />
-    </template>
-  </UModal>
 </template>
 
 <script setup lang="ts">
@@ -95,7 +95,6 @@ watch(() => ({
   isAdtPanel: upPanel.value === Panel.Adt || downPanel.value === Panel.Adt,
   adt: adtClicked.value.clickedAdt || adtClicked.value.clickedField
 }), ({ isAdtPanel, adt }) => {
-  console.log(isAdtPanel, adt, adtClicked.value)
   // Auto open adt panel when side panels doesn't show adt panel, and user clicked adt or field.
   if (!isAdtPanel && adt)
     adtClicked.value = { open: true }
