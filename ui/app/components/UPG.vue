@@ -4,7 +4,7 @@
       :tags="tags" :unsafeFns="unsafeFns" />
     <Flow :nodeItem="nodeItem" :tags="tags" :adtClicked="adtClicked" v-model:flowOpts="flowOpts"
       v-model:panelContent="panelContent" v-model:adtOpts="adtOpts" />
-    <UModal :ui="{ content: 'w-[80vw] max-w-none' }" v-model:open="adtClicked.open">
+    <UModal :ui="{ content: 'w-[76vw] max-w-none' }" v-model:open="adtClicked.open">
       <template #content>
         <CodeAdtPopup :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" :adtClicked="adtClicked" />
       </template>

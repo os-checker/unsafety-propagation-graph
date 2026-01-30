@@ -142,7 +142,7 @@ const initAdtItem = () => {
   if (item) return { item, selected, selectedIdx }
 }
 
-const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
+const search = ref<Search>({ withTags: false, unsafeOnly: true, text: "", page: 1, itemsPerPage: 20 })
 
 const items = computed<TreeItem[]>(() => {
   const tree: TreeItem[] = []
