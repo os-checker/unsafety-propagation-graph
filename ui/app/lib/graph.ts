@@ -31,6 +31,10 @@ export function idField(adt: string, field: string) {
   return `field@${field}@adt@${adt}`
 }
 
+export function extractAdtFromIdField(id: string) {
+  return id.match(/adt@([^@]+)$/)?.[1] ?? ""
+}
+
 export function isAdtID(id: string) {
   return id.startsWith("adt@")
 }

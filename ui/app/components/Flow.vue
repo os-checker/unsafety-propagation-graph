@@ -21,10 +21,12 @@ import { adtURL, type FlowOpts } from '~/lib/topbar';
 import type { PanelContent } from '~/lib/panel';
 import ELK from 'elkjs/lib/elk.bundled.js'
 import { NodeKind, Plot, PlotConfig, type IdToItem } from '~/utils/graph';
-import type { AdtOpts } from '~/lib/output/adt';
+import type { AdtClicked, AdtOpts } from '~/lib/output/adt';
+import { extractAdtFromIdField } from '~/lib/graph';
 
 const flowOpts = defineModel<FlowOpts>('flowOpts', { required: true });
 const adtOpts = defineModel<AdtOpts>('adtOpts', { required: true });
+const adtClicked = defineModel<AdtClicked>('adtClicked', { required: true });
 const panelContent = defineModel<PanelContent>('panelContent', { required: true });
 
 const elk = new ELK()
@@ -57,17 +59,26 @@ const data = ref<Data>(EMPTY_DATA);
 
 // Respond to node click.
 onNodeClick(event => {
-  const selected = data.value.id_to_item[event.node.id]
-  if (selected && selected.kind === NodeKind.Adt) {
+  const id = event.node.id
+  const selected = data.value.id_to_item[id]
+  const selectAdt = selected?.kind === NodeKind.Adt
+  const selectField = selected?.kind === NodeKind.Field
+
+  if (selectAdt || selectField) {
     const name = selected.name
+    const adt = selectField ? extractAdtFromIdField(id) : name
 
     // Update adt data.
-    const url = adtURL(name)
+    const url = adtURL(adt)
     $fetch(url)
       .then(text => {
         // Update nodeItem here because panel reacts to the two values.
-        panelContent.value.nodeItem = name
-        adtOpts.value = { name, data: JSON.parse(text as string) }
+        panelContent.value.nodeItem = adt
+        // Update adt data.
+        adtOpts.value = { name: adt, data: JSON.parse(text as string) }
+        // Update adt clicked.
+        const click = { clickedAdt: adt, clickedField: selectField ? name : undefined }
+        Object.assign(adtClicked.value, click)
       })
       .catch(err => console.log("Failed to fetch adt.json", err))
     return

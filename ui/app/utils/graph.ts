@@ -171,6 +171,7 @@ export class PlotConfig {
     return {
       id, label, width: dim.width, height: dim.height, parentNode: parent,
       position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+      selectable: false, draggable: false,
     }
   }
 
@@ -182,6 +183,7 @@ export class PlotConfig {
     return {
       id, label, width: dim.width, height: dim.height, parentNode: parent,
       position: { x, y }, class: this.nodeClass(id), type: "no-handle",
+      selectable: false, draggable: false,
     }
   }
 

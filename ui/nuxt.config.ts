@@ -31,6 +31,10 @@ export default defineNuxtConfig({
         'tabler:search', // search
         'tabler:sitemap', // sidebar
         'tabler:browser-share', // share
+        'tabler:hexagon-letter-c-filled', // constructor
+        'tabler:hexagon-letter-f-filled', // field
+        'tabler:hexagon-letter-a-filled', // argument
+        'tabler:hexagon-letter-l-filled', // locals
       ],
     }
   },

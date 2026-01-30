@@ -2,8 +2,13 @@
   <div class="upg-left">
     <WidgetTopBar v-model:flowOpts="flowOpts" v-model:crate="crate" v-model="nodeItem" v-model:share="share"
       :tags="tags" :unsafeFns="unsafeFns" />
-    <Flow :nodeItem="nodeItem" :tags="tags" v-model:flowOpts="flowOpts" v-model:panelContent="panelContent"
-      v-model:adtOpts="adtOpts" />
+    <Flow :nodeItem="nodeItem" :tags="tags" :adtClicked="adtClicked" v-model:flowOpts="flowOpts"
+      v-model:panelContent="panelContent" v-model:adtOpts="adtOpts" />
+    <UModal :ui="{ content: 'w-[76vw] max-w-none' }" v-model:open="adtClicked.open">
+      <template #content>
+        <CodeAdtPopup :adt="adtOpts.data" :tags="tags" :unsafeFns="unsafeFns" :adtClicked="adtClicked" />
+      </template>
+    </UModal>
   </div>
   <div class="upg-right">
     <div class="upg-panel upg-panel-1">
@@ -22,7 +27,7 @@ import type { FlowOpts, UnsafeFns } from "~/lib/topbar"
 import { type DataTags, } from '~/lib/output/tag';
 import { Panel, toPanel, toPanelStr, type PanelContent } from "~/lib/panel"
 import { Crate, FLOW_OPTS, defaultCrateItemQuery, tagURL, toCrate, toViewTypes, unsafeFnsURL } from "~/lib/topbar";
-import type { AdtOpts } from "~/lib/output/adt";
+import type { AdtClicked, AdtOpts } from "~/lib/output/adt";
 
 const router = useRouter();
 const route = useRoute();
@@ -84,6 +89,18 @@ const downPanel = ref(initState.down);
 
 const flowOpts = ref<FlowOpts>(initState.flowOpts);
 const adtOpts = ref<AdtOpts>({});
+
+const adtClicked = ref<AdtClicked>({ open: false })
+watch(() => ({
+  isAdtPanel: upPanel.value === Panel.Adt || downPanel.value === Panel.Adt,
+  isClicked: adtClicked.value.clickedAdt || adtClicked.value.clickedField,
+  adt: adtClicked.value
+}), ({ isAdtPanel, isClicked, adt }) => {
+  // Auto open adt panel when side panels doesn't show adt panel, and user clicked adt or field.
+  if (!isAdtPanel && isClicked) {
+    adtClicked.value = { open: true, lastClickedAdt: adt.clickedAdt, lastClickedField: adt.clickedField }
+  }
+})
 
 const share = ref<boolean>(false)
 watch(share, val => {
