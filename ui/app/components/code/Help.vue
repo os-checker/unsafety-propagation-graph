@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-y-auto p-10">
+  <div class="overflow-y-auto p-10 h-[80vh]">
     <CodeMarkdown :doc="help" :isWrapped="true" />
   </div>
 </template>
