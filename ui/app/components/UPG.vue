@@ -106,7 +106,7 @@ watch(share, val => {
   router.push({
     query: {
       item: nodeItem.value,
-      view: flowOpts.value.view.join(","),
+      // view: flowOpts.value.view.join(","),
       up: toPanelStr(upPanel.value),
       down: toPanelStr(downPanel.value),
     }
