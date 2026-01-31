@@ -35,6 +35,7 @@ export default defineNuxtConfig({
         'tabler:hexagon-letter-f-filled', // field
         'tabler:hexagon-letter-a-filled', // argument
         'tabler:hexagon-letter-l-filled', // locals
+        'tabler:question-mark', // help
       ],
     }
   },
