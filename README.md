@@ -19,6 +19,9 @@ simply attaches tags as child nodes to the function-level nodes.
 
 ![](https://github.com/user-attachments/assets/e8e41752-e147-4bd0-8de9-f3bceb5c4e19)
 
+The side panels juxtapose tag-derived safety documentation with the original safety
+section, allowing for easier reconciliation.
+
 ### Explore tag specifications and usage frequencies
 
 A dedicated toolbar button opens a global registry of all tag specifications. Users can
@@ -47,6 +50,8 @@ serves as the receiver type of the current method (the caller). This scope encom
 only constructors but also functions that manipulate the ADT’s state through direct field
 access, arguments, or local variables.
 
+![](https://github.com/user-attachments/assets/d14ba2cd-fec0-4663-8c3c-0ae10992c1c3)
+
 ![](https://github.com/user-attachments/assets/b7253f2a-7fd3-43bf-96d3-0900d3c7283c)
 
 ### Streamline auditing in side panels
@@ -54,8 +59,8 @@ access, arguments, or local variables.
 **Side panels** streamline the audit process by providing centralized access to critical
 analysis materials, allowing users to switch contexts effortlessly. The panel view
 consists of:
-*   **ADT Exogenous Functions**: Provides an entry point to inspect exogenous functions.
-Users can trigger specialized popups through the following buttons:
+*   **ADT Exogenous Functions**: Provides a condensed equivalent of the ADT popup's
+interface. Users can trigger specialized popups through the following buttons:
     *   **Constructors**: Lists functions that return the ADT.
     *   **Fields**: Displays functions that access ADT fields, categorized by
     **read** and **write** operations.
@@ -70,9 +75,7 @@ docstrings.
 *   **Source Code**: Provides a full-view display of the function's source code.
 *   **MIR**: Displays the MIR for a function instance.
 
-![](https://github.com/user-attachments/assets/98b11559-f8ae-4d08-8ea1-9d7b6c0af7d3)
-
-![](https://github.com/user-attachments/assets/e8e41752-e147-4bd0-8de9-f3bceb5c4e19)
+![](https://github.com/user-attachments/assets/bc038c70-f1a6-4e1d-b8aa-d8ae158380b5)
 
 ## Build the project
 
