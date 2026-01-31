@@ -92,14 +92,11 @@ const adtOpts = ref<AdtOpts>({});
 
 const adtClicked = ref<AdtClicked>({ open: false })
 watch(() => ({
-  isAdtPanel: upPanel.value === Panel.Adt || downPanel.value === Panel.Adt,
   isClicked: adtClicked.value.clickedAdt || adtClicked.value.clickedField,
   adt: adtClicked.value
-}), ({ isAdtPanel, isClicked, adt }) => {
-  // Auto open adt panel when side panels doesn't show adt panel, and user clicked adt or field.
-  if (!isAdtPanel && isClicked) {
+}), ({ isClicked, adt }) => {
+  if (isClicked)
     adtClicked.value = { open: true, lastClickedAdt: adt.clickedAdt, lastClickedField: adt.clickedField }
-  }
 })
 
 const share = ref<boolean>(false)
