@@ -1,4 +1,6 @@
-use rustc_hir::def_id::DefId as IDefId;
+extern crate rustc_hir_pretty;
+use itertools::Itertools;
+use rustc_hir::{Attribute, attrs::AttributeKind, def_id::DefId as IDefId};
 use rustc_middle::ty::TyCtxt;
 use rustc_public::{
     CrateDef,
@@ -44,14 +46,58 @@ pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
 }
 
 pub fn src<T: CrateDef + Copy>(item: T, tcx: TyCtxt) -> String {
-    let span = if let Some(did) = did(item, tcx).as_local()
-        && let rustc_hir::Node::Item(item) = tcx.hir_node_by_def_id(did)
+    let [attrs, item_src] = if let Some(did) = did(item, tcx).as_local()
+        && let rustc_hir::Node::Item(hir_item) = tcx.hir_node_by_def_id(did)
     {
-        tcx.hir_span_with_body(item.hir_id())
+        let hir_id = hir_item.hir_id();
+        let span = tcx.hir_span_with_body(hir_id);
+        let item_src = src_from_span_internal(span, tcx);
+
+        let attrs = tcx
+            .hir_attrs(hir_id)
+            .iter()
+            .filter_map(|attr| match attr {
+                Attribute::Parsed(parsed) => {
+                    if let AttributeKind::Align { .. }
+                    | AttributeKind::AutomaticallyDerived(_)
+                    | AttributeKind::Deprecation { .. }
+                    | AttributeKind::ExportName { .. }
+                    | AttributeKind::LinkName { .. }
+                    | AttributeKind::LinkSection { .. }
+                    | AttributeKind::Fundamental
+                    | AttributeKind::Link(..)
+                    | AttributeKind::MayDangle(..)
+                    | AttributeKind::Marker(..)
+                    | AttributeKind::Naked(..)
+                    | AttributeKind::NoMangle(..)
+                    | AttributeKind::NonExhaustive(..)
+                    | AttributeKind::Pointee(..)
+                    | AttributeKind::Repr { .. }
+                    | AttributeKind::TargetFeature { .. } = parsed
+                    {
+                        Some(rustc_hir_pretty::attribute_to_string(&tcx, attr))
+                    } else {
+                        None
+                    }
+                }
+                // Doc and rustc attribute can still apear, so we collect tool attribute below.
+                Attribute::Unparsed(_) => None,
+            })
+            .chain(item.all_tool_attrs().iter().map(|a| a.as_str().to_owned()))
+            .join("");
+
+        [attrs, item_src]
     } else {
-        internal(tcx, item.span())
+        // Non-local items are hard to query span with body and full attributes.
+        let item_src = src_from_span(item.span(), tcx);
+        let attrs = item.all_tool_attrs().iter().map(|a| a.as_str()).join("");
+        [attrs, item_src]
     };
-    src_from_span_internal(span, tcx)
+    if attrs.is_empty() {
+        item_src
+    } else {
+        format!("{attrs}{item_src}")
+    }
 }
 
 pub fn src_from_span(span: Span, tcx: TyCtxt) -> String {
