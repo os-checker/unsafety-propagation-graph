@@ -60,6 +60,15 @@
       <!--   <USelect v-model="flowOpts.view" multiple :items="VIEW_TYPES" class="w-50" icon="tabler:braces" /> -->
       <!-- </UTooltip> -->
 
+      <UModal :ui="{ content: 'w-[70vw] max-w-none' }">
+        <UTooltip text="Help">
+          <UButton icon="tabler:question-mark" color="neutral" variant="ghost" />
+        </UTooltip>
+        <template #content>
+          <CodeHelp />
+        </template>
+      </UModal>
+
       <UColorModeButton />
       <!-- <ULink to="https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html" :external="true" target="_blank">Help</ULink> -->
     </div>

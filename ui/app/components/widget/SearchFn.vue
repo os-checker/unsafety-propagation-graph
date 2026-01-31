@@ -10,7 +10,7 @@
       </li>
     </ol>
   </div>
-  <div class="flex justify-between items-center m-2">
+  <div class="min-h-fit flex justify-between items-center m-2">
     <WidgetPaginator :total="fullFns.length" v-model:itemsPerPage="search.itemsPerPage" v-model:page="search.page" />
 
     <div class="flex justify-end items-center gap-2">
