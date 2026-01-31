@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-[75vh] flex">
     <UTree :items="items" :get-key="item => item.id" v-model="active" class="w-50 h-full"
-      expanded-icon="tabler:square-letter-f" />
+      expandedIcon="tabler:square-letter-f" collapsedIcon="tabler:square-letter-f" />
 
     <div class="w-full">
       <WidgetSearchFn :v_fn="adtItem.v_fn" :unsafeFns="unsafeFns" v-model="search" :title="adtItem.desc" />
@@ -142,7 +142,7 @@ const initAdtItem = () => {
   if (item) return { item, selected, selectedIdx }
 }
 
-const search = ref<Search>({ withTags: false, unsafeOnly: true, text: "", page: 1, itemsPerPage: 20 })
+const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
 
 const items = computed<TreeItem[]>(() => {
   const tree: TreeItem[] = []
