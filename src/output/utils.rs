@@ -43,12 +43,23 @@ pub fn span<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
     src_map.span_to_string(span, rustc_span::FileNameDisplayPreference::Remapped)
 }
 
-pub fn src<T: CrateDef>(item: T, tcx: TyCtxt) -> String {
-    src_from_span(item.span(), tcx)
+pub fn src<T: CrateDef + Copy>(item: T, tcx: TyCtxt) -> String {
+    let span = if let Some(did) = did(item, tcx).as_local()
+        && let rustc_hir::Node::Item(item) = tcx.hir_node_by_def_id(did)
+    {
+        tcx.hir_span_with_body(item.hir_id())
+    } else {
+        internal(tcx, item.span())
+    };
+    src_from_span_internal(span, tcx)
 }
 
 pub fn src_from_span(span: Span, tcx: TyCtxt) -> String {
     let span = internal(tcx, span);
+    src_from_span_internal(span, tcx)
+}
+
+fn src_from_span_internal(span: rustc_span::Span, tcx: TyCtxt) -> String {
     let src_map = tcx.sess.source_map();
     src_map.span_to_snippet(span).unwrap_or_default()
 }
