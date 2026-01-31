@@ -1,6 +1,6 @@
 # Web UI for Rust Unsafety Propogation Graph
 
-This is an implementation of [UPG](https://artisan-lab.github.io/RAPx-Book/6.4-unsafe.html).
+This is a visual tool for safety tag analysis.
 
 ## Features
 
