@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-[75vh] flex">
-    <UTree :items="items" :get-key="item => item.id" v-model="active" class="w-50 h-full m-2"
+  <div class="grid grid-cols-[auto_1fr]">
+    <UTree :items="items" :get-key="item => item.id" v-model="active" class="m-2 overflow-y-auto h-0 min-h-full"
       expandedIcon="tabler:square-letter-f" collapsedIcon="tabler:square-letter-f" />
 
     <div class="w-full">
