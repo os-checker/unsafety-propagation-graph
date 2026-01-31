@@ -21,10 +21,10 @@
           <div v-if="item.spec.types.length !== 0">
             <UBadge color="neutral" variant="outline">Types</UBadge> {{ item.spec.types }}
           </div>
-          <div v-if="item.spec.url">
-            <UBadge color="neutral" variant="outline">Ref</UBadge> <span class="w-2" />
-            <ULink external :to="item.spec.url" target="_blank">{{ item.spec.url }}</ULink>
-          </div>
+          <!-- <div v-if="item.spec.url"> -->
+          <!--   <UBadge color="neutral" variant="outline">Ref</UBadge> <span class="w-2" /> -->
+          <!--   <ULink external :to="item.spec.url" target="_blank">{{ item.spec.url }}</ULink> -->
+          <!-- </div> -->
           <div v-if="item.occurence">
             <UBadge color="neutral" variant="outline">Occurence</UBadge> {{ item.occurence }}
             <div class="mt-2" v-if="showFunction">
