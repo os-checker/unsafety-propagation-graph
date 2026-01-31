@@ -27,13 +27,11 @@ a bar chart illustrating usage statistics for each tag.
 
 ![](https://github.com/user-attachments/assets/6794a20f-e0a9-42b3-952e-4c29cf263470)
 
-![](https://github.com/user-attachments/assets/f247945f-0806-42dd-987a-6148f2412a27)
-
 <details>
 
 <summary>The search interface renders tags as badges adjacent to the function name.</summary>
 
-![](https://github.com/user-attachments/assets/4cf9956f-bdbf-4a62-a3aa-c7d7bdb4737b)
+![](https://github.com/user-attachments/assets/f247945f-0806-42dd-987a-6148f2412a27)
 
 ![](https://github.com/user-attachments/assets/4cf9956f-bdbf-4a62-a3aa-c7d7bdb4737b)
 
@@ -49,9 +47,7 @@ serves as the receiver type of the current method (the caller). This scope encom
 only constructors but also functions that manipulate the ADT’s state through direct field
 access, arguments, or local variables.
 
-![](https://github.com/user-attachments/assets/d14ba2cd-fec0-4663-8c3c-0ae10992c1c3)
-
-![](https://github.com/user-attachments/assets/98b11559-f8ae-4d08-8ea1-9d7b6c0af7d3)
+![](https://github.com/user-attachments/assets/b7253f2a-7fd3-43bf-96d3-0900d3c7283c)
 
 ### Streamline auditing in side panels
 
@@ -73,6 +69,8 @@ derived from both tag usage and specifications.
 docstrings.
 *   **Source Code**: Provides a full-view display of the function's source code.
 *   **MIR**: Displays the MIR for a function instance.
+
+![](https://github.com/user-attachments/assets/98b11559-f8ae-4d08-8ea1-9d7b6c0af7d3)
 
 ![](https://github.com/user-attachments/assets/e8e41752-e147-4bd0-8de9-f3bceb5c4e19)
 
