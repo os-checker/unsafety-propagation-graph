@@ -23,12 +23,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Search, SearchFnItem, UnsafeFns } from '~/lib/topbar';
+import { Unsafe, type Search, type SearchFnItem, type UnsafeFns } from '~/lib/topbar';
 
 const props = defineProps<{ v_fn: SearchFnItem[], title: string, unsafeFns: UnsafeFns }>()
 
 function isUnsafe(name: string): boolean {
-  return props.unsafeFns[name] ? true : false
+  switch (props.unsafeFns[name]) {
+    case Unsafe.Caller: case Unsafe.Both: return true;
+    default: return false;
+  }
 }
 
 const search = defineModel<Search>({ required: true })

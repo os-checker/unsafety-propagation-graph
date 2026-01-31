@@ -208,5 +208,5 @@ export type UnsafeFns = {
 }
 
 export enum Unsafe {
-  Caller, Callee, Both,
+  Caller = "Caller", Callee = " Callee", Both = "Both",
 }
