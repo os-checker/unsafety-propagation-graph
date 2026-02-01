@@ -37,7 +37,7 @@ export function adtDoc(adt: DataAdt) {
     const field_doc = field.doc ? `: ${field.doc}` : ""
     doc += `* \`${field.name}\`${field_doc}\n\n`
   }
-  doc += `### Adt Doc:\n\n${adt.doc_adt}`
+  doc += `### ADT Doc:\n\n${adt.doc_adt}`
   return doc
 }
 

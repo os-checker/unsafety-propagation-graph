@@ -12,10 +12,8 @@ exogenous functions.
 For endogenous soundness, safety tags should be correctly discharged at the call site,
 delegated upward, or transformed into new tags associated with the caller.
 
-While tag checking and enforcement are managed by the [safety-tool] linter, the UI
+While tag checking and enforcement are executed by the `safety-tool` linter, the UI
 simply attaches tags as child nodes to the function-level nodes.
-
-[safety-tool]: https://github.com/Artisan-Lab/tag-std/tree/main/safety-tool
 
 ![](https://github.com/user-attachments/assets/e8e41752-e147-4bd0-8de9-f3bceb5c4e19)
 
@@ -77,6 +75,31 @@ docstrings.
 
 ![](https://github.com/user-attachments/assets/bc038c70-f1a6-4e1d-b8aa-d8ae158380b5)
 
+## Explanations
+
+### Start an unsafe function
+
+The interface offers multiple ways to locate or navigate to specific functions:
+* Global Search: Click the search icon in the top bar to access a complete list of
+functions. You can refine the results by filtering for function names or specific tags.
+* Module Navigation: Click the navigation icon to toggle the left sidebar. This displays a
+module-based tree view, where you can browse and select functions within expanded modules.
+* Safety Tag Association: Click the tag icon to view the tag specifications and choose a 
+function the interested tag is annotated on.
+* Quick Start: The tool automatically displays a default unsafe function when you switch
+between crates. Current supported crates are core, alloc, std, and ostd (AsterinasOS).
+
+### Tag-derived documentation
+
+To ensure reusability, tags are designed as templates for backfilling specific variables.
+However, our present annotations in the standard library consists only of tag names
+without arguments, resulting in generic and incomplete documentation. You'll find more
+readable tag-derived output in the ostd crate, as it utilizes full arguments.
+
+This difference stems from the standard library's audit predating the creation of
+safety-tool, leading to its reliance on JSON manipulation, while AsterinasOS was audited
+using attribute syntax and the linter.
+
 ## Build the project
 
 Commands to build the UI project:
@@ -89,7 +112,10 @@ npm install
 npm run generate
 # Start the development server on `http://localhost:3000`:
 npm run dev
-# Locally preview production build:
-npm run preview
 ```
 
+To collect the data, we implemented a custom rustc driver and a cargo wrapper that extract
+API information, such as call graphs and ADT-related functions, into JSON format. The
+safety tags are sourced from the `tag-std` project.
+
+The application is a fully static webpage that fetches data hosted in a GitHub repository.

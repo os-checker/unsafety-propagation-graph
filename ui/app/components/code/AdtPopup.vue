@@ -143,6 +143,7 @@ const initAdtItem = () => {
 }
 
 const search = ref<Search>({ withTags: false, unsafeOnly: false, text: "", page: 1, itemsPerPage: 20 })
+watch(active, () => search.value.page = 1)
 
 const items = computed<TreeItem[]>(() => {
   const tree: TreeItem[] = []
