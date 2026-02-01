@@ -1,6 +1,9 @@
 
 # Auditing Code with the UI Tool
 
+We've built a visualization tool for safety tag analysis, deployed as a fully static
+webpage at <https://unsafety-propagation-graph.vercel.app>.
+
 The tool aids human review of safety tags and unsafe code through visualization, by
 orchestrating necessary audit information.
 
