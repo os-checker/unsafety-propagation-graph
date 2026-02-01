@@ -89,7 +89,12 @@ npm install
 npm run generate
 # Start the development server on `http://localhost:3000`:
 npm run dev
-# Locally preview production build:
-npm run preview
 ```
 
+To collect the data, we implemented a custom rustc driver and a cargo wrapper that extract
+API information, such as call graphs and ADT-related functions, into JSON format. The
+safety tags are sourced from the [tag-std] project.
+
+[tag-std]: https://github.com/safer-rust/tag-std
+
+The application is a fully static webpage that fetches data hosted in a GitHub repository.
