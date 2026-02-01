@@ -12,10 +12,8 @@ exogenous functions.
 For endogenous soundness, safety tags should be correctly discharged at the call site,
 delegated upward, or transformed into new tags associated with the caller.
 
-While tag checking and enforcement are managed by the [safety-tool] linter, the UI
+While tag checking and enforcement are executed by the `safety-tool` linter, the UI
 simply attaches tags as child nodes to the function-level nodes.
-
-[safety-tool]: https://github.com/Artisan-Lab/tag-std/tree/main/safety-tool
 
 ![](https://github.com/user-attachments/assets/e8e41752-e147-4bd0-8de9-f3bceb5c4e19)
 
@@ -118,8 +116,6 @@ npm run dev
 
 To collect the data, we implemented a custom rustc driver and a cargo wrapper that extract
 API information, such as call graphs and ADT-related functions, into JSON format. The
-safety tags are sourced from the [tag-std] project.
-
-[tag-std]: https://github.com/safer-rust/tag-std
+safety tags are sourced from the `tag-std` project.
 
 The application is a fully static webpage that fetches data hosted in a GitHub repository.
