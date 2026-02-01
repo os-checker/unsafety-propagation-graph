@@ -7,6 +7,13 @@
 /* this contains the default theme, these are optional styles */
 @import '@vue-flow/core/dist/theme-default.css';
 
+@theme {
+  /* unsafe text (bg) */
+  --color-unsafe: oklch(0.69 0.25 12.26);
+  /* unsafe node (bg) */
+  --color-unsafe-node: oklch(0.28 0.11 14.75);
+}
+
 /* General codeblock styles. */
 .shiki, .shiki span {
   @apply !leading-tight !text-base;
@@ -128,7 +135,7 @@ html, body {
   };
 }
 .upg-node-unsafe-fn {
-  @apply bg-red-100 dark:bg-red-900/30;
+  @apply bg-red-100 dark:bg-unsafe-node;
 }
 
 .upg-node-tag {
@@ -216,5 +223,5 @@ html, body {
 
 .unsafeFnLink {
   @apply text-rose-700 hover:text-rose-500 font-bold transition-colors
-    dark:hover:text-rose-400 dark:hover:text-rose-300;
+    dark:text-unsafe dark:hover:text-rose-300;
 }
